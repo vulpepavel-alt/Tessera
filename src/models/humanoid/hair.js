@@ -11,11 +11,13 @@
 // Every style uses 3 shades from the hair palette: highlight, base, shadow.
 
 import { VoxelGrid } from '../VoxelGrid.js';
-import { X0, X1, Y0, Y1, Z0, ZF } from './head.js';
+import { X0, X1, Y0, Y1, Z0, ZF, HW, HD } from './head.js';
 
-// Style definitions: cap thickness, fringe (cubes hanging per column, 14
-// columns across the face), side/back bottom rows (0 = jaw, 13 = top of head)
-// and thickness, plus extras.
+const XM = X0 + HW / 2; // the column just right of the head's middle
+
+// Style definitions: cap thickness, fringe (cubes hanging per column, written
+// as 14 columns and stretched to the head's width), side/back bottom rows
+// (0 = jaw, 12 = top of head) and thickness, plus extras.
 const STYLES = {
   cropped_block: { cap: 1, fringe: even(1), side: [10, 1], back: [7, 1] },
   side_sweep: { cap: 2, fringe: [5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1], side: [9, 1], back: [6, 2] },
@@ -86,11 +88,12 @@ export function drawHair(g, r) {
   }
   // fringe (over the forehead)
   if (style.fringe && show('fringe')) {
-    style.fringe.forEach((len, i) => {
+    for (let i = 0; i < HW; i++) {
+      const len = style.fringe[Math.floor((i * style.fringe.length) / HW)];
       const x = X0 + i;
       set(x, Y1 + 1, ZF + 1, c);
       for (let k = 0; k < len; k++) set(x, Y1 - k, ZF + 1, k === len - 1 ? lo : k === 0 && i % 3 === 0 ? hi : c);
-    });
+    }
   }
   // top
   if (style.top && show('top')) drawTop(style.top, set, shade, hi, c, lo);
@@ -117,9 +120,9 @@ function drawTop(kind, set, shade, hi, c, lo) {
   } else if (kind === 'crest') {
     for (let z = Z0 - 1; z <= ZF; z++) {
       const rise = z < Z0 + 2 || z > ZF - 2 ? 1 : 3;
-      for (let x = X0 + 5; x <= X0 + 8; x++) for (let y = Y1 + 1; y <= Y1 + rise; y++) set(x, y, z, y === Y1 + rise ? hi : c);
+      for (let x = XM - 2; x <= XM + 1; x++) for (let y = Y1 + 1; y <= Y1 + rise; y++) set(x, y, z, y === Y1 + rise ? hi : c);
     }
-    for (let y = Y0 + 8; y <= Y1; y++) for (let x = X0 + 5; x <= X0 + 8; x++) set(x, y, Z0 - 1, shade(x, y, Z0 - 1));
+    for (let y = Y0 + 8; y <= Y1; y++) for (let x = XM - 2; x <= XM + 1; x++) set(x, y, Z0 - 1, shade(x, y, Z0 - 1));
   } else if (kind === 'curls') {
     for (let x = X0 - 1; x <= X1 + 1; x++) for (let z = Z0 - 1; z <= ZF - 1; z++) if ((x * 3 + z * 5) % 4 === 0) set(x, top, z, hi);
   } else if (kind === 'sweep') {
@@ -151,10 +154,11 @@ function tails(t, r, hi, c, lo) {
     return g;
   };
   if (t.kind === 'twin') {
-    return [-8, 8].map((x) => ({ grid: piece(2), pivot: [1, length + 1, 1], at: [x, t.from, -2] }));
+    // At the back corners of the head, behind the ears.
+    return [-HW / 2, HW / 2].map((x) => ({ grid: piece(2), pivot: [1, length + 1, 1], at: [x, t.from, -(HD / 2 - 1)] }));
   }
   const w = t.kind === 'braid' ? 2 : 3;
-  return [{ grid: piece(w), pivot: [w / 2, length + 1, w / 2], at: [0, t.from, -8] }];
+  return [{ grid: piece(w), pivot: [w / 2, length + 1, w / 2], at: [0, t.from, -(Math.ceil(HD / 2) + 2)] }];
 }
 
 function hash(x, y, z) {

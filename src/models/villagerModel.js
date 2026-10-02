@@ -9,7 +9,7 @@
 import { VoxelGrid } from './VoxelGrid.js';
 import { buildHumanoid, resolveLook, hideHair, lighter } from './humanoid.js';
 import { resolveEquipment } from '../data/items.js';
-import { applyArmor, addArmorParts } from './equipment/armor.js';
+import { applyArmor, addArmorParts, HAT_W, HAT_D, HAT_PIVOT } from './equipment/armor.js';
 import { buildHeld } from './equipment/weapons.js';
 import { RACES, VILLAGER_RACES } from '../data/races.js';
 import { HAIR_PALETTES, HAIR_STYLES, FACE_PRESETS, FACIAL_HAIR, EYE_PALETTE, CLOTH_DYES, UNDERLAYERS } from '../data/appearance.js';
@@ -59,7 +59,7 @@ export function buildVillager(lookSeed, role) {
     if (race.hair) r.facialHair = 'full_beard';
   }
   if (role === 'villager' && race.hair && rng() < 0.25) {
-    r.hats.push({ grid: strawHatGrid(pick(VILLAGER_LOOKS.hat)), pivot: [9, 0, 8], sink: 2 });
+    r.hats.push({ grid: strawHatGrid(pick(VILLAGER_LOOKS.hat)), pivot: HAT_PIVOT, sink: 2 });
     hideHair(r, 'hat');
   }
 
@@ -83,7 +83,9 @@ function pickWeighted(list, roll) {
 
 // A wide straw hat, in the same small cubes as the body (like every hat).
 function strawHatGrid(color) {
-  const g = new VoxelGrid(18, 6, 16).box(0, 0, 0, 18, 1, 16, color).box(1, 0, 1, 16, 1, 14, lighter(color, 0.08));
-  g.box(3, 1, 3, 12, 4, 10, color).box(3, 1, 3, 12, 1, 10, 0x8a3a3a).box(4, 5, 4, 10, 1, 8, lighter(color, 0.12));
+  const W = HAT_W;
+  const D = HAT_D;
+  const g = new VoxelGrid(W, 6, D).box(0, 0, 0, W, 1, D, color).box(1, 0, 1, W - 2, 1, D - 2, lighter(color, 0.08));
+  g.box(3, 1, 3, W - 6, 4, D - 6, color).box(3, 1, 3, W - 6, 1, D - 6, 0x8a3a3a).box(4, 5, 4, W - 8, 1, D - 8, lighter(color, 0.12));
   return g;
 }

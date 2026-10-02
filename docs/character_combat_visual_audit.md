@@ -128,3 +128,34 @@ feet 5x2x7 (frog flippers 6x2x8, webbed hands 5x3x5).
   (boomerangs, bracelets, fist weapons, greataxes, greatmaces), creature
   models, real sound effects.
 - Only one enemy type exists, so "enemy reactions" are tested on it alone.
+
+## 7. Proportions pass (from a dev-only reference model)
+
+A fan-made model of the classic look (a `.blend` file, used **only as a
+visual / proportion reference**: it lives in the git-ignored `reference/`
+folder, is never shipped, and nothing from it is copied into the game) was
+measured with a small script and shown beside our characters in
+`?lineup&reference&focus=human,frogfolk` (dev only).
+
+What it showed [measured, then scaled to our 32 MV height]:
+
+| Part | Reference (its units) | TESSERA before | TESSERA now (MV) |
+|---|---|---|---|
+| Head | 10 x 8 x 8, as wide as the body | 14 x 14 x 12, 1.4x wider than the torso | 16 x 13 x 13 |
+| Body | one block 10 x 9 x 7-8 | torso 10 x 8 x 8 + pelvis 8 x 3 x 7 | torso 14 x 9 x 11 + belt band 14 x 2 x 11 |
+| Arms | none: hands float beside the belly | 3 x 7 x 3 arms | none (an invisible shoulder joint swings the hand) |
+| Hands | 5 x 4 x 6, sticking out in front | 4 x 4 x 4 | 7 x 6 x 8, 3 MV forward |
+| Legs | hidden under the robe | 4 x 7 x 4 | 6 x 5 x 7 (short) |
+| Feet | 5 x 3 x 8, big | 5 x 2 x 7 | 7 x 4 x 12, higher at the ankle |
+| Eyes | just below the middle of the head | middle | just below the middle (face grid margins 2 / 1) |
+
+Everything that depended on the old sizes now reads them from
+`data/characterSpec.js` (head, hair, headgear, body, armour, hats, goggles,
+robe skirt, shoulder pads, capes, backpacks). The head grid is 4 cubes wider
+each side so big goblin ears fit. The creator camera was pulled back a little.
+
+Checked in: the reference lineup, the full `?lineup` (all classes start to
+legendary, all races, villagers), the creator (front/side, combat preview:
+the fists punch forward without arms) and the running game.
+Not changed: hairstyles keep their designs (the reference's big hair mass is
+one style choice, not a rule); starter characters still have bare feet.

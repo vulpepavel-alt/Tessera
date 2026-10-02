@@ -62,7 +62,7 @@ export function placeHeld(model, drawn) {
       if (shield) {
         // Strapped to the forearm, facing forward.
         h.inner.rotation.y = -Math.PI / 2;
-        h.inner.position.set(-2.5 * VOXEL, 1.5 * VOXEL, 1 * VOXEL);
+        h.inner.position.set(-4 * VOXEL, 1.5 * VOXEL, 1 * VOXEL); // just outside the big fist
       } else {
         h.inner.rotation.x = Math.PI * h.tilt;
       }

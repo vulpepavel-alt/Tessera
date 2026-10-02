@@ -12,6 +12,7 @@
 // The skeleton (all rigid parts, no bending):
 //   root -> body (tilts/rolls) -> pelvis -> torso -> head (+ hair tails)
 //                                        |        -> armL -> handL, armR -> handR
+//                                        |           (arms are invisible joints)
 //                                        -> legL -> footL, legR -> footR
 // Named sockets (socket_head_top, socket_hand_R, ...) hang off these parts.
 
@@ -23,7 +24,7 @@ import { SKIN, HAIR_COLORS_BY_ID, FACE_PRESETS, DEFAULT_APPEARANCE } from '../da
 import { headGrid, X0, Y0, Z0 } from './humanoid/head.js';
 import { drawHair } from './humanoid/hair.js';
 import { drawHeadgear, HIDES_HAIR } from './humanoid/headgear.js';
-import { torsoGrid, pelvisGrid, armGrid, handGrid, legGrid, footGrid, padGrid } from './humanoid/body.js';
+import { torsoGrid, pelvisGrid, handGrid, legGrid, footGrid, padGrid } from './humanoid/body.js';
 import { lighter, darker } from './humanoid/colors.js';
 
 export { lighter, darker };
@@ -76,27 +77,34 @@ export function buildHumanoid(r) {
   body.add(frame);
 
   const broad = r.frame === 'broad' ? 1 : 0;
-  const shoulder = BODY.arm.pivot[0] + broad;
+  const [PW, PH, PD] = BODY.pelvis.size;
+  const [TW, TH, TD] = BODY.torso.size;
+  const [HW, , HD] = BODY.head.size;
   const parts = {};
-  parts.pelvis = attach(frame, pelvisGrid(r), [4, 3, 3.5], mv(0, BODY.pelvis.pivot[1], 0));
-  parts.torso = attach(parts.pelvis, torsoGrid(r), [5 + broad, 8, 4], mv(0, BODY.torso.pivot[1] - BODY.pelvis.pivot[1], 0));
+  parts.pelvis = attach(frame, pelvisGrid(r), [PW / 2, PH, PD / 2], mv(0, BODY.pelvis.pivot[1], 0));
+  parts.torso = attach(parts.pelvis, torsoGrid(r), [TW / 2 + broad, TH, TD / 2], mv(0, BODY.torso.pivot[1] - BODY.pelvis.pivot[1], 0));
 
   // Head (with hair and headgear in the same grid, so they share shading).
   const head = headGrid(r);
   if (r.headgear) drawHeadgear(head, r.headgear);
   const tails = drawHair(head, r);
-  parts.head = attach(parts.torso, head, [X0 + 7, Y0, Z0 + 6], [0, 0, 0]);
+  parts.head = attach(parts.torso, head, [X0 + HW / 2, Y0, Z0 + HD / 2], [0, 0, 0]);
   for (const t of tails) attach(parts.head, t.grid, t.pivot, mv(...t.at));
 
+  const { arm: A, hand: H, leg: L, foot: F } = BODY;
   for (const [side, s] of [['L', -1], ['R', 1]]) {
-    const arm = attach(parts.torso, armGrid(r), [1.5, 7, 1.5], mv(s * shoulder, BODY.arm.pivot[1] - BODY.torso.pivot[1], 0));
+    // The arm is an invisible shoulder joint: rotating it swings the hand.
+    const arm = new THREE.Group();
+    arm.position.copy(mv(s * (A.pivot[0] + broad), A.pivot[1] - BODY.torso.pivot[1], A.pivot[2]));
+    parts.torso.add(arm);
     parts[`arm${side}`] = arm;
     const hand = handGrid(r);
-    parts[`hand${side}`] = attach(arm, hand, [hand.sizeX / 2, hand.sizeY, hand.sizeZ / 2], mv(0, BODY.hand.pivot[1] - BODY.arm.pivot[1], 0));
-    const leg = attach(parts.pelvis, legGrid(r), [2, 6.5, 2], mv(s * BODY.leg.pivot[0], BODY.leg.pivot[1] - BODY.pelvis.pivot[1], 0));
+    parts[`hand${side}`] = attach(arm, hand, [hand.sizeX / 2, hand.sizeY, hand.sizeZ / 2], mv(s * (H.pivot[0] - A.pivot[0]), H.pivot[1] - A.pivot[1], H.pivot[2] - A.pivot[2]));
+    const leg = attach(parts.pelvis, legGrid(r), [L.size[0] / 2, L.size[1], L.size[2] / 2], mv(s * L.pivot[0], L.pivot[1] - BODY.pelvis.pivot[1], L.pivot[2]));
     parts[`leg${side}`] = leg;
+    // Feet: the ankle sits above the back part, so the boot reaches forward.
     const foot = footGrid(r);
-    parts[`foot${side}`] = attach(leg, foot, [foot.sizeX / 2, 2, foot.sizeZ / 2 - 0.5], mv(0, BODY.foot.pivot[1] - BODY.leg.pivot[1], BODY.foot.pivot[2]));
+    parts[`foot${side}`] = attach(leg, foot, [foot.sizeX / 2, F.size[1], foot.sizeZ / 2 - F.pivot[2]], mv(0, F.pivot[1] - L.pivot[1], 0));
   }
 
   // Sockets: empty attachment points named as in the spec.
@@ -112,7 +120,7 @@ export function buildHumanoid(r) {
 
   // Shoulder pads (late armour), race tails, hats.
   if (r.pads) {
-    for (const s of ['L', 'R']) attach(sockets[`socket_shoulder_${s}`], padGrid(r.pads.color, r.pads.trim, r.pads.big), r.pads.big ? [3.5, 1, 3.5] : [2.5, 1, 2.5], [0, 0, 0]);
+    for (const s of ['L', 'R']) attach(sockets[`socket_shoulder_${s}`], padGrid(r.pads.color, r.pads.trim, r.pads.big), r.pads.big ? [4, 1, 5] : [3, 1, 4], [0, 0, 0]);
   }
   if (r.features.tail) {
     const tail = attach(sockets.socket_waist_back, tailGrid(r), [2.5, 2.5, 0], [0, 0, 0]);

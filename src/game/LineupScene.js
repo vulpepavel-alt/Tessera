@@ -12,6 +12,7 @@ import { buildCreature } from '../models/creatureModels.js';
 import { CLASSES } from '../data/classes.js';
 import { RACES, RACE_ORDER } from '../data/races.js';
 import { DEFAULT_APPEARANCE } from '../data/appearance.js';
+import { loadReference } from './referenceModel.js';
 import { el } from '../ui/dom.js';
 import { ptext, logo } from '../ui/menuKit.js';
 import '../ui/styles/menu.css';
@@ -81,17 +82,10 @@ export class LineupScene {
     const views = [['FRONT', 0], ['BACK', Math.PI], ['LEFT', -Math.PI / 2], ['RIGHT', Math.PI / 2], ['3/4 FRONT', 0.6], ['3/4 BACK', Math.PI - 0.6]];
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
     // ?lineup&focus=human,frogfolk : only those races, from every side, for comparisons.
-    const focus = new URLSearchParams(window.location.search).get('focus');
-    if (focus) {
-      focus.split(',').forEach((token, r) => {
-        const [id, variant] = token.split(':'); // e.g. frogfolk:side
-        const look = { ...DEFAULT_APPEARANCE, race: id, skin: RACES[id]?.skins[0], frame: RACES[id]?.frame ?? 'straight', facialHair: RACES[id]?.facialHair ?? 'none', raceVariant: variant };
-        this.heading(`${RACES[id]?.name.toUpperCase() ?? id}${variant ? ` - ${variant.toUpperCase()}` : ''}`, r);
-        views.forEach(([name, yaw], i) => this.place(buildCharacter('bulwark', look).root, i, r, yaw, name));
-      });
-      this.rows = focus.split(',').length;
-      this.cols = 6;
-      this.finishSetup();
+    const params = new URLSearchParams(window.location.search);
+    const focus = params.get('focus');
+    if (focus || params.has('reference')) {
+      this.buildFocus((focus ?? 'human').split(','), views, params.has('reference'));
       return;
     }
     this.heading('BASE CHARACTER - NOTHING EQUIPPED', row);
@@ -118,6 +112,28 @@ export class LineupScene {
     roles.forEach(([role, seed], i) => this.place(buildVillager(seed, role).root, i, row, 0.35, role.toUpperCase()));
     this.place(buildCreature('bramblehog').root, roles.length, row, 0.9, 'BRAMBLEHOG');
     this.rows = row + 1;
+    this.finishSetup();
+  }
+
+  // ?lineup&focus=human,frogfolk:side : chosen races from every side.
+  // With &reference, the dev-only reference model gets the first row.
+  async buildFocus(tokens, views, withReference) {
+    let r = 0;
+    if (withReference) {
+      const make = await loadReference();
+      this.heading(make ? 'REFERENCE (DEV ONLY, NOT IN THE GAME)' : 'REFERENCE FILE MISSING (reference/)', r);
+      if (make) views.forEach(([name, yaw], i) => this.place(make().root, i, r, yaw, name));
+      r++;
+    }
+    tokens.forEach((token) => {
+      const [id, variant] = token.split(':'); // e.g. frogfolk:side
+      const look = { ...DEFAULT_APPEARANCE, race: id, skin: RACES[id]?.skins[0], frame: RACES[id]?.frame ?? 'straight', facialHair: RACES[id]?.facialHair ?? 'none', raceVariant: variant };
+      this.heading(`${RACES[id]?.name.toUpperCase() ?? id}${variant ? ` - ${variant.toUpperCase()}` : ''}`, r);
+      views.forEach(([name, yaw], i) => this.place(buildCharacter('bulwark', look).root, i, r, yaw, name));
+      r++;
+    });
+    this.rows = r;
+    this.cols = 6;
     this.finishSetup();
   }
 

@@ -17,7 +17,7 @@ import { settings } from '../save/Settings.js';
 const ORBIT_RADIUS = 64;
 const ORBIT_HEIGHT = 30;   // camera height above the ground (above the tallest trees)
 const ORBIT_SPEED = 0.025; // radians per second
-const STAGE_VIEW = new THREE.Vector3(0, 1.95, 3.6); // camera offset in front of the pedestal (whole body)
+const STAGE_VIEW = new THREE.Vector3(0, 1.9, 4.3);  // camera offset in front of the pedestal (whole body)
 const FACE_VIEW = new THREE.Vector3(0, 2.45, 1.9); // camera offset when zoomed in on the face
 const PEDESTAL = { width: 3.2, height: 0.9, depth: 2.4 };
 
@@ -174,7 +174,7 @@ export class MenuScene {
       const offset = view.applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.stageYaw);
       camera.position.copy(this.stagePos).add(offset);
       // Look at the middle of the body, or at the face when zoomed in.
-      camera.lookAt(this.stagePos.x, this.stagePos.y + 1.7 + z * 0.6, this.stagePos.z);
+      camera.lookAt(this.stagePos.x, this.stagePos.y + 1.55 + z * 0.75, this.stagePos.z);
       // Lights follow the camera: key from the front-left above, rim from behind.
       const key = new THREE.Vector3(-2, 3, 3).applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.stageYaw);
       this.keyLight.position.copy(this.stagePos).add(key);

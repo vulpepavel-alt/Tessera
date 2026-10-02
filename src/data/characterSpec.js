@@ -14,20 +14,22 @@ export const SCHEMA_VERSION = 2; // appearance data version (saves are migrated)
 
 // Each part: size [w, h, d] in MV, and its joint ("pivot") position.
 // Pivots are given in body space (MV, origin between the feet).
-// TESSERA tweaks, tested in game (docs/character_combat_visual_audit.md):
-// hands 4 MV (spec 3) and feet 5 x 2 x 7 (spec 4 x 2 x 6) so they read from the
-// gameplay camera; torso 8 deep (spec 6) and pelvis 7 deep (spec 6) so the
-// profile doesn't look like a big head on a thin stick.
+//
+// Proportions follow the classic voxel-RPG look, measured from a reference
+// model (docs/character_combat_visual_audit.md, section 7) and scaled to our
+// 32 MV height: a head as wide as the body (16 x 13 x 13), a chunky box of a
+// body (torso 14 x 9 x 11), short legs, big boots, and big block hands that
+// float beside the belly with no visible arms (the arm is only a joint).
 export const BODY = {
   height: 32,
-  head: { size: [14, 14, 12], pivot: [0, 18, 0] },        // bottom-centre (neck)
-  torso: { size: [10, 8, 8], pivot: [0, 18, 0] },         // top-centre (shoulder line)
-  pelvis: { size: [8, 3, 7], pivot: [0, 10, 0] },         // top-centre
-  arm: { size: [3, 7, 3], pivot: [6.5, 17, 0] },          // shoulder centre (x is mirrored)
-  hand: { size: [4, 4, 4], pivot: [6.5, 10, 0] },         // wrist centre
-  leg: { size: [4, 7, 4], pivot: [2.25, 8.5, 0] },        // hip centre (legs go up into the pelvis)
-  foot: { size: [5, 2, 7], pivot: [2.25, 2, -0.5] },      // ankle centre; the foot reaches forward
-  bodyCenter: 12,                                         // where the body tilts and rolls
+  head: { size: [16, 13, 13], pivot: [0, 19, 0] },        // bottom-centre (neck)
+  torso: { size: [14, 9, 11], pivot: [0, 19, 0] },        // top-centre (shoulder line)
+  pelvis: { size: [14, 2, 11], pivot: [0, 10, 0] },       // top-centre
+  arm: { size: [0, 0, 0], pivot: [8, 18, 0] },            // shoulder joint only (no visible arm)
+  hand: { size: [7, 6, 8], pivot: [9, 17, 3] },           // top of the hand; beside the belly, sticking out in front
+  leg: { size: [6, 5, 7], pivot: [4, 8.5, 0] },           // hip centre (the top goes up into the pelvis)
+  foot: { size: [7, 4, 12], pivot: [4, 4, 2] },           // ankle; z = how far the boot reaches forward of it
+  bodyCenter: 14,                                         // where the body tilts and rolls
 };
 
 // Up to three subtle torso silhouettes. They keep every joint and socket.
@@ -39,20 +41,20 @@ export const FRAMES = {
 
 // Named attachment points (sockets), relative to their parent part's joint, in MV.
 export const SOCKETS = {
-  socket_head_top: { parent: 'head', at: [0, 14, 0] },
-  socket_face: { parent: 'head', at: [0, 7, 6] },
-  socket_ear_L: { parent: 'head', at: [-7, 6, 0] },
-  socket_ear_R: { parent: 'head', at: [7, 6, 0] },
+  socket_head_top: { parent: 'head', at: [0, 13, 0] },
+  socket_face: { parent: 'head', at: [0, 6.5, 6.5] },
+  socket_ear_L: { parent: 'head', at: [-8, 6.5, 0] },
+  socket_ear_R: { parent: 'head', at: [8, 6.5, 0] },
   socket_neck: { parent: 'torso', at: [0, 0, 0] },
-  socket_chest: { parent: 'torso', at: [0, -4, 4] },
-  socket_back: { parent: 'torso', at: [0, -4, -4] },
-  socket_shoulder_L: { parent: 'torso', at: [-6.5, -1, 0] },
-  socket_shoulder_R: { parent: 'torso', at: [6.5, -1, 0] },
-  socket_hand_L: { parent: 'handL', at: [0, -2, 0] },
-  socket_hand_R: { parent: 'handR', at: [0, -2, 0] },
-  socket_hip_L: { parent: 'pelvis', at: [-4, -1.5, 0] },
-  socket_hip_R: { parent: 'pelvis', at: [4, -1.5, 0] },
-  socket_waist_back: { parent: 'pelvis', at: [0, -1.5, -3.5] },
+  socket_chest: { parent: 'torso', at: [0, -4.5, 5.5] },
+  socket_back: { parent: 'torso', at: [0, -4.5, -5.5] },
+  socket_shoulder_L: { parent: 'torso', at: [-7.5, -1, 0] },
+  socket_shoulder_R: { parent: 'torso', at: [7.5, -1, 0] },
+  socket_hand_L: { parent: 'handL', at: [0, -3, 0] },
+  socket_hand_R: { parent: 'handR', at: [0, -3, 0] },
+  socket_hip_L: { parent: 'pelvis', at: [-7, -1, 0] },
+  socket_hip_R: { parent: 'pelvis', at: [7, -1, 0] },
+  socket_waist_back: { parent: 'pelvis', at: [0, -1, -5.5] },
   socket_foot_L: { parent: 'footL', at: [0, 0, 0] },
   socket_foot_R: { parent: 'footR', at: [0, 0, 0] },
 };
@@ -61,15 +63,17 @@ export const SOCKETS = {
 export const BODY_REGIONS = ['head', 'torso', 'pelvis', 'arms', 'hands', 'legs', 'feet'];
 export const HAIR_ZONES = ['cap', 'fringe', 'side_l', 'side_r', 'back', 'top', 'tail'];
 
-// The head grid: the 14 x 14 x 12 head plus room around it - 2 each side and
-// 4 behind for hair, 7 above for crests and tall ears, 3 below for beards,
-// 6 in front for snouts and muzzles. The head itself fills x 2-15, y 3-16, z 4-15.
-export const HEAD_GRID = { w: 18, h: 24, d: 22, x0: 2, y0: 3, z0: 4 };
+// The head grid: the 16 x 13 x 13 head plus room around it - 4 each side for
+// hair and big goblin ears, 4 behind for hair, 7 above for crests and tall
+// ears, 3 below for beards, 6 in front for snouts and muzzles.
+// The head itself fills x 4-19, y 3-15, z 4-16.
+export const HEAD_GRID = { w: 24, h: 23, d: 23, x0: 4, y0: 3, z0: 4 };
 
-// The face grid: 12 x 10 cells centred on the 14 x 14 front of the head
-// (1 MV side margins, 2 MV forehead/chin margins). FG(0,0) is the lowest
-// cell on the -X side; the face is symmetric, so only the order matters.
-export const FACE_GRID = { w: 12, h: 10, marginX: 1, marginY: 2 };
+// The face grid: 12 x 10 cells on the front of the head. FG(0,0) is the
+// lowest cell on the -X side; the face is symmetric, so only the order matters.
+// On the 16-wide, 13-tall head: 2 MV side margins, 1 MV chin margin, so the
+// eyes sit just below the middle of the head (as on the reference).
+export const FACE_GRID = { w: 12, h: 10, marginX: 2, marginY: 1 };
 
 // NPCs may vary in height, uniformly, within these limits.
 export const NPC_SCALE = [0.9, 1.1];

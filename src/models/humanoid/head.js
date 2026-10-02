@@ -1,4 +1,4 @@
-// The head: a 14 x 14 x 12 block with a few corner cubes taken off, the face
+// The head: a 16 x 13 x 13 block (BODY.head) with its edges stepped, the face
 // drawn on a 12 x 10 grid (spec section 5), the race's features (ears,
 // muzzle, snout, tusks, frog eyes, crest), skin overlays and facial hair.
 // Hair and headgear are added on top by hair.js and headgear.js.
@@ -7,15 +7,16 @@
 // ambient occlusion shades the creases between face, features and hair.
 
 import { VoxelGrid } from '../VoxelGrid.js';
-import { HEAD_GRID, FACE_GRID } from '../../data/characterSpec.js';
+import { BODY, HEAD_GRID, FACE_GRID } from '../../data/characterSpec.js';
 import { lighter, darker } from './colors.js';
 
+export const [HW, HH, HD] = BODY.head.size; // head width, height, depth (MV)
 export const X0 = HEAD_GRID.x0;          // head: x X0..X1
-export const X1 = X0 + 13;
+export const X1 = X0 + HW - 1;
 export const Y0 = HEAD_GRID.y0;          // head: y Y0..Y1
-export const Y1 = Y0 + 13;
+export const Y1 = Y0 + HH - 1;
 export const Z0 = HEAD_GRID.z0;          // head: z Z0..ZF (ZF = the face)
-export const ZF = Z0 + 11;
+export const ZF = Z0 + HD - 1;
 
 const DARK = 0x16121c;
 const WHITE = 0xffffff;
@@ -29,8 +30,8 @@ const fgy = (fy) => Y0 + FACE_GRID.marginY + fy;
 export function headGrid(r) {
   const g = new VoxelGrid(HEAD_GRID.w, HEAD_GRID.h, HEAD_GRID.d);
   const skin = r.skin;
-  g.box(X0, Y0, Z0, 14, 14, 12, skin.base);
-  g.box(X0, Y0, Z0, 14, 1, 12, skin.shadow); // shade under the jaw
+  g.box(X0, Y0, Z0, HW, HH, HD, skin.base);
+  g.box(X0, Y0, Z0, HW, 1, HD, skin.shadow); // shade under the jaw
   // Silhouette: one cube off every edge of the block (except the chin's front
   // edge), so the head reads as a rounded, stepped mass instead of a crate.
   // (A TESSERA change from the spec, which only cut the corners; see docs.)
@@ -105,7 +106,8 @@ export function headGrid(r) {
   if (feat.crest) {
     for (let z = Z0 + 1; z <= ZF - 1; z++) {
       const h = 1 + ((z - Z0) % 3 === 0 ? 2 : 1);
-      for (let y = Y1 + 1; y <= Y1 + h; y++) g.set(X0 + 6, y, z, skin.shadow).set(X0 + 7, y, z, y === Y1 + h ? skin.highlight : skin.shadow);
+      const xm = X0 + HW / 2;
+      for (let y = Y1 + 1; y <= Y1 + h; y++) g.set(xm - 1, y, z, skin.shadow).set(xm, y, z, y === Y1 + h ? skin.highlight : skin.shadow);
     }
   }
 
@@ -155,7 +157,7 @@ function drawOverlay(face, o, skin) {
 }
 
 function drawEars(g, kind, skin, r) {
-  const zc = Z0 + 5;
+  const zc = Z0 + Math.floor(HD / 2) - 1; // ears halfway back, at eye level
   const inner = mix(skin.base, PINK, 0.35);
   for (const [x, out] of [[X0 - 1, -1], [X1 + 1, 1]]) {
     switch (kind) {
@@ -180,7 +182,7 @@ function drawEars(g, kind, skin, r) {
     // Tall pointed ears on top, standing clear of any hair.
     const tip = r.features.earTip ?? skin.deepShadow;
     const widths = [4, 4, 3, 3, 2, 1];
-    for (const ex of [X0 + 1, X0 + 9]) {
+    for (const ex of [X0 + 1, X1 - 4]) {
       widths.forEach((w, k) => {
         const x = ex + Math.floor((4 - w) / 2);
         g.box(x, Y1 + 1 + k, Z0 + 4, w, 1, 3, k >= 4 ? tip : skin.base);
@@ -258,7 +260,7 @@ function drawFrogEyes(g, r, variant = 'dome') {
       g.box(out < 0 ? x : x + 2, Y1 - 4, ZF - 4, 1, 3, 3, WHITE).set(out < 0 ? x : x + 2, Y1 - 3, ZF - 2, pupil);
     }
   } else if (variant === 'ridge') {
-    g.box(X0 + 1, Y1, ZF - 3, 12, 2, 4, s.base).box(X0 + 1, Y1 + 1, ZF - 3, 12, 1, 4, s.highlight);
+    g.box(X0 + 1, Y1, ZF - 3, HW - 2, 2, 4, s.base).box(X0 + 1, Y1 + 1, ZF - 3, HW - 2, 1, 4, s.highlight);
     for (const x of [X0 + 2, X1 - 5]) eye(x, Y1 - 2, ZF + 1, 4, 3);
   } else {
     for (const x of [X0, X1 - 4]) {

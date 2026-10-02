@@ -2,3 +2,6 @@ node_modules/
 dist/
 .DS_Store
 *.log
+
+# Visual references that are not ours (fan art, never shipped)
+reference/
