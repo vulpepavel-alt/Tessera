@@ -94,29 +94,28 @@ export const EYE_PALETTE = [
 ];
 
 // ---- Faces (spec 5.4) ------------------------------------------------------
-// eyeShape: lashed 2x3 with a dark lash row on top (the classic look) | square 2x2 |
-//   tall 2x3 | soft-corner 2x3, one corner off | sleepy 2x2 under a lid
+// eyeShape: lashed (the classic 3 x 4 eye with a dark lash row) | sleepy (the
+//   same eye with a half-closed lid)
 // eyeSpacing: 'close' | 'standard' | 'wide' (2, 4 or 6 empty cells; the 12-cell
 //   grid can only keep eyes symmetric with even gaps)
-// pupilSize: '1x1' | '1x2'   brow: none | short | flat | angled
+// pupilSize: kept for old saves (unused)   brow: none | short | flat | angled
 // nose: none | dot | short    mouth: none | neutral | smile | frown | open
 // earSize: none | small | standard (races may replace ears)
 const face = (eyeShape, eyeSpacing, pupilSize, brow, nose, mouth, earSize) => ({ eyeShape, eyeSpacing, pupilSize, brow, nose, mouth, earSize });
+// Six classic faces: the same big lashed eyes (readable from the gameplay
+// camera), with only the brows, the spacing and a small mouth changing.
 export const FACE_PRESETS = {
-  face_01: face('lashed', 'standard', '1x1', 'none', 'none', 'none', 'standard'),   // the classic: big lashed eyes, nothing else
-  face_13: face('lashed', 'wide', '1x1', 'none', 'none', 'neutral', 'standard'),
-  face_14: face('lashed', 'close', '1x1', 'flat', 'none', 'none', 'standard'),
-  face_02: face('tall', 'standard', '1x1', 'flat', 'dot', 'neutral', 'standard'),
-  face_03: face('square', 'standard', '1x1', 'none', 'none', 'smile', 'small'),
-  face_04: face('soft-corner', 'standard', '1x2', 'short', 'dot', 'smile', 'standard'),
-  face_05: face('sleepy', 'standard', '1x1', 'flat', 'none', 'neutral', 'standard'),
-  face_06: face('tall', 'wide', '1x2', 'angled', 'short', 'frown', 'standard'),
-  face_07: face('square', 'close', '1x1', 'short', 'dot', 'open', 'small'),
-  face_08: face('soft-corner', 'wide', '1x2', 'none', 'none', 'open', 'standard'),
-  face_09: face('tall', 'close', '1x2', 'flat', 'short', 'smile', 'small'),
-  face_10: face('sleepy', 'wide', '1x1', 'angled', 'dot', 'smile', 'none'),
-  face_11: face('square', 'wide', '1x2', 'angled', 'none', 'neutral', 'standard'),
-  face_12: face('soft-corner', 'close', '1x1', 'flat', 'short', 'frown', 'small'),
+  face_01: face('lashed', 'standard', '1x1', 'none', 'none', 'none', 'standard'),   // calm: eyes only
+  face_02: face('lashed', 'standard', '1x1', 'flat', 'none', 'neutral', 'standard'), // serious
+  face_03: face('lashed', 'wide', '1x1', 'none', 'none', 'smile', 'standard'),     // cheerful
+  face_04: face('lashed', 'close', '1x1', 'angled', 'none', 'none', 'standard'),   // fierce
+  face_05: face('sleepy', 'standard', '1x1', 'flat', 'none', 'neutral', 'standard'), // sleepy
+  face_06: face('lashed', 'standard', '1x1', 'short', 'none', 'open', 'standard'),  // surprised
+};
+// Older saves used more faces; each maps to the closest classic one.
+export const FACE_ALIASES = {
+  face_07: 'face_06', face_08: 'face_06', face_09: 'face_03', face_10: 'face_05',
+  face_11: 'face_04', face_12: 'face_02', face_13: 'face_03', face_14: 'face_02',
 };
 
 // ---- Hair styles (spec 6.3), facial hair and overlays ---------------------

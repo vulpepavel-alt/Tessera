@@ -1,7 +1,8 @@
 // Character creation (spec section 13), ONE clean screen like classic voxel
 // adventures: your hero stands on the stone pedestal in the world
 // (game/MenuScene.js); a small panel at the bottom left has the essentials
-// (race, class, face, haircut, skin and hair colours) and the seed, name and
+// (race, gender, class, face, haircut, hair colour, like the classic
+// creator) and the seed, name and
 // START sit at the bottom middle. "MORE OPTIONS" opens every detail, one tab
 // at a time:
 //   BODY      race, body frame, skin tone
@@ -103,7 +104,7 @@ export class CharacterCreator {
     } else if (this.tab === 'FACE') {
       rows = [
         race.variants ? chooser('EYES', race.variants, a.raceVariant ?? race.variants[0], (v) => this.set('raceVariant', v), (v) => v.toUpperCase()) : null,
-        chooser('FACE', Object.keys(FACE_PRESETS), a.face, (v) => this.set('face', v), (v) => words(v)),
+        chooser('FACE', Object.keys(FACE_PRESETS), a.face, (v) => this.set('face', v), (v) => `FACE ${Number(v.slice(5))}`),
         el('div', { class: 'panel-sub' }, ptext('EYE COLOUR')),
         swatches(EYE_PALETTE.map((c, i) => [c, c, `Eye colour ${i + 1}`]), a.eyeColor, (v) => this.set('eyeColor', v)),
         el('div', { class: 'panel-sub' }, ptext('MARKS')),
@@ -153,11 +154,8 @@ export class CharacterCreator {
       chooser('GENDER', GENDERS, a.gender ?? 'male', (v) => this.setGender(v), (v) => v.toUpperCase()),
       chooser('CLASS', CLASS_ORDER, this.classId, (v) => { this.classId = v; this.render(); }, (v) => CLASSES[v].name),
       ptext(`${c.role} - starts with a ${weapon.name}`.toUpperCase(), { scale: 1, color: '#b8c0d0' }),
-      race.variants ? chooser('EYES', race.variants, a.raceVariant ?? race.variants[0], (v) => this.set('raceVariant', v), (v) => v.toUpperCase()) : null,
-      chooser('FACE', Object.keys(FACE_PRESETS), a.face, (v) => this.set('face', v), (v) => words(v)),
-      race.hair ? chooser('HAIRCUT', HAIR_BY_GENDER[a.gender ?? 'male'], a.hairStyle, (v) => this.set('hairStyle', v), (v) => words(v)) : null,
-      el('div', { class: 'panel-sub' }, ptext('SKIN', { scale: 1.5 })),
-      swatches(race.skins.map((id) => [id, SKIN[id].base, SKIN[id].displayName]), a.skin, (v) => this.set('skin', v)),
+      chooser('FACE', Object.keys(FACE_PRESETS), FACE_PRESETS[a.face] ? a.face : 'face_01', (v) => this.set('face', v), (v) => `FACE ${Number(v.slice(5))}`),
+      race.hair ? chooser('HAIRCUT', HAIR_BY_GENDER[a.gender ?? 'male'], a.hairStyle, (v) => this.set('hairStyle', v), (v) => `HAIRCUT ${HAIR_BY_GENDER[a.gender ?? 'male'].indexOf(v) + 1}`) : null,
       race.hair ? el('div', { class: 'panel-sub' }, ptext('HAIR COLOR', { scale: 1.5 })) : null,
       race.hair ? swatches(HAIR_PALETTES.map((p) => [p.id, p.base, p.displayName]), a.hairColor, (v) => this.set('hairColor', v)) : null,
       el('div', { class: 'panel-actions' },

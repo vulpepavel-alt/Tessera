@@ -19,7 +19,7 @@ export const Z0 = HEAD_GRID.z0;          // head: z Z0..ZF (ZF = the face)
 export const ZF = Z0 + HD - 1;
 
 const DARK = 0x16121c;
-const WHITE = 0xffffff;
+const WHITE = 0xffffff; // frog eyes
 const PINK = 0xff8f9a;
 const PAINT = [0x2f6cf0, 0xffc83a]; // TESSERA blue and yellow face paint
 
@@ -55,7 +55,8 @@ export function headGrid(r) {
       const outer = inner + side; // the outer column is further from the middle
       drawEye(face, f, inner, outer, r, side);
     }
-    if (feat.sunken) for (const x of [leftInner - 2, leftInner + 1, 11 - leftInner - 1, 11 - leftInner + 2]) face(x, 5, skin.deepShadow);
+    // Undead: dark hollows under the eyes.
+    if (feat.sunken) for (let k = 0; k < 3; k++) face(leftInner - k, 2, skin.deepShadow).set(fgx(11 - leftInner + k), fgy(2), ZF, skin.deepShadow);
   }
 
   // ---- Brows (hair colour, or their own colour) ----
@@ -121,37 +122,24 @@ export function headGrid(r) {
   return g;
 }
 
+// The classic voxel-hero eye: three cubes wide and four tall, its bottom a
+// third of the way up the head - a dark lash row on top, a bright iris with a
+// darker pupil on the inner side, and a lighter bottom row. "sleepy" eyes have
+// a half-closed lid instead of the top iris row.
 function drawEye(face, f, inner, outer, r, side) {
   const iris = r.eyeColor;
   const pupil = r.features.glowEyes ? lighter(iris, 0.6) : darker(iris, 0.7);
-  const cols = [inner, outer];
-  // Big eyes, sitting a little below the middle of the head, so they read at
-  // gameplay distance: tall = 2x4, square = 2x3, sleepy = 2x2 under a lid.
-  if (f.eyeShape === 'lashed') {
-    // The classic voxel-hero eye: a dark lash row on top, a bright iris with a
-    // darker pupil on the inner side, and a lighter bottom row.
-    // Three cubes wide and four tall, its bottom a third of the way up the head.
-    for (const x of [inner, outer, outer + side]) {
-      face(x, 6, DARK);
-      face(x, 5, iris);
-      face(x, 4, iris);
-      face(x, 3, lighter(iris, 0.35));
-    }
-    face(inner, 5, pupil);
-    face(inner, 4, pupil);
-    if (r.gender === 'female') face(outer + side * 2, 7, DARK).set(fgx(outer + side), fgy(7), ZF, DARK); // longer lashes, flicked out
-    if (r.features.glowEyes) face(outer, 5, lighter(iris, 0.8));
-    return;
+  const sleepy = f.eyeShape === 'sleepy';
+  for (const x of [inner, outer, outer + side]) {
+    face(x, 6, DARK);
+    face(x, 5, sleepy ? r.skin.shadow : iris);
+    face(x, 4, iris);
+    face(x, 3, lighter(iris, 0.35));
   }
-  const rows = { square: [4, 5, 6], sleepy: [4, 5] }[f.eyeShape] ?? [4, 5, 6, 7];
-  for (const x of cols) for (const y of rows) face(x, y, iris);
-  if (f.eyeShape === 'soft-corner') face(outer, 7, r.skin.base);
-  // A dark pupil on the inner side, a white glint at the top outside.
+  if (!sleepy) face(inner, 5, pupil);
   face(inner, 4, pupil);
-  face(inner, 5, pupil);
-  if (f.pupilSize === '1x2') face(outer, 4, pupil);
-  face(outer, rows[rows.length - 1] - (f.eyeShape === 'soft-corner' ? 1 : 0), r.features.glowEyes ? lighter(iris, 0.8) : WHITE);
-  if (f.eyeShape === 'sleepy') for (const x of cols) face(x, 6, r.skin.shadow); // the lid
+  if (r.gender === 'female') face(outer + side * 2, 7, DARK).set(fgx(outer + side), fgy(7), ZF, DARK); // longer lashes, flicked out
+  if (r.features.glowEyes) face(outer, 4, lighter(iris, 0.8));
 }
 
 function drawOverlay(face, o, skin) {

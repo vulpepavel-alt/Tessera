@@ -15,20 +15,21 @@ export const SCHEMA_VERSION = 2; // appearance data version (saves are migrated)
 // Each part: size [w, h, d] in MV, and its joint ("pivot") position.
 // Pivots are given in body space (MV, origin between the feet).
 //
-// Proportions follow the classic voxel-RPG look, measured from a reference
-// model (docs/character_combat_visual_audit.md, section 7) and scaled to our
-// 32 MV height: a head as wide as the body (16 x 13 x 13), a chunky box of a
-// body (torso 14 x 9 x 11), short legs, big boots, and big block hands that
-// float beside the belly with no visible arms (the arm is only a joint).
+// Proportions follow the classic voxel-RPG look, measured from the alpha's
+// character creator (front view, sole to hair top): head with hair ~50% of the
+// height, a robe-like body ~40% reaching down to the feet, small feet ~10%,
+// big block hands right under the head and no visible arms (the arm is only a
+// joint). Scaled to our 32 MV height: head 16 x 13 x 13 (as wide as the
+// body), torso 14 x 9 x 11, short legs, small boots 6 x 3 x 8, hands 6 x 6 x 7.
 export const BODY = {
   height: 32,
   head: { size: [16, 13, 13], pivot: [0, 19, 0] },        // bottom-centre (neck)
   torso: { size: [14, 9, 11], pivot: [0, 19, 0] },        // top-centre (shoulder line)
   pelvis: { size: [14, 2, 11], pivot: [0, 10, 0] },       // top-centre
   arm: { size: [0, 0, 0], pivot: [8, 18, 0] },            // shoulder joint only (no visible arm)
-  hand: { size: [7, 6, 8], pivot: [9, 17, 3] },           // top of the hand; beside the belly, sticking out in front
-  leg: { size: [6, 5, 7], pivot: [4, 8.5, 0] },           // hip centre (the top goes up into the pelvis)
-  foot: { size: [7, 4, 12], pivot: [4, 4, 2] },           // ankle; z = how far the boot reaches forward of it
+  hand: { size: [6, 6, 7], pivot: [9, 17, 3] },           // top of the hand; beside the chest, sticking out in front
+  leg: { size: [6, 5, 7], pivot: [4, 8, 0] },             // hip (top of the leg, under the pelvis)
+  foot: { size: [6, 3, 8], pivot: [4, 3, 1] },            // ankle; z = how far the boot reaches forward of it
   bodyCenter: 14,                                         // where the body tilts and rolls
 };
 

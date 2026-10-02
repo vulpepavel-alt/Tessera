@@ -20,7 +20,7 @@ import * as THREE from 'three';
 import { VoxelGrid, voxelModelMaterial } from './VoxelGrid.js';
 import { MV, BODY, SOCKETS, HEAD_GRID } from '../data/characterSpec.js';
 import { RACES } from '../data/races.js';
-import { SKIN, HAIR_COLORS_BY_ID, FACE_PRESETS, DEFAULT_APPEARANCE } from '../data/appearance.js';
+import { SKIN, HAIR_COLORS_BY_ID, FACE_PRESETS, FACE_ALIASES, DEFAULT_APPEARANCE } from '../data/appearance.js';
 import { headGrid, X0, Y0, Z0 } from './humanoid/head.js';
 import { drawHair } from './humanoid/hair.js';
 import { drawHeadgear, HIDES_HAIR } from './humanoid/headgear.js';
@@ -45,7 +45,7 @@ export function resolveLook(appearance) {
     hair,
     hairStyle: race.hair ? a.hairStyle : 'bald',
     eyeColor: a.eyeColor,
-    face: FACE_PRESETS[a.face] ?? FACE_PRESETS.face_01,
+    face: FACE_PRESETS[a.face] ?? FACE_PRESETS[FACE_ALIASES[a.face]] ?? FACE_PRESETS.face_01,
     browColor: !hair ? skin.shadow : a.browColor === 'link_hair' || a.browColor == null ? hair.shadow : a.browColor,
     facialHair: a.facialHair ?? race.facialHair ?? 'none',
     overlays: a.overlays ?? [],

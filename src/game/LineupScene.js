@@ -11,7 +11,7 @@ import { buildVillager } from '../models/villagerModel.js';
 import { buildCreature } from '../models/creatureModels.js';
 import { CLASSES } from '../data/classes.js';
 import { RACES, RACE_ORDER } from '../data/races.js';
-import { DEFAULT_APPEARANCE } from '../data/appearance.js';
+import { DEFAULT_APPEARANCE, FACE_PRESETS } from '../data/appearance.js';
 import { loadReference } from './referenceModel.js';
 import { placeHeld, heldGrid } from '../models/equipment/weapons.js';
 import { attach } from '../models/humanoid.js';
@@ -88,6 +88,10 @@ export class LineupScene {
     // ?lineup&focus=human,frogfolk : only those races, from every side, for comparisons.
     const params = new URLSearchParams(window.location.search);
     const focus = params.get('focus');
+    if (params.has('faces')) {
+      this.buildFaces();
+      return;
+    }
     if (params.has('arsenal')) {
       this.buildArsenal();
       return;
@@ -149,6 +153,20 @@ export class LineupScene {
       r++;
     });
     this.rows = r;
+    this.cols = 6;
+    this.finishSetup();
+  }
+
+  // ?lineup&faces : the six classic faces, male and female, with the default look.
+  buildFaces() {
+    ['male', 'female'].forEach((gender, r) => {
+      this.heading(gender.toUpperCase(), r);
+      Object.keys(FACE_PRESETS).forEach((face, i) => {
+        const look = { ...DEFAULT_APPEARANCE, gender, face, hairStyle: gender === 'male' ? 'big_spikes' : 'layered_bob' };
+        this.place(buildCharacter('bulwark', look).root, i, r, 0, `FACE ${i + 1}`);
+      });
+    });
+    this.rows = 2;
     this.cols = 6;
     this.finishSetup();
   }
