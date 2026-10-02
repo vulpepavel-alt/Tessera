@@ -23,7 +23,6 @@ export class ThirdPersonCamera {
     this.sensitivity = 1;
     this.target = new THREE.Vector3();
     this.offset = new THREE.Vector3();
-    this.lockTarget = null; // an enemy to keep in view (Tab lock-on)
     this.shake = 0;         // screen shake strength, fades by itself
     this.inCombat = false;  // set by the battle: pulls the camera back so foes stay in view
     this.combatExtra = 0;
@@ -35,14 +34,6 @@ export class ThirdPersonCamera {
       const k = CAMERA.mouseSensitivity * this.sensitivity;
       this.yaw -= mouse.x * k;
       this.pitch = THREE.MathUtils.clamp(this.pitch + mouse.y * k, MIN_PITCH, MAX_PITCH);
-    }
-    // Locked on: swing the camera round so the enemy is in front of the player.
-    const t = this.lockTarget;
-    if (t?.alive) {
-      const want = Math.atan2(-(t.position.x - playerPosition.x), -(t.position.z - playerPosition.z));
-      let diff = want - this.yaw;
-      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-      this.yaw += diff * Math.min(dt * 6, 1);
     }
 
     const wheel = this.input.takeWheel();

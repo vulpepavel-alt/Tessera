@@ -66,7 +66,7 @@ export class EnemySpawner {
   }
 
   // Standing height on natural ground (grass, sand...), or null for water,
-  // treetops or rifts.
+  // treetops.
   groundAt(x, z, biome) {
     const chunks = this.worldView.chunks;
     for (let y = CHUNK.height - 2; y > 1; y--) {

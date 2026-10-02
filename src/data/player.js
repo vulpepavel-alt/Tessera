@@ -56,8 +56,8 @@ export const PLAYER = {
   boatAcceleration: 7,
   boatTurnSpeed: 1.9,   // radians per second
 
-  // Falling into a rift's clouds
-  fallLimitY: -6,         // below this height you are "in the clouds"
+  // Falling out of the world (should never happen; a safety net)
+  fallLimitY: -6,         // below this height you are brought back
   fallPenalty: 0.1,       // lose this fraction of max health
   safePointInterval: 1,   // seconds between remembering a safe spot
 };

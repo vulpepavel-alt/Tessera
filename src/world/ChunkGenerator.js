@@ -1,9 +1,9 @@
-// Fills one chunk with voxels: terrain first, then plants and crystal spires.
+// Fills one chunk with voxels: terrain first, then villages, then plants.
 
 import { CHUNK, WORLD } from '../data/world.js';
 import { BLOCK } from '../data/blocks.js';
 import { ChunkVolume } from './ChunkVolume.js';
-import { FLORA_BUILDERS, buildSpire } from './Decorations.js';
+import { FLORA_BUILDERS } from './Decorations.js';
 import { waterBlockAt } from './WorldGenerator.js';
 import { stampVillage } from './VillageBuilder.js';
 import { VILLAGE } from '../data/villages.js';
@@ -23,7 +23,6 @@ export function generateChunk(world, cx, cz) {
   for (let z = z0 - FLORA_MARGIN; z < z0 + S + FLORA_MARGIN; z++) {
     for (let x = x0 - FLORA_MARGIN; x < x0 + S + FLORA_MARGIN; x++) {
       const col = world.column(x, z);
-      if (col.rift) continue;
       columns.push({ x, z, col });
       if (x >= x0 - 1 && x <= x0 + S && z >= z0 - 1 && z <= z0 + S) fillColumn(volume, x, z, col);
     }
@@ -40,12 +39,11 @@ export function generateChunk(world, cx, cz) {
   // Hand-built structures (only the benchmark world has these).
   world.stampStructures?.(volume);
 
-  // Pass 3: plants (not inside villages), and crystal spires along rift edges.
+  // Pass 3: plants (not inside villages).
   for (const { x, z, col } of columns) {
     if (col.village) continue;
     if (world.fixedFlora?.(volume, x, z, col, columnRng(x, z, world.salt))) continue; // benchmark: hand-placed
-    if (col.nearRift) placeSpire(volume, x, z, col, world.salt);
-    else placeFlora(volume, x, z, col, world.salt, world.groveAt(x, z));
+    placeFlora(volume, x, z, col, world.salt, world.groveAt(x, z));
   }
 
   return volume;
@@ -83,14 +81,6 @@ function placeFlora(volume, x, z, col, salt, grove) {
       return;
     }
   }
-}
-
-// Now and then a tall crystal spire stands at the edge of a rift.
-// Later, crystal bridges across the rift will attach to these.
-function placeSpire(volume, x, z, col, salt) {
-  if (col.waterTop >= 0 || hash3(x, 3, z, salt) > WORLD.spireChance) return;
-  const height = 7 + Math.floor(hash3(x, 4, z, salt) * 7);
-  buildSpire(volume, { x, y: col.top + 1, z, height }, col.biome.crystal);
 }
 
 function columnRng(x, z, salt) {

@@ -1,6 +1,6 @@
 // The player character: health, resource, stamina, the voxel model, and
 // the link between the keyboard and the movement "motor" (PlayerMotor.js).
-// Also brings you back to safety after falling into a rift.
+// Also brings you back to safety if you ever fall out of the world.
 
 import * as THREE from 'three';
 import { PLAYER } from '../data/player.js';
@@ -228,13 +228,13 @@ export class Player {
     }
   }
 
-  // Remember safe ground regularly; if we fall into the clouds, go back there.
+  // Remember safe ground regularly; if we ever fall out of the world, go back there.
   updateSafety(dt) {
     if (!this.safePoint || this.safePoint.y < 1) this.safePoint = this.world.spawnPoint?.() ?? this.position.clone();
     this.safeTimer += dt;
     if (this.grounded && this.mode === 'walk' && !this.inWater && this.safeTimer >= PLAYER.safePointInterval) {
       this.safeTimer = 0;
-      if (!this.world.isNearRift?.(this.position.x, this.position.z)) this.safePoint = this.position.clone();
+      this.safePoint = this.position.clone();
     }
     if (this.position.y < PLAYER.fallLimitY) {
       const lost = Math.min(this.health - 1, Math.round(this.maxHealth * PLAYER.fallPenalty));

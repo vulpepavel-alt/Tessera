@@ -258,7 +258,7 @@ export class Enemy {
     if (this.status.root > 0) wish = null;
     this.move(dt, wish, speed * (this.status.slow > 0 ? this.status.slowFactor : 1));
     this.syncModel(dt);
-    // Fell into a rift: gone.
+    // Fell out of the world: gone.
     return this.position.y > -6;
   }
 

@@ -15,7 +15,6 @@ export const COMBAT = {
   heavyHitStop: 0.12,
   outOfCombatTime: 5,       // seconds without fighting before health regenerates
   healthRegen: 0.03,        // fraction of max health per second, out of combat
-  lockRange: 28,            // Tab lock-on reach
   deathRespawnDelay: 3,     // seconds
   finisherHitStop: 0.1,     // the last hit of a combo freezes a little longer
   moveWhileStriking: 0.4,   // movement speed while winding up / striking (x normal)

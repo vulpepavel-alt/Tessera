@@ -1,5 +1,5 @@
 // Text and bars that float over things in the 3D world: damage numbers,
-// enemy health bars and the lock-on marker. Each frame we work out where a
+// enemy health bars, speech bubbles and name tags. Each frame we work out where a
 // 3D point lands on the screen ("projecting" it) and move the label there.
 
 import * as THREE from 'three';
@@ -15,14 +15,12 @@ export class WorldLabels {
     this.camera = camera;
     this.root = el('div', { class: 'world-labels' });
     this.crosshair = el('div', { class: 'crosshair' });
-    this.marker = el('div', { class: 'lock-marker hidden' });
-    this.root.append(this.crosshair, this.marker);
+    this.root.append(this.crosshair);
     document.body.appendChild(this.root);
     this.numbers = [];
     this.bars = new Map(); // enemy -> { root, fill }
     this.bubbles = new Map(); // speaker -> { node, time }
     this.tags = new Map();    // villager -> name tag node
-    this.lockTarget = null;
   }
 
   setVisible(visible) {
@@ -108,17 +106,12 @@ export class WorldLabels {
     // Health bars above enemies (only when hurt, targeted or nearby and angry).
     for (const [enemy, bar] of this.bars) {
       const near = this.camera.position.distanceTo(enemy.position) < BAR_RANGE;
-      const show = near && enemy.alive && (enemy.health < enemy.maxHealth || enemy.isAngry || enemy === this.lockTarget);
+      const show = near && enemy.alive && (enemy.health < enemy.maxHealth || enemy.isAngry);
       bar.root.style.display = show ? '' : 'none';
       if (!show) continue;
       bar.fill.style.transform = `scaleX(${Math.max(0, enemy.health / enemy.maxHealth)})`;
       this.place(bar.root, tmp.copy(enemy.position).setY(enemy.position.y + enemy.height + 0.6));
     }
-
-    // Lock-on marker.
-    const t = this.lockTarget;
-    this.marker.classList.toggle('hidden', !t);
-    if (t) this.place(this.marker, tmp.copy(t.position).setY(t.position.y + t.height * 0.5));
   }
 
   // Move a label to where a 3D point appears on screen (hidden if behind the camera).

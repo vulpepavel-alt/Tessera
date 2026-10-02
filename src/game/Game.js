@@ -120,9 +120,6 @@ export class Game {
     this.input.onPress('Escape', () => {
       if (this.inventoryWindow.visible) this.closeInventory();
     });
-    this.input.onPress('Tab', () => {
-      if (this.state === 'playing') this.battle.toggleLock();
-    });
     // Debug: "]" jumps one hour ahead (handy for testing day and night).
     this.input.onPress('BracketRight', () => {
       if (this.state === 'playing') this.world.dayNight.advance(1);
@@ -351,7 +348,7 @@ export class Game {
     SaveManager.save(this.slot, {
       ...this.save,
       playTime: Math.round(this.playTime),
-      // Never store a spot below the world (e.g. mid-fall into a rift).
+      // Never store a spot below the world.
       player: this.player.position.y >= 1 ? this.player.toSave() : this.save.player,
       time: { day: this.world.dayNight.day, hour: this.world.dayNight.hour },
       spec: this.player.spec,

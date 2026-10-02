@@ -31,13 +31,6 @@ export const WORLD = {
   // Rivers: winding lines of water
   riverFrequency: 0.0017,
   riverWidth: 0.028,
-
-  // Rifts: deep cracks in the land, filled with clouds
-  riftFrequency: 0.0013,
-  riftWidth: 0.075,    // bigger = wider rifts
-  riftAmount: 0.45,    // 0 = no rifts, 1 = rift lines everywhere
-  riftSafeRadius: 260, // no rifts this close to the world centre (the start area)
-  spireChance: 0.0025, // crystal spires along rift edges (future bridge anchors)
 };
 
 export const ATMOSPHERE = {
@@ -49,8 +42,6 @@ export const ATMOSPHERE = {
   skyLight: 0xcfe2ff,    // soft, cool light coming from the sky
   groundLight: 0x6f8a68, // green bounce light from the grass: soft, friendly shadows
   skyLightIntensity: 1.15, // a little less fill light, so shaded sides read darker (more contrast)
-  cloudY: 0,             // height of the cloud layer that fills the rifts
-  cloudColor: 0xf4f7fb,
 };
 
 export const CAMERA = {

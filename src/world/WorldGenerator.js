@@ -4,8 +4,7 @@
 // The land is one connected continent. Layered on top of each other:
 //   - continent noise: big slow rises and dips (the dips become lakes),
 //   - hills and ridged mountain ranges, shaped by the local biome,
-//   - rivers: winding lines carved down to water level,
-//   - rifts: deep cracks where the land simply stops and clouds fill the gap.
+//   - rivers: winding lines carved down to water level.
 
 import { WORLD } from '../data/world.js';
 import { BLOCK } from '../data/blocks.js';
@@ -19,19 +18,18 @@ export class WorldGenerator {
     this.salt = hashString(seed);
     this.regions = new RegionLayout(seed);
     const names = ['continent', 'hills', 'mountains', 'mountainZones', 'dunes', 'river',
-      'riverWobble', 'rift', 'riftZones', 'riftJag', 'surface', 'valleys', 'rolling', 'terrace', 'micro', 'groves'];
+      'riverWobble', 'surface', 'valleys', 'rolling', 'terrace', 'micro', 'groves'];
     this.noise = Object.fromEntries(names.map((n) => [n, makeNoise2D(seed, n)]));
     this.villages = new VillageLayout(seed, this);
   }
 
   // Everything about one column, including villages (which flatten the land
-  // around them and keep rifts, rivers and trees out).
+  // around them and keep rivers and trees out).
   column(x, z) {
     const hit = this.villages.influence(x, z);
     if (!hit) return this.rawColumn(x, z);
     const { village, weight } = hit;
-    const raw = this.rawColumn(x, z, weight > 0.4);
-    if (raw.rift) return raw; // the outer edge of the blend may still be cut by a rift
+    const raw = this.rawColumn(x, z);
     const top = Math.round(raw.top + (village.baseY - raw.top) * weight);
     const biome = raw.biome;
     let surface = raw.surface;
@@ -39,18 +37,16 @@ export class WorldGenerator {
       surface = biome.surface;
     }
     return {
-      ...raw, rift: false, nearRift: false, top, surface,
+      ...raw, top, surface,
       waterTop: top < WORLD.seaLevel ? WORLD.seaLevel : -1,
       village: weight > 0 ? village : null,
     };
   }
 
-  // The land as nature made it, before villages. `ignoreRifts` skips the rift test.
-  rawColumn(x, z, ignoreRifts = false) {
+  // The land as nature made it, before villages.
+  rawColumn(x, z) {
     const { biome, terrain, site } = this.regions.sample(x, z);
     const n = this.noise;
-
-    if (!ignoreRifts && this.isRift(x, z, 1)) return { biome, site, rift: true, top: -1, waterTop: -1, mountain: 0 };
 
     // --- Height, built in three levels ---
     // MACRO: the big readable forms - slow continent swells, long valleys,
@@ -100,29 +96,13 @@ export class WorldGenerator {
     else if (fbm2(n.surface, x, z, 2, 0.03) > 0.35 - biome.altAmount * 0.7) surface = biome.altSurface;
     else surface = biome.surface;
 
-    const nearRift = this.isRift(x, z, 1.7);
-    return { biome, site, rift: false, top, surface, waterTop, nearRift, mountain };
+    return { biome, site, top, surface, waterTop, mountain };
   }
 
   // How wooded this spot is, 0..1. Trees only grow where it is high, so they
   // stand in groves with open meadows between (visual rhythm).
   groveAt(x, z) {
     return fbm2(this.noise.groves, x, z, 2, 0.011) * 0.5 + 0.5;
-  }
-
-  // Rifts follow the "zero lines" of a slow noise, but only inside rift zones
-  // and never near the starting area. `widen` > 1 tests a slightly wider band
-  // (used to find the rift's edge).
-  isRift(x, z, widen) {
-    const fromStart = Math.hypot(x, z);
-    if (fromStart < WORLD.riftSafeRadius) return false;
-    const n = this.noise;
-    const zone = smoothstep(0, 0.25, fbm2(n.riftZones, x, z, 2, 0.0009) + WORLD.riftAmount - 0.5);
-    if (zone <= 0) return false;
-    const fade = smoothstep(WORLD.riftSafeRadius, WORLD.riftSafeRadius + 160, fromStart);
-    const jag = 1 + 0.35 * fbm2(n.riftJag, x, z, 2, 0.05);
-    const width = WORLD.riftWidth * zone * fade * jag * widen;
-    return Math.abs(n.rift(x * WORLD.riftFrequency, z * WORLD.riftFrequency)) < width;
   }
 
   // Where a new adventure starts: the south side of the starting village's
@@ -149,7 +129,7 @@ export class WorldGenerator {
   isGoodSpawn(x, z) {
     const col = this.column(x, z);
     const grassy = col.surface === col.biome.surface || col.surface === col.biome.altSurface;
-    if (col.rift || !grassy || col.top < WORLD.seaLevel + 2 || col.top > 34) return false;
+    if (!grassy || col.top < WORLD.seaLevel + 2 || col.top > 34) return false;
     // No water within a few blocks.
     for (const [dx, dz] of [[5, 0], [-5, 0], [0, 5], [0, -5]]) {
       if (this.column(x + dx, z + dz).waterTop >= 0) return false;

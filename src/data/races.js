@@ -47,7 +47,7 @@ export const RACES = {
   },
   undead: {
     name: 'Undead',
-    description: 'Woken from long sleep by the rifts. Pale, stitched, and oddly cheerful.',
+    description: 'Woken from a very long sleep. Pale, stitched, and oddly cheerful.',
     skins: ['undead_ash', 'undead_frost', 'undead_moss', 'undead_bone'],
     features: { ears: 'small', sunken: true, glowEyes: true },
     scale: 1, hair: true,

@@ -23,7 +23,6 @@ export class PlayerCombat {
     this.comboTimer = 0;      // time left to continue the combo
     this.heavyCooldown = 0;
     this.sinceCombat = 99;    // seconds since the last hit given or taken
-    this.lockTarget = null;
     this.haste = 1;        // attack speed multiplier (skills can raise it)
     this.skillPose = null; // a short arm pose after using a skill
   }
@@ -167,18 +166,14 @@ export class PlayerCombat {
     p.emit('attack', { heavy: c.heavy, kind: a.kind });
   }
 
-  // Which way to face: toward the locked target, or where the camera looks.
+  // Which way to face: where the camera looks (there is no target lock: you aim).
   aimYaw() {
-    const t = this.lockTarget;
-    if (t?.alive) return Math.atan2(t.position.x - this.player.position.x, t.position.z - this.player.position.z);
     const dir = this.camera.getWorldDirection(new THREE.Vector3());
     return Math.atan2(dir.x, dir.z);
   }
 
-  // A 3D direction from `origin` toward the target or the crosshair.
+  // A 3D direction from `origin` toward the crosshair.
   aimDirection(origin) {
-    const t = this.lockTarget;
-    if (t?.alive) return t.position.clone().setY(t.position.y + t.height * 0.5).sub(origin);
     raycaster.setFromCamera(AIM_NDC, this.camera);
     const aimPoint = raycaster.ray.at(this.camera.position.distanceTo(origin) + 30, new THREE.Vector3());
     return aimPoint.sub(origin);

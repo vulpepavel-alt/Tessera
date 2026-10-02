@@ -25,7 +25,6 @@ export const BIOMES = {
     beach: BLOCK.SAND,
     peak: BLOCK.SNOW,
     water: BLOCK.WATER,
-    crystal: BLOCK.CRYSTAL,
     baseOffset: 1, hillHeight: 9, mountainHeight: 20, duneHeight: 0, snowLine: 66,
     flora: [
       { type: 'prop', prop: 'berryBush', chance: 0.003, on: [BLOCK.GRASS, BLOCK.GOLDEN_GRASS] },
@@ -55,7 +54,6 @@ export const BIOMES = {
     beach: BLOCK.SNOW,
     peak: BLOCK.SNOW,
     water: BLOCK.ICE,
-    crystal: BLOCK.FROST_CRYSTAL,
     baseOffset: 3, hillHeight: 9, mountainHeight: 26, duneHeight: 0, snowLine: 58,
     flora: [
       { type: 'prop', prop: 'rock', chance: 0.002, on: [BLOCK.FROST_GRASS, BLOCK.SNOW] },
@@ -77,7 +75,6 @@ export const BIOMES = {
     beach: BLOCK.DUNE_SAND,
     peak: BLOCK.SANDSTONE,
     water: BLOCK.WATER,
-    crystal: BLOCK.CRYSTAL,
     baseOffset: 2, hillHeight: 6, mountainHeight: 12, duneHeight: 6, snowLine: 999,
     flora: [
       { type: 'prop', prop: 'rock', chance: 0.002, on: [BLOCK.COPPER_SAND, BLOCK.DUNE_SAND] },
@@ -100,7 +97,6 @@ export const BIOMES = {
     beach: BLOCK.MUD,
     peak: BLOCK.MARSH_GRASS,
     water: BLOCK.MARSH_WATER,
-    crystal: BLOCK.CRYSTAL,
     baseOffset: -4, hillHeight: 5, mountainHeight: 4, duneHeight: 0, snowLine: 999,
     flora: [
       { type: 'prop', prop: 'mushroom', chance: 0.004, on: [BLOCK.MARSH_GRASS, BLOCK.MUD] },
@@ -123,7 +119,6 @@ export const BIOMES = {
     beach: BLOCK.DARK_ROCK,
     peak: BLOCK.SNOW,
     water: BLOCK.WATER,
-    crystal: BLOCK.STORM_CRYSTAL,
     baseOffset: 5, hillHeight: 11, mountainHeight: 34, duneHeight: 0, snowLine: 62,
     flora: [
       { type: 'prop', prop: 'rock', chance: 0.004, on: [BLOCK.STORM_GRASS, BLOCK.DARK_ROCK] },

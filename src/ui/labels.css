@@ -73,18 +73,6 @@
   transform-origin: left;
 }
 
-.lock-marker {
-  width: 30px;
-  height: 30px;
-  border: 2px solid #ffd27a;
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(255, 210, 122, 0.8);
-}
-
-.lock-marker.hidden {
-  display: none;
-}
-
 .crosshair {
   left: 50% !important;
   top: 42% !important;

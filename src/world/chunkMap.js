@@ -27,7 +27,7 @@ export function chunkMapPixels(volume) {
       const i = x + z * S;
       const o = i * 4;
       if (heights[i] < 0) {
-        // Open sky over a rift: pale cloud colour.
+        // No ground at all: pale sky colour.
         pixels.set([226, 234, 244, 255], o);
         continue;
       }

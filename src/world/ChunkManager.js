@@ -146,7 +146,7 @@ export class ChunkManager {
   // The block at a world position. Chunks that aren't loaded yet count as
   // solid, so nothing can fall through ground that hasn't appeared yet.
   getBlock(x, y, z) {
-    if (y < 0) return 0; // below the world: open sky (the rift clouds)
+    if (y < 0) return 0; // below the world
     if (y >= CHUNK.height) return 0;
     const bx = Math.floor(x);
     const bz = Math.floor(z);

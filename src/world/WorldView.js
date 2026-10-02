@@ -3,7 +3,6 @@
 // Used both behind the main menu and while playing.
 
 import { Atmosphere } from './Atmosphere.js';
-import { CloudSea } from './CloudSea.js';
 import { SkyClouds } from './SkyClouds.js';
 import { ChunkManager } from './ChunkManager.js';
 import { createGenerator } from './BenchmarkGenerator.js';
@@ -19,7 +18,6 @@ export class WorldView {
     this.dayNight = new DayNight(time?.day, time?.hour);
     const distance = settings.get('renderDistance');
     this.atmosphere = new Atmosphere(engine.scene, distance);
-    this.clouds = new CloudSea(engine.scene, seed);
     this.skyClouds = new SkyClouds(engine.scene);
     this.chunks = new ChunkManager(engine.scene, seed, distance);
     // A copy of the generator on the main thread, for quick questions like
@@ -48,7 +46,6 @@ export class WorldView {
     this.chunks.update(focus);
     this.atmosphere.update(this.engine.camera, look);
     const brightness = 0.35 + 0.65 * Math.min(look.ambient / 1.1, 1);
-    this.clouds.update(this.engine.camera, elapsed, brightness);
     this.skyClouds.update(dt || 1 / 60, this.engine.camera, brightness);
   }
 
@@ -59,10 +56,6 @@ export class WorldView {
       spawnPoint: () => {
         const s = this.generator.findSpawn();
         return { x: s.x, y: s.y + 0.5, z: s.z, clone() { return { ...this }; } };
-      },
-      isNearRift: (x, z) => {
-        const col = this.generator.column(Math.floor(x), Math.floor(z));
-        return col.rift || col.nearRift;
       },
     };
   }

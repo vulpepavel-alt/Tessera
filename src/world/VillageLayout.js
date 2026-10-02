@@ -1,6 +1,6 @@
 // Decides WHERE villages are. The world is split into big cells; the cell at
 // the centre always gets the starting village, the others maybe one each.
-// A village needs dry, fairly flat land away from rifts. Everything comes from
+// A village needs dry, fairly flat land. Everything comes from
 // the seed, so workers and the main thread agree on every village.
 
 import { VILLAGE } from '../data/villages.js';
@@ -63,17 +63,16 @@ export class VillageLayout {
   // The ground height for a village here, or null if the spot is unsuitable.
   siteHeight(x, z) {
     const centre = this.gen.rawColumn(x, z);
-    if (centre.rift || centre.waterTop >= 0 || centre.mountain > 3) return null;
+    if (centre.waterTop >= 0 || centre.mountain > 3) return null;
     if (centre.top < WORLD.seaLevel + 2 || centre.top > 40) return null;
-    // The land around must be fairly even, dry, and free of rifts.
+    // The land around must be fairly even and dry.
     const R = VILLAGE.radius;
     for (let a = 0; a < 8; a++) {
       const px = x + Math.cos((a / 8) * Math.PI * 2) * R;
       const pz = z + Math.sin((a / 8) * Math.PI * 2) * R;
       const c = this.gen.rawColumn(px, pz);
-      if (c.rift || Math.abs(c.top - centre.top) > 9) return null;
+      if (Math.abs(c.top - centre.top) > 9) return null;
     }
-    if (this.gen.isRift(x, z, 4)) return null;
     return centre.top;
   }
 

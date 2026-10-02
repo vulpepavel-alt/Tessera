@@ -92,16 +92,3 @@ export const FLORA_BUILDERS = {
   },
 };
 
-// A tall crystal spire near the coast. Later, crystal bridges attach here.
-export function buildSpire(volume, spire, block) {
-  const { x, y, z, height } = spire;
-  for (let dy = -2; dy < height; dy++) {
-    // Thick at the base (3x3), thinner in the middle (2x2), a single tip on top.
-    const t = Math.max(dy, 0) / height;
-    const from = t < 0.3 ? -1 : 0;
-    const to = t < 0.7 ? 1 : 0;
-    for (let dz = from; dz <= to; dz++) {
-      for (let dx = from; dx <= to; dx++) volume.set(x + dx, y + dy, z + dz, block);
-    }
-  }
-}

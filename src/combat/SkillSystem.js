@@ -143,16 +143,37 @@ export class SkillSystem {
     const aimPoint = this.aimPoint();
     return {
       player: this.player, combat: this.combat, skills: this, particles: this.particles, labels: this.labels,
-      target: pc.lockTarget, aimYaw, aimPoint, aimPointFixed: aimPoint.clone(),
+      target: this.aimTarget(), aimYaw, aimPoint, aimPointFixed: aimPoint.clone(),
       aimDirection: (origin) => pc.aimDirection(origin),
       critChance: CLASS_COMBAT[this.player.classId].critChance,
     };
   }
 
-  // Where on the ground the skill lands: the locked target, or where the crosshair meets the ground.
+  // The living enemy closest to the crosshair (within 25 blocks), for skills
+  // that need a target (e.g. appearing behind it). There is no lock-on.
+  aimTarget() {
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(0, 0.16), this.camera);
+    let best = null;
+    let bestScore = Infinity;
+    const p = new THREE.Vector3();
+    for (const e of this.combat.enemies) {
+      if (!e.alive) continue;
+      p.copy(e.position).setY(e.position.y + e.height * 0.5);
+      const dist = p.distanceTo(this.player.position);
+      if (dist > 25) continue;
+      const off = ray.ray.distanceToPoint(p);
+      if (off > 2.5 + dist * 0.08) continue;
+      if (off + dist * 0.05 < bestScore) {
+        bestScore = off + dist * 0.05;
+        best = e;
+      }
+    }
+    return best;
+  }
+
+  // Where on the ground the skill lands: where the crosshair meets the ground.
   aimPoint() {
-    const t = this.playerCombat.lockTarget;
-    if (t?.alive) return t.position.clone();
     const ray = new THREE.Raycaster();
     ray.setFromCamera(new THREE.Vector2(0, 0.16), this.camera);
     const p = new THREE.Vector3();

@@ -20,7 +20,6 @@ export const CONTROLS = [
   ['Shift', 'Sprint · swim fast (uses stamina)'],
   ['I', 'Inventory: put on and take off gear'],
   ['E', 'Talk to villagers'],
-  ['Tab', 'Lock on to an enemy'],
   ['B', 'Place / leave boat (next to water)'],
   ['C', 'Dive (while swimming)'],
   ['Scroll', 'Zoom the camera'],

@@ -85,7 +85,7 @@ class BenchmarkGenerator extends WorldGenerator {
     }
     const waterTop = top < WORLD.seaLevel ? WORLD.seaLevel : -1;
     if (waterTop >= 0 && surface === biome.surface) surface = biome.beach;
-    return { biome, site: this.regions.sample().site, rift: false, nearRift: false, top, surface, waterTop, mountain: 0, village: null };
+    return { biome, site: this.regions.sample().site, top, surface, waterTop, mountain: 0, village: null };
   }
 
   // Called by ChunkGenerator instead of random plants inside the designed area.
