@@ -106,6 +106,20 @@ regenerates. If you fall in battle you wake up at the last safe spot after 3 sec
 The first enemy is the **Bramblehog** (Amber Meadows): it charges at you in a straight
 line after a short warning, and runs away when badly hurt.
 
+### Characters and races
+
+Every person in the game (you, villagers, guards) is built by one system that follows
+`docs` spec *TESSERA Character Creator Specification*: a 32-voxel-tall body with a big
+14 x 14 x 12 head, a simple face on a 12 x 10 grid, hair in zones, and named attachment
+points (sockets) for equipment. Measurements live in `src/data/characterSpec.js`, every
+option in `src/data/appearance.js` and the races in `src/data/races.js`.
+
+Races: Human, Elf, Dwarf, Orc, Goblin, Undead, Lizardfolk, Frogfolk and Foxkin. A race
+changes looks only (skin tones, ears, snout/muzzle, tusks, tail, size), never combat.
+Character creation has tabs: Body (race, frame, skin), Face (12 presets, eye colour, 12
+marks), Hair (16 styles, 24 colours, 8 beards), Clothes (3 neutral underlayers, dyes) and
+Identity (name, pronouns); drag to turn, scroll to zoom to the face.
+
 ### Equipment
 
 Every class starts the same way: plain clothes and bare fists. Weapons and armour

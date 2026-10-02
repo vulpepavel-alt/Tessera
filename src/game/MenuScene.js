@@ -14,7 +14,8 @@ import { buildCharacter } from '../models/characterModel.js';
 const ORBIT_RADIUS = 64;
 const ORBIT_HEIGHT = 30;   // camera height above the ground (above the tallest trees)
 const ORBIT_SPEED = 0.025; // radians per second
-const STAGE_VIEW = new THREE.Vector3(0, 1.55, 3.9); // camera offset in front of the pedestal
+const STAGE_VIEW = new THREE.Vector3(0, 2.05, 4.6); // camera offset in front of the pedestal (whole body)
+const FACE_VIEW = new THREE.Vector3(0, 2.4, 2.3); // camera offset when zoomed in on the face
 const PEDESTAL = { width: 3.2, height: 0.9, depth: 2.4 };
 
 export class MenuScene {
@@ -102,6 +103,11 @@ export class MenuScene {
     this.turner.add(this.model.root);
   }
 
+  // Zoom between the whole body (0) and the face (1).
+  zoom(amount) {
+    this.zoomT = Math.min(1, Math.max(0, (this.zoomT ?? 0) + amount));
+  }
+
   // Turn the character on the pedestal (radians).
   turn(amount) {
     this.spin += amount;
@@ -111,9 +117,12 @@ export class MenuScene {
     const camera = this.engine.camera;
     if (this.mode === 'stage') {
       this.turner.rotation.y = this.spin;
-      const offset = STAGE_VIEW.clone().applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.stageYaw);
+      const z = this.zoomT ?? 0;
+      const view = STAGE_VIEW.clone().lerp(FACE_VIEW, z);
+      const offset = view.applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.stageYaw);
       camera.position.copy(this.stagePos).add(offset);
-      camera.lookAt(this.stagePos.x, this.stagePos.y + 1.4, this.stagePos.z);
+      // Look at the middle of the body, or at the face when zoomed in.
+      camera.lookAt(this.stagePos.x, this.stagePos.y + 1.8 + z * 0.5, this.stagePos.z);
       this.world.update(dt, elapsed, this.stagePos);
       return;
     }

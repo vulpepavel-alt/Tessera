@@ -10,6 +10,8 @@ import { buildCharacter } from '../models/characterModel.js';
 import { buildVillager } from '../models/villagerModel.js';
 import { buildCreature } from '../models/creatureModels.js';
 import { CLASSES } from '../data/classes.js';
+import { RACES, RACE_ORDER } from '../data/races.js';
+import { DEFAULT_APPEARANCE } from '../data/appearance.js';
 import { el } from '../ui/dom.js';
 import { ptext, logo } from '../ui/menuKit.js';
 import '../ui/styles/menu.css';
@@ -89,6 +91,13 @@ export class LineupScene {
       });
     }
     // 3. Villagers and creatures.
+    // 3. Every race, in its first skin tone and the default look.
+    row++;
+    this.heading('RACES', row);
+    RACE_ORDER.forEach((id, i) => {
+      const look = { ...DEFAULT_APPEARANCE, race: id, skin: RACES[id].skins[0], frame: RACES[id].frame ?? 'straight', facialHair: RACES[id].facialHair ?? 'none', hairStyle: ['short_spikes', 'side_sweep', 'cropped_block', 'tall_crest', 'twin_tails', 'swept_back', 'bald', 'bald', 'layered_bob'][i] };
+      this.place(buildCharacter('bulwark', look).root, i, row, 0.5, RACES[id].name.toUpperCase());
+    });
     row++;
     this.heading('VILLAGERS AND CREATURES', row);
     const roles = [['villager', 0.11], ['villager', 0.52], ['guard', 0.3], ['merchant', 0.7], ['guildmaster', 0.9]];
@@ -119,7 +128,7 @@ export class LineupScene {
 
   // Fit all rows on screen (an "orthographic" camera: no perspective, like a drawing).
   fit() {
-    const width = 6 * COLUMN;
+    const width = 9 * COLUMN; // the widest row (races)
     const height = this.rows * ROW + 1.2;
     const aspect = window.innerWidth / window.innerHeight;
     const half = Math.max(height / 2, width / aspect / 2);

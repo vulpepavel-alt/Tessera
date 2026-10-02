@@ -1,154 +1,164 @@
-// Builds an expressive, detailed voxel person from a "spec" (a description of
-// how they look). Used for the four classes and for every villager.
+// The character assembler: builds every humanoid (the player, villagers,
+// guards, humanoid enemies) from ONE set of parts and rules
+// (data/characterSpec.js, docs: TESSERA_Character_Creator_Specification.md).
 //
-// Proportions (in model cubes): boots + legs 7, body 9 (and 9 deep), head 14
-// tall - a very large head with a simple face, short thick arms ending in big
-// fists, big boots, almost no neck. Built to look right from every side.
-// The parts live in models/humanoid/:
-//   face.js  eyes, brows, mouth, nose, cheeks, freckles, facial hair, ears
-//   hair.js  14 hair styles
-//   body.js  legs and boots, torso with 4 outfit styles, sleeves and fists
+//   resolveLook(appearance)  -> r: the appearance turned into concrete colours
+//                               and shapes (race, skin ramp, hair, face...)
+//   buildHumanoid(r)         -> { root, body, parts, sockets, bodyCenter }
 //
-// spec = { skin, eyes, eyeStyle, brows, mouth, blush, freckles, facialHair,
-//   hair, hairStyle, ears, muzzle, shirt, shirt2, trim, pants, boots, bootAccent,
-//   outfitStyle, hands, armor, pads, sash, apron, robe,
-//   headgear: null|'helmet'|'hood', headgearColor, headgearTrim, mask, accent }
-// Returns { root, body, parts } with the parts the animator expects.
+// Equipment and NPC clothing are added to `r` between the two steps
+// (models/equipment/armor.js, models/villagerModel.js).
+//
+// The skeleton (all rigid parts, no bending):
+//   root -> body (tilts/rolls) -> pelvis -> torso -> head (+ hair tails)
+//                                        |        -> armL -> handL, armR -> handR
+//                                        -> legL -> footL, legR -> footR
+// Named sockets (socket_head_top, socket_hand_R, ...) hang off these parts.
 
 import * as THREE from 'three';
 import { VoxelGrid, voxelModelMaterial } from './VoxelGrid.js';
-import { drawFace, drawEars } from './humanoid/face.js';
+import { MV, BODY, SOCKETS, HEAD_GRID } from '../data/characterSpec.js';
+import { RACES } from '../data/races.js';
+import { SKIN, HAIR_COLORS_BY_ID, FACE_PRESETS, DEFAULT_APPEARANCE } from '../data/appearance.js';
+import { headGrid, X0, Y0, Z0 } from './humanoid/head.js';
 import { drawHair } from './humanoid/hair.js';
-import { legGrid, torsoGrid, sleeveGrid, fistGrid, padGrid } from './humanoid/body.js';
+import { drawHeadgear, HIDES_HAIR } from './humanoid/headgear.js';
+import { torsoGrid, pelvisGrid, armGrid, handGrid, legGrid, footGrid, padGrid } from './humanoid/body.js';
 import { lighter, darker } from './humanoid/colors.js';
 
 export { lighter, darker };
-export const VOXEL = 0.058;
-// Every person (player and villagers) is drawn this much bigger than the
-// cube size above, so characters stand out more against the landscape.
-export const CHARACTER_SCALE = 1.12;
-export const HEAD_TOP = 14 * VOXEL; // top of the head, measured from the head's base
-const BODY_CENTER = 0.85;
-const HEAD = { x0: 3, z0: 3 };
-const COVERS_HAIR = ['helmet', 'hood', 'coif', 'greathelm']; // where the 16 x 14 x 14 head sits inside its 22 x 19 x 20 grid
+export const VOXEL = MV; // size of one model cube in world units
 
-export function buildHumanoid(spec) {
-  const s = { eyeStyle: 'round', brows: 'thin', mouth: 'smile', blush: true, ...spec };
+// ---- Step 1: appearance -> concrete look ------------------------------------
+export function resolveLook(appearance) {
+  const a = { ...DEFAULT_APPEARANCE, ...appearance };
+  const race = RACES[a.race] ?? RACES.human;
+  const skin = race.skins.includes(a.skin) ? SKIN[a.skin] : SKIN[race.skins[0]];
+  const hair = race.hair ? HAIR_COLORS_BY_ID[a.hairColor] ?? HAIR_COLORS_BY_ID.chestnut : null;
+  return {
+    race: race === RACES[a.race] ? a.race : 'human',
+    frame: a.frame ?? race.frame ?? 'straight',
+    scale: race.scale * (a.scale ?? 1),
+    skin,
+    hair,
+    hairStyle: race.hair ? a.hairStyle : 'bald',
+    eyeColor: a.eyeColor,
+    face: FACE_PRESETS[a.face] ?? FACE_PRESETS.face_01,
+    browColor: !hair ? skin.shadow : a.browColor === 'link_hair' || a.browColor == null ? hair.shadow : a.browColor,
+    facialHair: a.facialHair ?? race.facialHair ?? 'none',
+    overlays: a.overlays ?? [],
+    features: { ...race.features },
+    underlayer: a.underlayer,
+    under1: a.underColor,
+    under2: a.underColor2,
+    // Filled in later by equipment / NPC clothing:
+    clothing: null, chest: null, legs: null, feet: null, hands: null,
+    headgear: null, hats: [], pads: null, hiddenHairZones: new Set(), compressHair: false,
+  };
+}
+
+// Hide hair zones under worn headgear.
+export function hideHair(r, kind) {
+  for (const z of HIDES_HAIR[kind] ?? []) r.hiddenHairZones.add(z);
+}
+
+// ---- Step 2: build the model -------------------------------------------------
+export function buildHumanoid(r) {
   const root = new THREE.Group();
-  root.scale.setScalar(CHARACTER_SCALE);
+  root.scale.setScalar(r.scale);
+  const center = BODY.bodyCenter * MV;
   const body = new THREE.Group();
-  body.position.y = BODY_CENTER;
+  body.position.y = center;
   root.add(body);
   const frame = new THREE.Group();
-  frame.position.y = -BODY_CENTER;
+  frame.position.y = -center;
   body.add(frame);
 
-  const v = VOXEL;
-  const parts = {
-    legL: attach(frame, legGrid(s), [3, 7, 4], [-3.1 * v, 7 * v, 0]),
-    legR: attach(frame, legGrid(s), [3, 7, 4], [3.1 * v, 7 * v, 0]),
-    torso: attach(frame, torsoGrid(s), [6, 0, 4.5], [0, 7 * v, 0]),
-    armL: arm(frame, s, -1),
-    armR: arm(frame, s, 1),
-  };
-  parts.head = attach(parts.torso, headGrid(s), [11, 0, 9.5], [0, 9 * v, 0]);
+  const broad = r.frame === 'broad' ? 1 : 0;
+  const shoulder = BODY.arm.pivot[0] + broad;
+  const parts = {};
+  parts.pelvis = attach(frame, pelvisGrid(r), [4, 3, 3], mv(0, BODY.pelvis.pivot[1], 0));
+  parts.torso = attach(parts.pelvis, torsoGrid(r), [5 + broad, 8, 3], mv(0, BODY.torso.pivot[1] - BODY.pelvis.pivot[1], 0));
+
+  // Head (with hair and headgear in the same grid, so they share shading).
+  const head = headGrid(r);
+  if (r.headgear) drawHeadgear(head, r.headgear);
+  const tails = drawHair(head, r);
+  parts.head = attach(parts.torso, head, [X0 + 7, Y0, Z0 + 6], [0, 0, 0]);
+  for (const t of tails) attach(parts.head, t.grid, t.pivot, mv(...t.at));
+
+  for (const [side, s] of [['L', -1], ['R', 1]]) {
+    const arm = attach(parts.torso, armGrid(r), [1.5, 7, 1.5], mv(s * shoulder, BODY.arm.pivot[1] - BODY.torso.pivot[1], 0));
+    parts[`arm${side}`] = arm;
+    parts[`hand${side}`] = attach(arm, handGrid(r), [2, 4, 2], mv(0, BODY.hand.pivot[1] - BODY.arm.pivot[1], 0));
+    const leg = attach(parts.pelvis, legGrid(r), [2, 6.5, 2], mv(s * BODY.leg.pivot[0], BODY.leg.pivot[1] - BODY.pelvis.pivot[1], 0));
+    parts[`leg${side}`] = leg;
+    parts[`foot${side}`] = attach(leg, footGrid(r), [2.5, 2, 3], mv(0, BODY.foot.pivot[1] - BODY.leg.pivot[1], BODY.foot.pivot[2]));
+  }
+
+  // Sockets: empty attachment points named as in the spec.
+  const sockets = {};
+  for (const [name, { parent, at }] of Object.entries(SOCKETS)) {
+    const p = new THREE.Group();
+    p.name = name;
+    const x = name.endsWith('_L') || name.endsWith('_R') ? at[0] + Math.sign(at[0]) * (parent === 'torso' ? broad : 0) : at[0];
+    p.position.copy(mv(x, at[1], at[2]));
+    parts[parent].add(p);
+    sockets[name] = p;
+  }
+
+  // Shoulder pads (late armour), race tails, hats.
+  if (r.pads) {
+    for (const s of ['L', 'R']) attach(sockets[`socket_shoulder_${s}`], padGrid(r.pads.color, r.pads.trim, r.pads.big), r.pads.big ? [3.5, 1, 3.5] : [2.5, 1, 2.5], [0, 0, 0]);
+  }
+  if (r.features.tail) {
+    const tail = attach(sockets.socket_waist_back, tailGrid(r), [2.5, 2.5, 0], [0, 0, 0]);
+    tail.rotation.set(r.features.tail === 'fox' ? -0.5 : -0.25, Math.PI, 0); // turned to point backwards, drooping
+  }
+  for (const hat of r.hats) attach(sockets.socket_head_top, hat.grid, hat.pivot, [0, -(hat.sink ?? 2) * MV, 0]);
+
   root.traverse((o) => {
     if (o.isMesh) o.castShadow = true;
   });
-  return { root, body, parts };
+  return { root, body, parts, sockets, bodyCenter: center };
 }
 
-// An arm group: pivot at the shoulder, a puffy sleeve, and a fist floating below.
-function arm(frame, s, side) {
-  const v = VOXEL;
-  const group = new THREE.Group();
-  group.position.set(side * 8.6 * v, 15.5 * v, 0);
-  frame.add(group);
-  group.add(mesh(sleeveGrid(s), [2.5, 4, 2.5]));
-  const fist = mesh(fistGrid(s, side), [3.5, 6, 3]);
-  fist.position.set(side * 0.3 * v, -4.3 * v, 0.3 * v);
-  group.add(fist);
-  if (s.pads) {
-    const big = s.bigPads;
-    attach(group, padGrid(s.pads, s.padTrim ?? s.trim, big), big ? [4, 0, 4] : [3, 0, 3], [side * (big ? 0.6 : 0) * v, -0.6 * v, 0]);
+// A tail pointing backwards (its front end at z = 0 of its grid, at the socket).
+function tailGrid(r) {
+  const s = r.skin;
+  if (r.features.tail === 'fox') {
+    // Bushy, widening then narrowing, with a white tip.
+    const g = new VoxelGrid(5, 5, 11);
+    const widths = [2, 3, 4, 5, 5, 5, 5, 4, 4, 3, 2];
+    widths.forEach((w, z) => {
+      const o = Math.floor((5 - w) / 2);
+      g.box(o, o, z, w, w, 1, z >= 8 ? 0xf6f2ea : z % 3 === 0 ? s.highlight : s.base);
+    });
+    return g;
   }
-  return group;
+  // Lizard: long and tapering, darker underneath.
+  const g = new VoxelGrid(5, 5, 12);
+  for (let z = 0; z < 12; z++) {
+    const w = Math.max(1, 4 - Math.floor(z / 3));
+    const o = Math.floor((5 - w) / 2);
+    g.box(o, o, z, w, w, 1, s.base).box(o, o, z, w, 1, 1, s.shadow);
+  }
+  return g;
 }
 
-function mesh(grid, pivot) {
-  return new THREE.Mesh(grid.toGeometry(VOXEL, pivot), voxelModelMaterial());
+function mv(x, y, z) {
+  return new THREE.Vector3(x * MV, y * MV, z * MV);
 }
 
 // Adds a voxel part to `parent`; returns its group (rotate the group to animate).
+// position: a Vector3 or [x, y, z] in world units.
 export function attach(parent, grid, pivot, position, voxel = VOXEL) {
   const group = new THREE.Group();
-  group.position.set(position[0], position[1], position[2]);
+  if (Array.isArray(position)) group.position.set(position[0], position[1], position[2]);
+  else group.position.copy(position);
   group.add(new THREE.Mesh(grid.toGeometry(voxel, pivot), voxelModelMaterial()));
   parent.add(group);
   return group;
 }
 
-function headGrid(s) {
-  const g = new VoxelGrid(22, 19, 20);
-  const { x0, z0 } = HEAD;
-  g.box(x0, 0, z0, 16, 14, 14, s.skin);
-  // Soften the head's corners a little.
-  for (const [x, z] of [[x0, z0], [x0 + 15, z0], [x0, z0 + 13], [x0 + 15, z0 + 13]]) {
-    g.set(x, 13, z, null).set(x, 0, z, null);
-  }
-  drawFace(g, s, HEAD);
-  drawEars(g, s, HEAD);
-  if (!COVERS_HAIR.includes(s.headgear)) drawHair(g, s, HEAD);
-  if (s.hat) g.box(0, 12, 0, 22, 7, 20, null); // a hat sits on top: hair must not poke through
-  if (s.headgear) headgear(g, s);
-  if (s.mask) for (let x = x0; x <= x0 + 15; x++) for (let y = 0; y <= 3; y++) g.set(x, y, z0 + 14, (x + y) % 5 === 0 ? darker(s.mask, 0.2) : s.mask);
-  return g;
-}
-
-// Headgear (from worn head armour, see models/equipment/armor.js):
-//   cap       a soft cap with a brim; the hair still shows below it
-//   hood      a hood framing the face, hiding the hair
-//   coif      a chain-mail hood
-//   helmet    a metal helmet with an open face and a crest
-//   greathelm a closed helmet with an eye slit and a tall crest (rare armour)
-function headgear(g, s) {
-  const { x0, z0 } = HEAD;
-  const c = s.headgearColor;
-  const t = s.headgearTrim ?? c;
-  const shell = (fromY, color = () => c, open = true) => {
-    for (let y = fromY; y <= 15; y++) for (let z = z0 - 1; z <= z0 + 14; z++) for (let x = x0 - 1; x <= x0 + 16; x++) {
-      const outer = x === x0 - 1 || x === x0 + 16 || z === z0 - 1 || y >= 14;
-      const frontOpen = open && z >= z0 + 13 && y < 11 && x > x0 && x < x0 + 15;
-      if (outer && !frontOpen) g.set(x, y, z, color(x, y, z));
-    }
-  };
-  const band = () => { for (let x = x0 - 1; x <= x0 + 16; x++) g.set(x, 11, z0 + 14, t); };
-  if (s.headgear === 'cap') {
-    for (let y = 11; y <= 15; y++) for (let z = z0 - 1; z <= z0 + 14; z++) for (let x = x0 - 1; x <= x0 + 16; x++) {
-      const outer = x === x0 - 1 || x === x0 + 16 || z === z0 - 1 || z === z0 + 14 || y >= 14;
-      if (outer && !(y === 15 && (x === x0 - 1 || x === x0 + 16))) g.set(x, y, z, y === 11 ? t : c);
-    }
-    for (let x = x0 + 1; x <= x0 + 14; x++) g.set(x, 11, z0 + 15, t).set(x, 11, z0 + 16, darker(t, 0.15)); // brim
-  } else if (s.headgear === 'hood') {
-    shell(0);
-    for (let z = z0; z <= z0 + 3; z++) g.set(x0 + 7, 16, z, c).set(x0 + 8, 16, z, c).set(x0 + 7, 17, z - 1, c);
-    band();
-  } else if (s.headgear === 'coif') {
-    const dark = darker(c, 0.22);
-    shell(0, (x, y, z) => ((x + y + z) % 2 ? c : dark));
-    band();
-  } else if (s.headgear === 'helmet') {
-    shell(1);
-    band();
-    for (let z = z0; z <= z0 + 12; z++) g.set(x0 + 7, 16, z, t).set(x0 + 8, 16, z, t).set(x0 + 7, 17, z, t); // crest
-    for (let y = 2; y <= 10; y++) g.set(x0 - 1, y, z0 + 13, lighter(c, 0.2)).set(x0 + 16, y, z0 + 13, lighter(c, 0.2));
-  } else if (s.headgear === 'greathelm') {
-    shell(0, () => c, false);
-    for (let y = 0; y <= 15; y++) for (let x = x0 - 1; x <= x0 + 16; x++) g.set(x, y, z0 + 14, c); // closed visor
-    for (let x = x0 + 2; x <= x0 + 13; x++) g.set(x, 7, z0 + 14, 0x141826).set(x, 8, z0 + 14, 0x141826); // eye slit
-    for (let y = 1; y <= 13; y++) g.set(x0 + 7, y, z0 + 14, t).set(x0 + 8, y, z0 + 14, t); // nose guard
-    for (let x = x0 - 1; x <= x0 + 16; x++) g.set(x, 11, z0 + 14, t);
-    for (let z = z0 - 1; z <= z0 + 13; z++) for (let y = 16; y <= 18 - Math.abs(z - z0 - 6) / 4; y++) g.set(x0 + 7, y, z, t).set(x0 + 8, y, z, t);
-    if (s.headgearGlow) g.set(x0 + 7, 12, z0 + 15, s.headgearGlow).set(x0 + 8, 12, z0 + 15, s.headgearGlow);
-  }
-}
+export { HEAD_GRID };

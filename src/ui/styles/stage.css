@@ -247,3 +247,14 @@
     margin: 8px 16px;
   }
 }
+
+.chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.panel-actions {
+  gap: 8px;
+}

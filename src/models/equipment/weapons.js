@@ -2,17 +2,17 @@
 // They use the SAME cube size as bodies (VOXEL), so everything looks made
 // by the same hand. Each item in data/items.js names its `model` here.
 //
-//   buildHeld(gear, parts)  attaches the main-hand and off-hand items
+//   buildHeld(gear, model)  attaches the main-hand and off-hand items to the
+//                           hand sockets (socket_hand_R / socket_hand_L)
 
 import { VoxelGrid } from '../VoxelGrid.js';
-import { attach, lighter, darker } from '../humanoid.js';
+import { attach, lighter, darker, VOXEL } from '../humanoid.js';
 
 const WOOD = 0x9a5a2c;
 const DARK_WOOD = 0x5a341c;
 const STRING = 0xf2eee2;
 const BRASS = 0xc8963c;
 const GOLD = 0xffc83a;
-const HAND_Y = -0.43; // the fist, measured from the shoulder
 
 // Where each model is held: which arm, and how it's tilted.
 // arm: 'main' (right fist) or 'off' (left fist); tilt: forward rotation.
@@ -23,27 +23,28 @@ const HOLD = {
   shortbow: { arm: 'off', tilt: 0.05 }, longbow: { arm: 'off', tilt: 0.05 }, recurve: { arm: 'off', tilt: 0.05 },
 };
 
-export function buildHeld(gear, parts) {
+export function buildHeld(gear, model) {
+  const { socket_hand_R: right, socket_hand_L: left } = model.sockets;
   const main = gear.mainHand;
   const off = gear.offHand;
-  if (main) hold(main, parts, HOLD[main.model]?.arm === 'off' ? parts.armL : parts.armR, HOLD[main.model]?.tilt ?? 0.3);
-  if (off) {
+  if (main) hold(main, HOLD[main.model]?.arm === 'off' ? left : right, HOLD[main.model]?.tilt ?? 0.3);
+  if (off && !(main && main.kind === 'great')) { // two-handed weapons leave no room for an off-hand item
     if (off.model === 'roundShield' || off.model === 'kiteShield') {
       // Strapped to the forearm, facing forward.
-      const shield = attach(parts.armL, MODELS[off.model](off), [1, 6, 6], [-0.06, HAND_Y + 0.05, 0.2]);
+      const shield = attach(left, MODELS[off.model](off), [1, 6, 6], [-2.5 * VOXEL, 1.5 * VOXEL, 1 * VOXEL]);
       shield.rotation.y = -Math.PI / 2;
     } else {
-      hold(off, parts, parts.armL, HOLD[off.model]?.tilt ?? 0.3);
+      hold(off, left, HOLD[off.model]?.tilt ?? 0.3);
     }
   }
 }
 
-function hold(item, parts, arm, tilt) {
+function hold(item, socket, tilt) {
   const grid = MODELS[item.model](item);
   // Bows are held in the middle, staffs a third of the way up, the rest by the grip.
   const gripY = { shortbow: grid.sizeY / 2, longbow: grid.sizeY / 2, recurve: grid.sizeY / 2, staff: 11, crossbow: 1 };
   const pivot = [grid.sizeX / 2, gripY[item.model] ?? 2, grid.sizeZ / 2];
-  const g = attach(arm, grid, pivot, [0, HAND_Y, 0.05]);
+  const g = attach(socket, grid, pivot, [0, 0, 0]);
   g.rotation.x = Math.PI * tilt;
 }
 

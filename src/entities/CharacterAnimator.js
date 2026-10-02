@@ -16,6 +16,7 @@ export class CharacterAnimator {
     this.time = 0;
     this.swing = 0; // how strongly limbs swing right now (0..1), smoothed
     this.torsoY = model.parts.torso.position.y; // resting height of the body
+    this.center = model.bodyCenter ?? 0.85;    // height of the body's tilt/roll point
   }
 
   // state: { mode, speed, verticalSpeed, sprinting, grounded, inWater, rolling, attack }
@@ -40,7 +41,7 @@ export class CharacterAnimator {
       armRz: 0,
       lean: state.sprinting && moving ? 0.18 : 0,
       twist: 0,
-      bodyY: 0.85,
+      bodyY: this.center,
       bob: moving ? Math.abs(Math.cos(this.walkPhase)) * 0.05 * this.swing : Math.sin(this.time * 2) * 0.012,
     };
 
@@ -64,7 +65,7 @@ export class CharacterAnimator {
     if (state.rolling >= 0) {
       // A full forward flip over the roll, tucked into a ball.
       body.rotation.x = state.rolling * Math.PI * 2;
-      body.position.y = 0.55;
+      body.position.y = this.center * 0.7;
       parts.legL.rotation.x = parts.legR.rotation.x = -1.4;
       parts.armL.rotation.x = parts.armR.rotation.x = -1.6;
     } else {
@@ -90,7 +91,7 @@ export class CharacterAnimator {
   boatPose(state) {
     // Sitting, rowing while the boat moves.
     const row = state.speed > 0.5 ? Math.sin(this.time * 5) * 0.5 : 0;
-    return { legL: -1.45, legR: -1.45, armL: -1.1 + row, armR: -1.1 + row, lean: 0, bob: 0, bodyY: 0.55 };
+    return { legL: -1.45, legR: -1.45, armL: -1.1 + row, armR: -1.1 + row, lean: 0, bob: 0, bodyY: this.center * 0.7 };
   }
 }
 

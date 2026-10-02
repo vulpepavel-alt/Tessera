@@ -105,8 +105,12 @@ export function headGrid(r) {
     }
   }
 
-  // ---- Facial hair (over the face, may hang below the chin) ----
-  drawFacialHair(g, r);
+  // ---- A cloth mask over the lower face (rogue hoods), else facial hair ----
+  if (r.mask) {
+    for (let x = X0; x <= X1; x++) for (let y = Y0; y <= fgy(3); y++) g.set(x, y, ZF + 1, (x + y) % 5 === 0 ? darker(r.mask, 0.2) : r.mask);
+  } else {
+    drawFacialHair(g, r);
+  }
   return g;
 }
 
@@ -166,13 +170,15 @@ function drawEars(g, kind, skin, r) {
     }
   }
   if (kind === 'fox') {
+    // Tall pointed ears on top, standing clear of any hair.
     const tip = r.features.earTip ?? skin.deepShadow;
+    const widths = [4, 4, 3, 3, 2, 1];
     for (const ex of [X0 + 1, X0 + 9]) {
-      for (let k = 0; k < 4; k++) {
-        const w = 4 - k;
-        g.box(ex + Math.floor(k / 2), Y1 + 1 + k, Z0 + 4, w, 1, 3, k === 3 ? tip : skin.base);
-        if (k < 2) g.box(ex + 1, Y1 + 1 + k, Z0 + 6, Math.max(1, w - 2), 1, 1, mix(skin.base, 0xffffff, 0.55));
-      }
+      widths.forEach((w, k) => {
+        const x = ex + Math.floor((4 - w) / 2);
+        g.box(x, Y1 + 1 + k, Z0 + 4, w, 1, 3, k >= 4 ? tip : skin.base);
+        if (k >= 1 && k <= 3 && w > 2) g.box(x + 1, Y1 + 1 + k, Z0 + 6, w - 2, 1, 1, mix(skin.base, 0xffffff, 0.55));
+      });
     }
   }
 }
@@ -209,8 +215,8 @@ function drawFrogEyes(g, r) {
   const s = r.skin;
   for (const ex of [X0, X0 + 10]) {
     g.box(ex, Y1 - 1, ZF - 4, 4, 4, 4, s.base).set(ex, Y1 + 2, ZF - 4, null).set(ex + 3, Y1 + 2, ZF - 4, null);
-    g.box(ex + 1, Y1, ZF, 2, 2, 1, r.eyeColor);
-    g.set(ex + (ex === X0 ? 2 : 1), Y1, ZF, darker(r.eyeColor, 0.7)).set(ex + (ex === X0 ? 1 : 2), Y1 + 1, ZF, WHITE);
+    g.box(ex, Y1 - 1, ZF, 4, 3, 1, r.eyeColor).box(ex, Y1 - 1, ZF, 4, 1, 1, s.shadow); // big round eye, lid below
+    g.box(ex + (ex === X0 ? 2 : 1), Y1, ZF, 1, 2, 1, darker(r.eyeColor, 0.7)).set(ex + (ex === X0 ? 1 : 2), Y1 + 1, ZF, WHITE);
   }
 }
 

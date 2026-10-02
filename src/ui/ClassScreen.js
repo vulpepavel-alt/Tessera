@@ -89,7 +89,8 @@ export class ClassScreen {
   start() {
     const seed = this.seed.trim() || randomSeed();
     SaveManager.create(this.slot, {
-      name: this.creator.finalName(), classId: this.creator.classId, seed, ...this.creator.look,
+      name: this.creator.finalName(), classId: this.creator.classId, seed,
+      appearance: { ...this.creator.look, overlays: [...this.creator.look.overlays] }, // kept apart from class data
     });
     this.onStart(this.slot);
   }
