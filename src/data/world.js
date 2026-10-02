@@ -64,4 +64,5 @@ export const CAMERA = {
   height: 2.1,             // the camera looks at this point above the player's feet (keeps
                            // the character in the lower centre of the screen)
   follow: 14,              // how quickly the camera catches up with the player (damping)
+  combatPullBack: 2.2,     // extra distance while enemies are fighting you
 };

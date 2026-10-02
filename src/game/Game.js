@@ -23,6 +23,7 @@ import { buildVillager } from '../models/villagerModel.js';
 import { buildCreature } from '../models/creatureModels.js';
 import { PLAYER } from '../data/player.js';
 import { Particles } from '../effects/Particles.js';
+import { Sfx } from '../audio/Sfx.js';
 import { AmbientLife } from '../effects/AmbientLife.js';
 import { GameHud } from '../ui/GameHud.js';
 import { DebugOverlay } from '../ui/DebugOverlay.js';
@@ -128,12 +129,21 @@ export class Game {
     // Little bursts of particles for impact and movement.
     const feet = () => this.player.position.clone().setY(this.player.position.y + 0.1);
     this.player.on('land', () => this.particles.burst('dust', feet()));
-    this.player.on('roll', () => this.particles.burst('dust', feet()));
-    this.player.on('splash', () => this.particles.burst('splash', this.player.position.clone().setY(this.player.position.y + 0.9)));
-    this.battle.combat.on('hit', ({ target, crit }) => {
-      const chest = target.position.clone().setY(target.position.y + target.height * 0.6);
-      this.particles.burst(crit ? 'crit' : 'hit', chest);
+    this.player.on('roll', () => {
+      this.particles.burst('dust', feet());
+      Sfx.dodge();
     });
+    this.player.on('splash', () => this.particles.burst('splash', this.player.position.clone().setY(this.player.position.y + 0.9)));
+    this.battle.combat.on('hit', ({ target, crit, finisher, heavy }) => {
+      const chest = target.position.clone().setY(target.position.y + target.height * 0.6);
+      this.particles.burst(crit ? 'crit' : finisher || heavy ? 'finisher' : 'hit', chest);
+      if (target === this.player) Sfx.hurt();
+      else if (finisher || heavy) Sfx.finisher();
+      else Sfx.hit(crit);
+      if ((finisher || heavy) && target !== this.player) this.cameraRig.shake = Math.max(this.cameraRig.shake, 0.45);
+    });
+    // Trails behind arrows and spells.
+    this.battle.combat.onTrail = (p) => this.particles.burst(p.model === 'arrow' ? 'trailArrow' : p.model === 'orb' ? 'trailOrb' : 'trailBolt', p.position);
     this.battle.combat.on('killed', ({ target }) => {
       if (target !== this.player) this.particles.burst('poof', target.position.clone().setY(target.position.y + 0.5));
     });

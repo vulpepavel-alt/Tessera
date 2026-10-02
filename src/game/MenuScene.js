@@ -157,7 +157,8 @@ export class MenuScene {
       const pose = { blade: 'swing', great: 'swing', dagger: 'thrust', bow: 'shoot', crossbow: 'shoot', wand: 'cast', staff: 'cast' }[kind] ?? 'thrust';
       const step = 0.45;
       const loop = this.previewTime % (step * 3 + 0.7); // three hits, then a breath
-      if (loop < step * 3) state.attack = { kind: pose, t: (loop % step) / step, index: Math.floor(loop / step) };
+      const index = Math.floor(loop / step);
+      if (loop < step * 3) state.attack = { kind: pose, t: (loop % step) / step, index, finisher: index === 2 };
     }
     this.animator.update(dt, state);
   }

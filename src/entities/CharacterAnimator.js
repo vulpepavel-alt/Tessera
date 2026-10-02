@@ -99,35 +99,49 @@ function airPose() {
   return { legL: -0.5, legR: 0.3, armL: -0.6, armR: -0.6, bob: 0 };
 }
 
-// attack: { kind, t (0..1 progress), index (combo step) }
-function attackPose({ kind, t, index = 0 }) {
-  const h = hump(t, 0.35);
-  switch (kind) {
-    case 'swing': {
-      // Wind up high, then cut down and across. Each combo step swings differently.
-      const side = index === 1 ? -1 : 1;
-      const raise = t < 0.35 ? -2.4 * (t / 0.35) : lerp(-2.4, 0.5, (t - 0.35) / 0.65);
-      return { armR: raise, armRz: index === 2 ? 0 : side * 0.6 * h, twist: side * (t < 0.35 ? -0.5 : 0.6) * h };
+// Attack poses in three phases (spec'd per weapon by `strikeAt`):
+//   anticipation  0 .. strikeAt   wind up into the `ready` pose (eased)
+//   impact        at strikeAt     snap to the `hit` pose in a few frames
+//   recovery      strikeAt .. 1   ease back towards neutral
+// Every combo step has its own pair of poses; the last step is a finisher.
+const POSES = {
+  swing: [
+    { ready: { armR: -2.6, armRz: 0.5, twist: -0.6, lean: -0.08 }, hit: { armR: 0.4, armRz: -0.5, twist: 0.7, lean: 0.12 } },   // forehand
+    { ready: { armR: -1.5, armRz: -0.9, twist: 0.6 }, hit: { armR: -0.6, armRz: 0.9, twist: -0.75, lean: 0.1 } },                 // backhand
+  ],
+  swingFinisher: { ready: { armR: -3.0, armL: -2.4, lean: -0.22, bob: -0.05 }, hit: { armR: 0.5, armL: 0.3, lean: 0.38, bob: 0.03 } }, // overhead
+  thrust: [
+    { ready: { armR: 0.45, twist: -0.35 }, hit: { armR: -1.75, twist: 0.45, lean: 0.1 } }, // right jab
+    { ready: { armL: 0.45, twist: 0.35 }, hit: { armL: -1.75, twist: -0.45, lean: 0.1 } }, // left jab
+  ],
+  thrustFinisher: { ready: { armR: 0.6, armL: 0.6, lean: -0.15 }, hit: { armR: -1.8, armL: -1.8, lean: 0.3 } }, // double strike
+  shoot: [{ ready: { armL: -1.55, armLz: 0.1, armR: -1.5, armRz: -0.3, twist: -0.5 }, hit: { armL: -1.55, armLz: 0.1, armR: -1.05, armRz: -0.1, twist: -0.45 } }],
+  cast: [{ ready: { armR: -2.8, armL: -0.4, twist: -0.2 }, hit: { armR: -1.4, armL: -1.0, twist: 0.25, lean: 0.08 } }],
+  castFinisher: { ready: { armR: -3.0, armL: -2.8, lean: -0.12 }, hit: { armR: -1.3, armL: -1.3, lean: 0.2 } },
+  heavy: [{ ready: { armR: -3.0, armL: -2.6, lean: -0.15 }, hit: { armR: 0.3, armL: 0.2, lean: 0.35 } }],
+};
+
+const ease = (x) => 1 - (1 - x) * (1 - x);
+
+// attack: { kind, t (0..1), index (combo step), strikeAt, finisher }
+function attackPose({ kind, t, index = 0, strikeAt = 0.45, finisher = false }) {
+  const set = POSES[kind];
+  if (!set) return {};
+  const pair = (finisher && POSES[`${kind}Finisher`]) || set[index % set.length];
+  const keys = new Set([...Object.keys(pair.ready), ...Object.keys(pair.hit)]);
+  const out = {};
+  for (const k of keys) {
+    const ready = pair.ready[k] ?? 0;
+    const hit = pair.hit[k] ?? 0;
+    let v;
+    if (t < strikeAt) {
+      v = ready * ease(t / strikeAt);                                 // anticipation
+    } else {
+      const snap = Math.min(1, (t - strikeAt) / 0.07);                // impact
+      const rec = (t - strikeAt) / Math.max(0.001, 1 - strikeAt);     // recovery
+      v = (ready + (hit - ready) * snap) * (1 - Math.max(0, (rec - 0.35) / 0.65) ** 2);
     }
-    case 'thrust':
-      // Quick stabs, alternating hands.
-      return index % 2 === 0
-        ? { armR: -1.6 * h - 0.2, twist: 0.4 * h }
-        : { armL: -1.6 * h - 0.2, twist: -0.4 * h };
-    case 'shoot':
-      // Bow arm forward, the other pulls the string back, then releases.
-      return { armL: -1.55, armLz: 0.1, armR: t < 0.6 ? -1.5 : -1.2, armRz: -0.2, twist: -0.5 };
-    case 'cast':
-      // Staff raised forward, then pushed toward the target.
-      return { armR: t < 0.4 ? -2.6 : -1.5, armL: -0.8 * h, twist: 0.2 * h };
-    case 'heavy':
-      // Big overhead slam with both arms.
-      return {
-        armR: t < 0.55 ? lerp(0, -3, t / 0.55) : lerp(-3, 0.3, (t - 0.55) / 0.45),
-        armL: t < 0.55 ? lerp(0, -2.6, t / 0.55) : lerp(-2.6, 0.2, (t - 0.55) / 0.45),
-        lean: t < 0.55 ? -0.15 : 0.35 * hump((t - 0.55) / 0.45, 0.3),
-      };
-    default:
-      return {};
+    out[k] = v;
   }
+  return out;
 }

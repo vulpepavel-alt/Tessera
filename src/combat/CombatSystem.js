@@ -46,7 +46,7 @@ export class CombatSystem {
 
   // A melee blow: hits every opposing target in front of `attacker` within
   // `range` and inside an `arc` (degrees) around `facing` (radians).
-  melee({ attacker, facing, range, arc, damage, knockback, critChance = 0, heavy = false }) {
+  melee({ attacker, facing, range, arc, damage, knockback, critChance = 0, heavy = false, finisher = false }) {
     const half = THREE.MathUtils.degToRad(arc) / 2;
     const hits = [];
     for (const target of this.targetsOf(attacker.team)) {
@@ -59,7 +59,7 @@ export class CombatSystem {
       let angle = Math.atan2(dx, dz) - facing;
       angle = Math.atan2(Math.sin(angle), Math.cos(angle));
       if (Math.abs(angle) > half && reach > 0.6) continue; // very close targets always get hit
-      this.hit(target, { attacker, damage, knockback, critChance, heavy, from: attacker.position });
+      this.hit(target, { attacker, damage, knockback, critChance, heavy, finisher, from: attacker.position });
       hits.push(target);
     }
     return hits;
@@ -71,7 +71,7 @@ export class CombatSystem {
 
   // Apply one hit. Returns the damage dealt (0 if dodged).
   // effects: { stun: seconds, slow: { factor, duration }, poison: { dps, duration } }
-  hit(target, { attacker, damage, knockback = 0, critChance = 0, heavy = false, from, effects = null }) {
+  hit(target, { attacker, damage, knockback = 0, critChance = 0, heavy = false, finisher = false, from, effects = null }) {
     if (!target.alive) return 0;
     const top = tmp.copy(target.position).setY(target.position.y + target.height + 0.2);
     if (target.invincible) {
@@ -88,14 +88,14 @@ export class CombatSystem {
     const push = new THREE.Vector3(target.position.x - from.x, 0, target.position.z - from.z);
     if (push.lengthSq() < 0.0001) push.set(0, 0, 1);
     push.normalize().multiplyScalar(knockback * (crit ? 1.3 : 1));
-    target.receiveHit?.({ amount, crit, push, attacker });
+    target.receiveHit?.({ amount, crit, push, attacker, heavy, finisher });
     const extra = m.extraEffects(attacker);
     if (effects || extra) target.applyStatus?.({ ...extra, ...effects });
 
     const style = target.team === 'player' ? 'player' : crit ? 'crit' : 'damage';
     this.labels.number(top, crit ? `${amount}!` : String(amount), style);
-    if (attacker?.team === 'player') this.hitStop = Math.max(this.hitStop, heavy ? COMBAT.heavyHitStop : COMBAT.hitStop);
-    this.emit('hit', { target, attacker, amount, crit });
+    if (attacker?.team === 'player') this.hitStop = Math.max(this.hitStop, heavy ? COMBAT.heavyHitStop : finisher ? COMBAT.finisherHitStop : COMBAT.hitStop);
+    this.emit('hit', { target, attacker, amount, crit, heavy, finisher });
     if (target.health <= 0) {
       target.alive = target.team === 'player'; // the player is handled by the Game (respawn)
       this.emit('killed', { target, attacker });
@@ -133,9 +133,11 @@ export class CombatSystem {
     for (const p of this.projectiles) {
       p.update(dt, this.world, this.targetsOf(p.team),
         (proj, target) => this.hit(target, { attacker: proj.owner, damage: proj.damage, knockback: proj.knockback,
-          critChance: proj.critChance, heavy: proj.heavy, from: proj.position.clone().sub(proj.velocity), effects: proj.effects }),
+          critChance: proj.critChance, heavy: proj.heavy, finisher: proj.finisher, from: proj.position.clone().sub(proj.velocity), effects: proj.effects }),
         (proj) => this.explode(proj));
     }
+    // Voxel trails make the path of arrows and spells easy to read.
+    for (const p of this.projectiles) if (p.alive) this.onTrail?.(p);
     this.projectiles = this.projectiles.filter((p) => p.alive);
   }
 }

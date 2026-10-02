@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { COMBAT, CLASS_COMBAT, WEAPON_COMBAT } from '../data/combat.js';
 import { ITEMS } from '../data/items.js';
+import { Sfx } from '../audio/Sfx.js';
 
 const AIM_NDC = new THREE.Vector2(0, 0.16); // the crosshair sits a bit above screen centre
 const raycaster = new THREE.Raycaster();
@@ -55,6 +56,8 @@ export class PlayerCombat {
     this.sinceCombat += dt;
     this.sinceAttack = (this.sinceAttack ?? 99) + dt;
 
+    // Dodging always wins: a roll cancels whatever attack was in progress.
+    if (this.current && p.roll.time >= 0) this.cancel();
     if (this.current) this.advance(dt * this.haste);
     if (this.skillPose) {
       this.skillPose.time += dt;
@@ -65,10 +68,14 @@ export class PlayerCombat {
       else if (input.isDown('Mouse0')) this.startBasic(); // hold to keep attacking
     }
 
-    p.attackPose = this.current
-      ? { kind: this.current.attack.kind, t: this.current.time / this.current.duration, index: this.current.index }
+    const c = this.current;
+    p.attackPose = c
+      ? { kind: c.attack.kind, t: c.time / c.duration, index: c.index, strikeAt: c.attack.strikeAt, finisher: c.finisher, heavy: c.heavy }
       : this.skillPose ? { kind: this.skillPose.kind, t: this.skillPose.time / this.skillPose.duration, index: 0 } : null;
-    p.faceOverride = this.current ? this.current.aimYaw : null;
+    p.faceOverride = c ? c.aimYaw : null;
+    // You can move while attacking, but slowly while winding up and striking
+    // (the blow has weight), a little faster while recovering.
+    p.attackMove = !c ? 1 : c.struck ? COMBAT.moveWhileRecovering : COMBAT.moveWhileStriking;
     this.updateResources(dt);
   }
 
@@ -76,7 +83,9 @@ export class PlayerCombat {
     if (this.comboTimer === 0) this.comboIndex = 0;
     const basic = this.attacks.basic;
     const index = this.comboIndex;
-    this.begin({ attack: basic, heavy: false, index, duration: basic.duration[index] });
+    // The last hit of the combo is a finisher: harder, with more knockback and stagger.
+    const finisher = index === basic.damage.length - 1;
+    this.begin({ attack: basic, heavy: false, index, finisher, duration: basic.duration[index] });
     this.comboIndex = (index + 1) % basic.damage.length;
   }
 
@@ -97,6 +106,15 @@ export class PlayerCombat {
   begin(attack) {
     this.sinceAttack = 0;
     this.current = { ...attack, time: 0, struck: false, aimYaw: this.aimYaw() };
+    const kind = attack.attack.kind;
+    if (kind === 'swing' || kind === 'thrust' || kind === 'heavy') Sfx.swing(attack.heavy || attack.finisher);
+  }
+
+  // Stop the current attack at once (dodge roll, stun...). The combo resets.
+  cancel() {
+    this.current = null;
+    this.comboTimer = 0;
+    this.comboIndex = 0;
   }
 
   advance(dt) {
@@ -126,16 +144,24 @@ export class PlayerCombat {
     const knockback = c.heavy ? a.knockback : a.knockback[c.index];
     const critChance = this.data.critChance;
 
+    // Melee blows carry you forward a little: they feel heavy and connect.
+    if (!a.projectile && !a.dash) {
+      const step = (c.heavy || c.finisher ? COMBAT.lungeHeavy : COMBAT.lunge);
+      p.velocity.x += Math.sin(c.aimYaw) * step;
+      p.velocity.z += Math.cos(c.aimYaw) * step;
+    }
     if (a.projectile) {
+      if (a.kind === 'cast') Sfx.cast();
+      else Sfx.shoot();
       const origin = p.position.clone().add(new THREE.Vector3(Math.sin(c.aimYaw) * 0.5, 1.25, Math.cos(c.aimYaw) * 0.5));
       this.combat.shoot({
         ...a.projectile,
         origin, direction: this.aimDirection(origin), damage, knockback, critChance,
-        team: 'player', owner: p, heavy: c.heavy,
+        team: 'player', owner: p, heavy: c.heavy, finisher: c.finisher,
       });
     } else {
       this.combat.melee({
-        attacker: p, facing: c.aimYaw, range: a.range, arc: a.arc, damage, knockback, critChance, heavy: c.heavy,
+        attacker: p, facing: c.aimYaw, range: a.range, arc: a.arc, damage, knockback, critChance, heavy: c.heavy, finisher: c.finisher,
       });
     }
     p.emit('attack', { heavy: c.heavy, kind: a.kind });

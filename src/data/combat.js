@@ -17,6 +17,13 @@ export const COMBAT = {
   healthRegen: 0.03,        // fraction of max health per second, out of combat
   lockRange: 28,            // Tab lock-on reach
   deathRespawnDelay: 3,     // seconds
+  finisherHitStop: 0.1,     // the last hit of a combo freezes a little longer
+  moveWhileStriking: 0.4,   // movement speed while winding up / striking (x normal)
+  moveWhileRecovering: 0.75,// ... and while recovering
+  lunge: 2.6,               // forward step on each melee hit (voxels / second)
+  lungeHeavy: 5,            // ... on heavy attacks and finishers
+  staggerHit: 0.16,         // seconds an enemy flinches when hit
+  staggerFinisher: 0.55,    // ... when hit by a finisher or heavy attack (interrupts its wind-up)
 };
 
 // What the CLASS brings: crit chance, the cost of a heavy attack (in rage,

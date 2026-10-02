@@ -71,6 +71,8 @@ export class Battle {
     const p = this.player;
     this.skills.update(dt, input, !this.dead && p.mode === 'walk' && p.roll.time < 0);
     this.lock.update(this.player);
+    // The camera widens while angry enemies are near.
+    this.cameraRig.inCombat = this.combat.enemies.some((e) => e.alive && e.isAngry && e.position.distanceTo(p.position) < 18);
     // Weapons in hand while fighting; back on the back / hip a few seconds after.
     const pc = this.playerCombat;
     p.setWeaponsDrawn(Boolean(pc.current || pc.skillPose || pc.sinceAttack < 4 || pc.sinceCombat < 4));

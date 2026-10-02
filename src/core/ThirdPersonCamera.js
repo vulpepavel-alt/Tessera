@@ -25,6 +25,8 @@ export class ThirdPersonCamera {
     this.offset = new THREE.Vector3();
     this.lockTarget = null; // an enemy to keep in view (Tab lock-on)
     this.shake = 0;         // screen shake strength, fades by itself
+    this.inCombat = false;  // set by the battle: pulls the camera back so foes stay in view
+    this.combatExtra = 0;
   }
 
   update(dt, playerPosition) {
@@ -57,7 +59,9 @@ export class ThirdPersonCamera {
     this.offset.set(Math.sin(this.yaw) * cosP, Math.sin(this.pitch), Math.cos(this.yaw) * cosP);
 
     // Pull in instantly when blocked, ease back out when free again.
-    const free = this.freeDistance(this.distance);
+    // In a fight, ease back a little so you and the enemies both fit in the frame.
+    this.combatExtra += ((this.inCombat ? CAMERA.combatPullBack : 0) - this.combatExtra) * Math.min(1, dt * 2);
+    const free = this.freeDistance(this.distance + this.combatExtra);
     if (free < this.actualDistance) this.actualDistance = free;
     else this.actualDistance += (free - this.actualDistance) * Math.min(dt * 4, 1);
 

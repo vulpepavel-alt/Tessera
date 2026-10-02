@@ -7,9 +7,11 @@ import { isSolidBlock } from '../entities/physics.js';
 const LIFETIME = 3; // seconds before a projectile disappears on its own
 
 const MODELS = {
+  // Same cube size as characters and weapons (0.0625).
   arrow: () => {
-    const g = new VoxelGrid(1, 1, 8).box(0, 0, 1, 1, 1, 6, 0x8a5a32).set(0, 0, 7, 0xd5dbe3).set(0, 0, 0, 0xf2eee2);
-    return new THREE.Mesh(g.toGeometry(0.1, [0.5, 0.5, 4]), voxelModelMaterial());
+    const g = new VoxelGrid(3, 3, 13).box(1, 1, 2, 1, 1, 9, 0x8a5a32).box(1, 1, 11, 1, 1, 2, 0xd5dbe3);
+    g.box(0, 1, 0, 3, 1, 3, 0xf2eee2).box(1, 0, 0, 1, 3, 3, 0xdc4b4b); // fletching
+    return new THREE.Mesh(g.toGeometry(0.0625, [1.5, 1.5, 6.5]), voxelModelMaterial());
   },
   bolt: () => glowCube(0.35, 0x8fe8ff),
   orb: () => glowCube(0.6, 0xff9a4a),

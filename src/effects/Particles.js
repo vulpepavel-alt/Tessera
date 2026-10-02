@@ -14,6 +14,10 @@ export const EFFECTS = {
   heal: { count: 18, colors: [0x8fff8a, 0xd8ffd0, 0x4fd84a], speed: 1.2, up: 3, gravity: -2, life: 1, size: 0.16 },
   meteor: { count: 40, colors: [0xff7a2a, 0xffd84a, 0xff4a2a, 0x8a5a3a], speed: 9, up: 7, gravity: 14, life: 1, size: 0.3 },
   smoke: { count: 1, colors: [0xd8d8d8, 0xc4c4c4, 0xeeeeee], speed: 0.25, up: 0.9, gravity: -0.15, life: 3.2, size: 0.55 },
+  finisher: { count: 26, colors: [0xffffff, 0xffc83a, 0x2f6cf0], speed: 8, up: 4, gravity: 14, life: 0.55, size: 0.16 },
+  trailArrow: { count: 2, colors: [0xffffff, 0xe8e2d2], speed: 0.15, up: 0, gravity: 0, life: 0.3, size: 0.1 },
+  trailBolt: { count: 2, colors: [0x8fe8ff, 0xffffff, 0x4ac8ff], speed: 0.5, up: 0.2, gravity: -0.5, life: 0.35, size: 0.1 },
+  trailOrb: { count: 2, colors: [0xff9a4a, 0xffd84a, 0xff5a2a], speed: 0.6, up: 0.4, gravity: -0.8, life: 0.45, size: 0.14 },
   poof: { count: 22, colors: [0xdedede, 0xbababa, 0x8a6a4a], speed: 3, up: 2.5, gravity: -1, life: 0.9, size: 0.25 },
 };
 

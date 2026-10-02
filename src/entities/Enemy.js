@@ -3,6 +3,8 @@
 //   patrol  -> wanders near home until it notices you
 //   chase   -> runs at you
 //   windup  -> stops and glows red: the warning that lets you dodge
+//   recover -> winded for a moment after attacking: the opening to hit back
+//   (any hit makes it flinch; finishers / heavy hits stagger it and break a wind-up)
 //   attack  -> the attack itself (for the Bramblehog: a straight charge)
 //   retreat -> runs away when badly hurt
 //   return  -> goes home (and heals) if pulled too far away
@@ -10,6 +12,7 @@
 // The numbers for each enemy type live in data/enemies.js.
 
 import * as THREE from 'three';
+import { COMBAT } from '../data/combat.js';
 import { ENEMIES } from '../data/enemies.js';
 import { buildCreature, animateQuadruped } from '../models/creatureModels.js';
 import { moveBody, isLiquidBlock } from './physics.js';
@@ -65,7 +68,7 @@ export class Enemy {
   }
 
   get isAngry() {
-    return this.state === 'chase' || this.state === 'windup' || this.state === 'attack';
+    return this.state === 'chase' || this.state === 'windup' || this.state === 'attack' || this.state === 'recover';
   }
 
   setState(state) {
@@ -74,8 +77,16 @@ export class Enemy {
   }
 
   // Called by the combat system when this enemy is hit.
-  receiveHit({ push }) {
+  receiveHit({ push, heavy, finisher }) {
     this.flash = 0.12;
+    // Flinch on every hit; a finisher or heavy attack staggers longer and
+    // breaks the wind-up of an attack (the player's reward for good timing).
+    const big = heavy || finisher;
+    this.stagger = Math.max(this.stagger ?? 0, big ? COMBAT.staggerFinisher : COMBAT.staggerHit);
+    if (big && this.state === 'windup') {
+      this.setState('chase');
+      this.attackCooldown = Math.max(this.attackCooldown, 0.8);
+    }
     this.velocity.x += push.x;
     this.velocity.z += push.z;
     this.velocity.y = Math.max(this.velocity.y, 3.5);
@@ -160,7 +171,8 @@ export class Enemy {
     let wish = null; // the direction to walk in (or null to stand still)
     let speed = 0;
 
-    if (this.status.stun > 0) {
+    this.stagger = Math.max(0, (this.stagger ?? 0) - dt);
+    if (this.status.stun > 0 || (this.stagger > 0 && this.state !== 'attack')) {
       this.move(dt, null, 0);
       this.syncModel(dt);
       return this.position.y > -6;
@@ -215,8 +227,13 @@ export class Enemy {
           this.attackCooldown = a.cooldown;
           this.velocity.x *= 0.2;
           this.velocity.z *= 0.2;
-          this.setState('chase');
+          this.setState('recover');
         }
+        break;
+      }
+      case 'recover': {
+        // Winded after attacking: stands still for a moment - an opening to hit back.
+        if (this.stateTime >= (this.type.attack.recover ?? 0.6)) this.setState(playerAvailable ? 'chase' : 'return');
         break;
       }
       case 'retreat': {
@@ -285,6 +302,8 @@ export class Enemy {
     else if (this.status.slow > 0) material.emissive.setRGB(0.05, 0.12, 0.3);
     else material.emissive.setRGB(0, 0, 0);
 
+    // A flinch tilts the body back for a moment.
+    this.model.body.rotation.x = -0.35 * Math.min(1, (this.stagger ?? 0) / COMBAT.staggerHit) * (this.alive ? 1 : 0);
     animateQuadruped(this.model, {
       speed: Math.hypot(this.velocity.x, this.velocity.z),
       windup: this.state === 'windup' && this.alive,

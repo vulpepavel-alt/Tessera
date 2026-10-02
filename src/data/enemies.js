@@ -26,7 +26,7 @@ export const ENEMIES = {
     retreatAt: 0.25,     // flee below 25% health ...
     retreatTime: 3.5,    // ... for this many seconds
     // Charge: a short warning, then a fast straight rush.
-    attack: { kind: 'charge', range: 4, windup: 0.7, duration: 0.45, speed: 14, cooldown: 1.8, knockback: 9 },
+    attack: { kind: 'charge', range: 4, windup: 0.7, duration: 0.45, speed: 14, cooldown: 1.8, knockback: 9, recover: 0.7 },
     xp: 12,
   },
 };
