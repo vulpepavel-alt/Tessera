@@ -87,6 +87,7 @@ export function headGrid(r) {
   else {
     const m = skin.deepShadow;
     const mouths = {
+      none: [],
       neutral: [[5, 1], [6, 1]],
       smile: [[5, 1], [6, 1], [4, 2], [7, 2]],
       frown: [[5, 2], [6, 2], [4, 1], [7, 1]],
@@ -126,6 +127,22 @@ function drawEye(face, f, inner, outer, r, side) {
   const cols = [inner, outer];
   // Big eyes, sitting a little below the middle of the head, so they read at
   // gameplay distance: tall = 2x4, square = 2x3, sleepy = 2x2 under a lid.
+  if (f.eyeShape === 'lashed') {
+    // The classic voxel-hero eye: a dark lash row on top, a bright iris with a
+    // darker pupil on the inner side, and a lighter bottom row.
+    // Three cubes wide and four tall, its bottom a third of the way up the head.
+    for (const x of [inner, outer, outer + side]) {
+      face(x, 6, DARK);
+      face(x, 5, iris);
+      face(x, 4, iris);
+      face(x, 3, lighter(iris, 0.35));
+    }
+    face(inner, 5, pupil);
+    face(inner, 4, pupil);
+    if (r.gender === 'female') face(outer + side * 2, 7, DARK).set(fgx(outer + side), fgy(7), ZF, DARK); // longer lashes, flicked out
+    if (r.features.glowEyes) face(outer, 5, lighter(iris, 0.8));
+    return;
+  }
   const rows = { square: [4, 5, 6], sleepy: [4, 5] }[f.eyeShape] ?? [4, 5, 6, 7];
   for (const x of cols) for (const y of rows) face(x, y, iris);
   if (f.eyeShape === 'soft-corner') face(outer, 7, r.skin.base);

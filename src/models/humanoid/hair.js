@@ -19,6 +19,8 @@ const XM = X0 + HW / 2; // the column just right of the head's middle
 // as 14 columns and stretched to the head's width), side/back bottom rows
 // (0 = jaw, 12 = top of head) and thickness, plus extras.
 const STYLES = {
+  // The classic hero mop: tall chunky spikes, a heavy jagged fringe down to the eyes, sides to the cheeks.
+  big_spikes: { cap: 2, fringe: [3, 4, 5, 4, 3, 5, 4, 5, 4, 3, 5, 4, 3, 2], side: [4, 1], back: [3, 2], top: 'bigSpikes' },
   cropped_block: { cap: 1, fringe: even(1), side: [10, 1], back: [7, 1] },
   side_sweep: { cap: 2, fringe: [5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1], side: [9, 1], back: [6, 2] },
   center_fringe: { cap: 1, fringe: [1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 2, 2, 1, 1], side: [9, 1], back: [6, 2] },
@@ -48,7 +50,9 @@ export function drawHair(g, r) {
   if (!style || !r.hair) return [];
   const show = (zone) => !r.hiddenHairZones.has(zone);
   const { highlight: hi, base: c, shadow: lo } = r.hair;
-  const shade = (x, y, z) => (hash(x, y, z) < 0.14 ? hi : hash(z, x, y) < 0.12 ? lo : c);
+  // Smooth, stepped shading like the classic look: the top rows catch the light,
+  // the lowest rows sit in shadow, and only a few single cubes differ.
+  const shade = (x, y, z) => (y >= Y1 + 1 ? hi : y <= Y0 + 5 ? lo : hash(x, y, z) < 0.04 ? hi : c);
   // Hair only grows into empty space: it never covers ears, crests, masks or headgear.
   const set = (x, y, z, col) => { if (g.get(x, y, z) === null) g.set(x, y, z, col); };
 
@@ -105,7 +109,24 @@ export function drawHair(g, r) {
 
 function drawTop(kind, set, shade, hi, c, lo) {
   const top = Y1 + 2;
-  if (kind === 'spikes') {
+  if (kind === 'bigSpikes') {
+    // Fat 4 x 4 clumps that taper by one cube per layer (4, 3, 2, 1) and lean
+    // back, 2-4 layers tall, in a staggered pattern over the 2-cube cap.
+    const base = Y1 + 3;
+    for (let row = 0, z = Z0 - 1; z <= ZF - 3; z += 4, row++) {
+      for (let x = X0 - 2 + (row % 2) * 2; x <= X1 - 1; x += 4) {
+        const tall = 2 + hash(x, 7, z) * 3 | 0;
+        for (let k = 0; k < tall; k++) {
+          const w = Math.max(1, 4 - k);
+          const o = (4 - w) >> 1;
+          const back = k >> 1;
+          for (let dx = 0; dx < w; dx++) for (let dz = 0; dz < w; dz++) {
+            set(x + o + dx, base + k, z + o + dz - back, k === tall - 1 ? hi : k === 0 && (dx === 0 || dz === 0) ? lo : c);
+          }
+        }
+      }
+    }
+  } else if (kind === 'spikes') {
     // Chunky 2 x 2 tufts that lean backwards, in a staggered pattern.
     for (let x = X0; x <= X1 - 1; x += 3) for (let z = Z0 + ((x / 3) % 2 ? 1 : 0); z <= ZF - 2; z += 3) {
       const tall = 2 + ((x + z) % 2);

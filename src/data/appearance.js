@@ -94,15 +94,18 @@ export const EYE_PALETTE = [
 ];
 
 // ---- Faces (spec 5.4) ------------------------------------------------------
-// eyeShape: square 2x2 | tall 2x3 | soft-corner 2x3, one corner off | sleepy 2x2 under a lid
+// eyeShape: lashed 2x3 with a dark lash row on top (the classic look) | square 2x2 |
+//   tall 2x3 | soft-corner 2x3, one corner off | sleepy 2x2 under a lid
 // eyeSpacing: 'close' | 'standard' | 'wide' (2, 4 or 6 empty cells; the 12-cell
 //   grid can only keep eyes symmetric with even gaps)
 // pupilSize: '1x1' | '1x2'   brow: none | short | flat | angled
-// nose: none | dot | short    mouth: neutral | smile | frown | open
+// nose: none | dot | short    mouth: none | neutral | smile | frown | open
 // earSize: none | small | standard (races may replace ears)
 const face = (eyeShape, eyeSpacing, pupilSize, brow, nose, mouth, earSize) => ({ eyeShape, eyeSpacing, pupilSize, brow, nose, mouth, earSize });
 export const FACE_PRESETS = {
-  face_01: face('tall', 'standard', '1x2', 'short', 'none', 'smile', 'standard'),
+  face_01: face('lashed', 'standard', '1x1', 'none', 'none', 'none', 'standard'),   // the classic: big lashed eyes, nothing else
+  face_13: face('lashed', 'wide', '1x1', 'none', 'none', 'neutral', 'standard'),
+  face_14: face('lashed', 'close', '1x1', 'flat', 'none', 'none', 'standard'),
   face_02: face('tall', 'standard', '1x1', 'flat', 'dot', 'neutral', 'standard'),
   face_03: face('square', 'standard', '1x1', 'none', 'none', 'smile', 'small'),
   face_04: face('soft-corner', 'standard', '1x2', 'short', 'dot', 'smile', 'standard'),
@@ -118,10 +121,17 @@ export const FACE_PRESETS = {
 
 // ---- Hair styles (spec 6.3), facial hair and overlays ---------------------
 export const HAIR_STYLES = [
-  'cropped_block', 'side_sweep', 'center_fringe', 'blunt_bob', 'layered_bob', 'short_spikes',
+  'big_spikes', 'cropped_block', 'side_sweep', 'center_fringe', 'blunt_bob', 'layered_bob', 'short_spikes',
   'tall_crest', 'low_ponytail', 'high_ponytail', 'twin_tails', 'short_braid', 'long_braid',
   'rounded_curls', 'side_shave', 'swept_back', 'bald',
 ];
+// Gender (like the classic creator): it changes the eye lashes and which
+// hairstyles are offered; every style stays available to everyone.
+export const GENDERS = ['male', 'female'];
+export const HAIR_BY_GENDER = {
+  male: ['big_spikes', 'short_spikes', 'cropped_block', 'side_sweep', 'swept_back', 'tall_crest', 'side_shave', 'rounded_curls', 'center_fringe', 'low_ponytail', 'short_braid', 'bald'],
+  female: ['layered_bob', 'long_braid', 'twin_tails', 'high_ponytail', 'low_ponytail', 'blunt_bob', 'center_fringe', 'side_sweep', 'rounded_curls', 'big_spikes', 'short_braid', 'side_shave'],
+};
 export const FACIAL_HAIR = ['none', 'stubble', 'mustache', 'curled_mustache', 'goatee', 'chin_strap', 'short_beard', 'full_beard', 'braided_beard'];
 // Stackable marks drawn on the skin (several can be chosen at once).
 export const OVERLAYS = [
@@ -135,25 +145,26 @@ export const OVERLAYS = [
 export const UNDERLAYERS = ['tunic', 'shirt', 'undertunic'];
 // Muted, dyeable cloth colours.
 export const CLOTH_DYES = [
-  0xe8dcc0, 0xc8b89a, 0x9a8a72, 0x6e6a62, 0x8a7a9a, 0x6a7a8a,
+  0x5a4a7a, 0x463a60, 0xe8dcc0, 0xc8b89a, 0x9a8a72, 0x6e6a62, 0x8a7a9a, 0x6a7a8a,
   0x7a8a6a, 0x9a6a5a, 0x5a6a7a, 0xb8a888, 0x8a9aa8, 0x6a5a4a,
 ];
 
 export const DEFAULT_APPEARANCE = {
   schemaVersion: 2,
   race: 'human',
+  gender: 'male',
   frame: 'straight',
   skin: 'fair_golden',
-  hairStyle: 'short_spikes',
+  hairStyle: 'big_spikes',
   hairColor: 'golden_blond',
   eyeColor: 0x2a62e0,
   face: 'face_01',
   browColor: 'link_hair',
   facialHair: 'none',
-  overlays: ['rosy_cheeks'],
-  underlayer: 'tunic',
-  underColor: 0xe8dcc0,
-  underColor2: 0x6e6a62,
+  overlays: [],
+  underlayer: 'undertunic',
+  underColor: 0x5a4a7a,
+  underColor2: 0x463a60,
   pronouns: 'they/them',
 };
 

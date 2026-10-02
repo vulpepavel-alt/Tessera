@@ -17,6 +17,10 @@ import { BODY } from '../../data/characterSpec.js';
 import { lighter, darker } from './colors.js';
 
 const GOLD = 0xffcc33;
+const POUCH = 0xece4d2;  // the light pouch on the starter robe's belt
+const BELT = 0x5a3a22;
+const SHOE = 0x2e2c34;   // plain dark shoes everyone starts with
+const SOLE = 0x5a5862;
 const [TW, TH, TD] = BODY.torso.size;
 const [PW, PH, PD] = BODY.pelvis.size;
 const [HAW, HAH, HAD] = BODY.hand.size;
@@ -53,6 +57,7 @@ export function torsoGrid(r) {
   g.box(mid - 3, H - 1, 0, 1, 1, D, darker(under, 0.2)).box(mid + 2, H - 1, 0, 1, 1, D, darker(under, 0.2)); // collar
   g.box(0, 0, 0, W, 1, D, darker(under, 0.18)); // hem
   if (r.underlayer === 'tunic' && broad) for (const x of [0, W - 1]) g.box(x, H - 3, 0, 1, 3, D, r.skin.base); // sleeveless
+  if (r.underlayer === 'undertunic') g.box(mid - 2, 0, front, 4, 1, 1, POUCH); // top of the belt pouch
 
   // Villager clothing modules over the underlayer.
   const c = r.clothing;
@@ -110,6 +115,7 @@ export function pelvisGrid(r) {
   const mid = PW / 2;
   const g = new VoxelGrid(PW, PH, PD).box(0, 0, 0, PW, PH, PD, cloth);
   g.box(0, PH - 1, 0, PW, 1, PD, darker(cloth, 0.25)); // a thin cord, no big buckle
+  if (r.underlayer === 'undertunic') g.box(0, 0, 0, PW, PH, PD, BELT).box(mid - 2, 0, PD - 1, 4, PH, 1, POUCH); // leather belt with a pouch
   if (r.clothing?.style === 'robe') g.box(0, 0, 0, PW, PH, PD, r.clothing.color);
   if (r.clothing?.apron) g.box(mid - 4, 0, PD - 1, 8, PH, 1, r.clothing.apron);
   if (r.legs) {
@@ -147,7 +153,7 @@ export function handGrid(r) {
 export function legGrid(r) {
   const g = new VoxelGrid(LW, LH, LD).box(0, 0, 0, LW, LH, LD, r.skin.base);
   // Short trousers / the tunic's hem cover the top of the leg (which reaches up into the pelvis).
-  const cover = { tunic: 3, shirt: 2, undertunic: 3 }[r.underlayer] ?? 2;
+  const cover = { tunic: 3, shirt: 2, undertunic: LH }[r.underlayer] ?? 2; // the robe hides the legs
   const cloth = r.underlayer === 'undertunic' ? r.under1 : r.under2;
   g.box(0, LH - cover, 0, LW, cover, LD, cloth).box(0, LH - cover, 0, LW, 1, LD, darker(cloth, 0.15));
   if (r.clothing?.style === 'robe') g.box(0, 1, 0, LW, LH - 1, LD, r.clothing.color);
@@ -172,7 +178,7 @@ export function footGrid(r) {
   const g = new VoxelGrid(FW, FH, FD);
   const ankle = Math.ceil(FD / 2); // the back half rises one cube higher
   const shoe = (base, sole) => g.box(0, 0, 0, FW, FH - 1, FD, base).box(0, FH - 1, 0, FW, 1, ankle, base).box(0, 0, 0, FW, 1, FD, sole);
-  if (!r.feet) return shoe(r.skin.base, r.skin.shadow); // a bare foot: skin with a shaded sole
+  if (!r.feet) return shoe(SHOE, SOLE); // plain dark shoes
   const b = r.feet.base;
   shoe(b, darker(b, 0.4));
   g.box(1, FH - 2, FD - 1, FW - 2, 1, 1, lighter(b, 0.25)); // toe cap

@@ -22,7 +22,7 @@ import { RACES, RACE_ORDER } from '../data/races.js';
 import { FRAMES } from '../data/characterSpec.js';
 import {
   SKIN, HAIR_PALETTES, EYE_PALETTE, FACE_PRESETS, HAIR_STYLES, FACIAL_HAIR, OVERLAYS,
-  UNDERLAYERS, CLOTH_DYES, DEFAULT_APPEARANCE,
+  UNDERLAYERS, CLOTH_DYES, DEFAULT_APPEARANCE, GENDERS, HAIR_BY_GENDER,
 } from '../data/appearance.js';
 import { mulberry32 } from '../world/random.js';
 
@@ -150,11 +150,12 @@ export class CharacterCreator {
     const weapon = ITEMS[STARTER_KIT[this.classId].mainHand];
     replaceChildren(this.panel,
       chooser('RACE', RACE_ORDER, a.race, (v) => this.setRace(v), (v) => RACES[v].name),
+      chooser('GENDER', GENDERS, a.gender ?? 'male', (v) => this.setGender(v), (v) => v.toUpperCase()),
       chooser('CLASS', CLASS_ORDER, this.classId, (v) => { this.classId = v; this.render(); }, (v) => CLASSES[v].name),
       ptext(`${c.role} - starts with a ${weapon.name}`.toUpperCase(), { scale: 1, color: '#b8c0d0' }),
       race.variants ? chooser('EYES', race.variants, a.raceVariant ?? race.variants[0], (v) => this.set('raceVariant', v), (v) => v.toUpperCase()) : null,
       chooser('FACE', Object.keys(FACE_PRESETS), a.face, (v) => this.set('face', v), (v) => words(v)),
-      race.hair ? chooser('HAIRCUT', HAIR_STYLES, a.hairStyle, (v) => this.set('hairStyle', v), (v) => words(v)) : null,
+      race.hair ? chooser('HAIRCUT', HAIR_BY_GENDER[a.gender ?? 'male'], a.hairStyle, (v) => this.set('hairStyle', v), (v) => words(v)) : null,
       el('div', { class: 'panel-sub' }, ptext('SKIN', { scale: 1.5 })),
       swatches(race.skins.map((id) => [id, SKIN[id].base, SKIN[id].displayName]), a.skin, (v) => this.set('skin', v)),
       race.hair ? el('div', { class: 'panel-sub' }, ptext('HAIR COLOR', { scale: 1.5 })) : null,
@@ -163,6 +164,13 @@ export class CharacterCreator {
         pbutton('RANDOM', () => this.randomLook(), { scale: 1.5, boxed: true }),
         pbutton('MORE OPTIONS', () => { this.more = true; this.render(); }, { scale: 1.5, boxed: true })));
     this.showHero();
+  }
+
+  // A new gender starts with that gender's first hairstyle (all stay available).
+  setGender(g) {
+    this.look.gender = g;
+    if (!HAIR_BY_GENDER[g].slice(0, 6).includes(this.look.hairStyle)) this.look.hairStyle = HAIR_BY_GENDER[g][0];
+    this.render();
   }
 
   // The hero on the pedestal, holding the class's starter weapon.
@@ -246,13 +254,15 @@ export class CharacterCreator {
     const rng = mulberry32(this.seed++ * 7919);
     const race = RACES[pickFrom(RACE_ORDER, rng)];
     const raceId = RACE_ORDER.find((id) => RACES[id] === race);
+    const gender = pickFrom(GENDERS, rng);
     Object.assign(this.look, {
       race: raceId,
+      gender,
       frame: race.frame ?? pickFrom(Object.keys(FRAMES), rng),
       skin: pickFrom(race.skins, rng),
       face: pickFrom(Object.keys(FACE_PRESETS), rng),
       eyeColor: pickFrom(EYE_PALETTE, rng),
-      hairStyle: pickFrom(HAIR_STYLES, rng),
+      hairStyle: pickFrom(HAIR_BY_GENDER[gender], rng),
       hairColor: pickFrom(HAIR_PALETTES, rng).id,
       facialHair: race.facialHair ?? (rng() < 0.25 ? pickFrom(FACIAL_HAIR, rng) : 'none'),
       overlays: OVERLAYS.filter(() => rng() < 0.12),

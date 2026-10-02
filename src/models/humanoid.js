@@ -38,6 +38,7 @@ export function resolveLook(appearance) {
   const hair = race.hair ? HAIR_COLORS_BY_ID[a.hairColor] ?? HAIR_COLORS_BY_ID.chestnut : null;
   return {
     race: race === RACES[a.race] ? a.race : 'human',
+    gender: a.gender === 'female' ? 'female' : 'male',
     frame: a.frame ?? race.frame ?? 'straight',
     scale: race.scale * (a.scale ?? 1),
     skin,
