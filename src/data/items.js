@@ -7,10 +7,10 @@
 //
 // tier: 1 (first finds) ... 7 (legendary). It sets the item's strength.
 
-export const SLOTS = ['head', 'chest', 'hands', 'legs', 'feet', 'back', 'mainHand', 'offHand'];
+export const SLOTS = ['head', 'face', 'chest', 'shoulders', 'hands', 'waist', 'legs', 'feet', 'back', 'mainHand', 'offHand'];
 export const SLOT_NAMES = {
-  head: 'Head', chest: 'Chest', hands: 'Hands', legs: 'Legs', feet: 'Feet',
-  back: 'Back', mainHand: 'Main hand', offHand: 'Off hand',
+  head: 'Head', face: 'Face', chest: 'Chest', shoulders: 'Shoulders', hands: 'Hands', waist: 'Waist',
+  legs: 'Legs', feet: 'Feet', back: 'Back', mainHand: 'Main hand', offHand: 'Off hand',
 };
 
 export const RARITY = {
@@ -68,6 +68,8 @@ const PIECE_NAMES = {
   robe: { head: 'Hat', chest: 'Robe', hands: 'Gloves', legs: 'Leggings', feet: 'Slippers' },
 };
 const ARMOR_SLOTS = ['head', 'chest', 'hands', 'legs', 'feet'];
+// Pauldrons exist for the sturdier armour styles only.
+const SHOULDER_NAMES = { leather: 'Pauldrons', mail: 'Mantle', plate: 'Pauldrons' };
 
 // ---- Weapons ------------------------------------------------------------
 // kind: how it attacks (data/combat.js WEAPON_COMBAT). model: how it looks
@@ -114,6 +116,16 @@ const BACK_LIST = [
   { id: 'royal-cape', name: 'Royal Cape', slot: 'back', model: 'cape', tier: 6, base: 0x2448b8, trim: 0xffc83a },
 ];
 
+// ---- Face and waist ---------------------------------------------------------
+const FACE_WAIST_LIST = [
+  { id: 'goggles', name: 'Explorer Goggles', slot: 'face', model: 'goggles', tier: 1, base: 0xb8863a, trim: 0x6ad0f0 },
+  { id: 'scarf', name: 'Dust Scarf', slot: 'face', model: 'scarf', tier: 1, base: 0xb83a3a, trim: 0x7a2424 },
+  { id: 'rope-belt', name: 'Rope Belt', slot: 'waist', model: 'belt', tier: 1, base: 0xc8b07a, trim: 0x8a6a3a },
+  { id: 'leather-belt', name: 'Leather Belt', slot: 'waist', model: 'belt', tier: 2, base: 0x6a3e1f, trim: 0xc8963c, pouch: true },
+  { id: 'sword-belt', name: 'Sword Belt', slot: 'waist', model: 'belt', tier: 3, base: 0x4a2e18, trim: 0xd2dbe8, scabbard: true },
+  { id: 'gold-sash', name: 'Golden Sash', slot: 'waist', model: 'sash', tier: 6, base: 0xffc83a, trim: 0x2448b8 },
+];
+
 // ---- The catalogue -------------------------------------------------------
 export const ITEMS = {};
 
@@ -125,9 +137,13 @@ for (const [material, m] of Object.entries(MATERIALS)) {
       tier: m.tier, classes, armor: m.tier * (slot === 'chest' ? 3 : slot === 'legs' ? 2 : 1),
     });
   }
+  if (SHOULDER_NAMES[m.style]) {
+    add({ id: `${material}-shoulders`, name: `${m.name} ${SHOULDER_NAMES[m.style]}`, slot: 'shoulders', material, tier: m.tier, classes, armor: m.tier });
+  }
 }
 for (const w of WEAPON_LIST) add(w);
 for (const b of BACK_LIST) add({ classes: null, ...b });
+for (const f of FACE_WAIST_LIST) add({ classes: null, ...f });
 
 function add(item) {
   ITEMS[item.id] = { rarity: TIER_RARITY[item.tier], power: 1 + (item.tier - 1) * 0.3, ...item };

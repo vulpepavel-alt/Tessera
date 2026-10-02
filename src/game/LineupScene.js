@@ -31,22 +31,22 @@ export const PROGRESSION = {
   bulwark: [
     {},
     { mainHand: 'club', chest: 'cloth-chest', feet: 'leather-feet' },
-    { ...set('chain'), head: 'leather-head', mainHand: 'iron-sword', offHand: 'wood-shield' },
-    { ...set('steel'), mainHand: 'greatsword', back: 'travel-cape' },
-    { ...set('sunforged'), mainHand: 'sunblade', offHand: 'sun-shield', back: 'royal-cape' },
+    { ...set('chain'), head: 'leather-head', face: 'goggles', waist: 'leather-belt', mainHand: 'iron-sword', offHand: 'wood-shield' },
+    { ...set('steel'), shoulders: 'steel-shoulders', waist: 'sword-belt', mainHand: 'greatsword', back: 'travel-cape' },
+    { ...set('sunforged'), shoulders: 'sunforged-shoulders', waist: 'gold-sash', mainHand: 'sunblade', offHand: 'sun-shield', back: 'royal-cape' },
   ],
   windstrider: [
     {},
     { mainHand: 'shortbow', chest: 'leather-chest', back: 'quiver' },
     { ...set('hunter'), mainHand: 'longbow', back: 'quiver' },
-    { ...set('reinforced'), mainHand: 'crossbow', back: 'quiver' },
+    { ...set('reinforced'), shoulders: 'reinforced-shoulders', mainHand: 'crossbow', back: 'quiver' },
     { ...set('windrunner'), mainHand: 'galebow', back: 'quiver' },
   ],
   shade: [
     {},
     { mainHand: 'dagger', chest: 'cloth-chest', feet: 'cloth-feet' },
     { ...set('leather'), head: 'shadow-head', mainHand: 'dagger', offHand: 'parry-dagger' },
-    { ...set('shadow'), mainHand: 'shortsword', offHand: 'off-shortsword' },
+    { ...set('shadow'), face: 'scarf', mainHand: 'shortsword', offHand: 'off-shortsword' },
     { ...set('nightsilk'), mainHand: 'nightfang', offHand: 'off-shortsword', back: 'royal-cape' },
   ],
   starweaver: [

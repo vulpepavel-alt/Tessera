@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { PLAYER } from '../data/player.js';
 import { CLASSES } from '../data/classes.js';
 import { buildCharacter } from '../models/characterModel.js';
+import { placeHeld } from '../models/equipment/weapons.js';
 import { buildGlider } from '../models/travelModels.js';
 import { CharacterAnimator } from './CharacterAnimator.js';
 import { PlayerMotor } from './PlayerMotor.js';
@@ -72,6 +73,7 @@ export class Player {
   buildModel() {
     const old = this.model;
     this.model = buildCharacter(this.classId, this.look, { equipment: this.equipment });
+    placeHeld(this.model, this.weaponsDrawn ?? false); // keep weapons where they were
     this.model.body.add(this.glider);
     this.animator = new CharacterAnimator(this.model);
     if (old) {
@@ -82,6 +84,12 @@ export class Player {
       old.root.traverse((o) => o.geometry?.dispose());
     }
     this.scene.add(this.model.root);
+  }
+
+  // Weapons in the hands (fighting) or on the back / hip (exploring).
+  setWeaponsDrawn(drawn) {
+    this.weaponsDrawn = drawn;
+    if (this.model.weaponsDrawn !== drawn) placeHeld(this.model, drawn);
   }
 
   // Put on / take off equipment: { slot: itemId or null }. The model changes at once.

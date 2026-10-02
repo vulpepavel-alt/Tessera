@@ -54,7 +54,7 @@ export function resolveLook(appearance) {
     under2: a.underColor2,
     // Filled in later by equipment / NPC clothing:
     clothing: null, chest: null, legs: null, feet: null, hands: null,
-    headgear: null, hats: [], pads: null, hiddenHairZones: new Set(), compressHair: false,
+    headgear: null, hats: [], pads: null, belt: null, mask: null, hiddenHairZones: new Set(), compressHair: false,
   };
 }
 

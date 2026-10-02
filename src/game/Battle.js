@@ -71,6 +71,9 @@ export class Battle {
     const p = this.player;
     this.skills.update(dt, input, !this.dead && p.mode === 'walk' && p.roll.time < 0);
     this.lock.update(this.player);
+    // Weapons in hand while fighting; back on the back / hip a few seconds after.
+    const pc = this.playerCombat;
+    p.setWeaponsDrawn(Boolean(pc.current || pc.skillPose || pc.sinceAttack < 4 || pc.sinceCombat < 4));
     this.playerCombat.lockTarget = this.lock.target;
     this.cameraRig.lockTarget = this.lock.target;
     this.labels.lockTarget = this.lock.target;

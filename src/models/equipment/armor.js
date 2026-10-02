@@ -30,10 +30,14 @@ export function applyArmor(r, gear, bareHead = false) {
     }
   }
   const chest = gear.chest && MATERIALS[gear.chest.material];
-  if (chest) {
-    r.chest = piece(chest);
-    if (chest.style === 'plate' && chest.tier >= 4) r.pads = { color: chest.base, trim: chest.trim, big: chest.tier >= 5 };
-  }
+  if (chest) r.chest = piece(chest);
+  // Shoulders are their own slot: pauldrons hang on the shoulder sockets.
+  const shoulders = gear.shoulders && MATERIALS[gear.shoulders.material];
+  if (shoulders) r.pads = { color: shoulders.base, trim: shoulders.trim, big: shoulders.tier >= 5 };
+  // Face: a scarf covers the lower face; goggles are added after building.
+  if (gear.face?.model === 'scarf' && !bareHead) r.mask = gear.face.base;
+  // Waist: a belt painted on the pelvis (pouch / scabbard added after building).
+  if (gear.waist) r.belt = { color: gear.waist.base, trim: gear.waist.trim, sash: gear.waist.model === 'sash' };
   const legs = gear.legs && MATERIALS[gear.legs.material];
   if (legs) r.legs = piece(legs);
   const feet = gear.feet && MATERIALS[gear.feet.material];
@@ -44,9 +48,23 @@ export function applyArmor(r, gear, bareHead = false) {
 }
 
 export function addArmorParts(model, gear) {
+  const { sockets } = model;
+  if (gear.face?.model === 'goggles') attach(sockets.socket_face, goggles(gear.face), [8, 2, 0], [0, 0, 0]);
+  if (gear.waist?.pouch) attach(sockets.socket_hip_R, new VoxelGrid(2, 3, 3).box(0, 0, 0, 2, 3, 3, gear.waist.base).box(0, 2, 0, 2, 1, 3, darker(gear.waist.base, 0.25)).set(1, 1, 2, gear.waist.trim), [0, 2, 1.5], [0, 0, 0]);
+  if (gear.waist?.scabbard) {
+    const sc = attach(sockets.socket_hip_L, new VoxelGrid(2, 12, 3).box(0, 0, 0, 2, 12, 3, gear.waist.base).box(0, 11, 0, 2, 1, 3, gear.waist.trim).box(0, 0, 0, 2, 1, 3, gear.waist.trim), [2, 11, 1.5], [0, 0, 0]);
+    sc.rotation.x = 0.35;
+  }
   const chest = gear.chest && MATERIALS[gear.chest.material];
   if (chest?.style === 'robe') attach(model.parts.pelvis, robeSkirt(chest), [5, 6, 4], [0, -2 * VOXEL, 0]);
   if (gear.back) addBack(model.sockets.socket_back, gear.back);
+}
+
+// Goggles: a strap round the head and two round lenses over the eyes.
+function goggles(item) {
+  const g = new VoxelGrid(16, 4, 1).box(0, 1, 0, 16, 2, 1, darker(item.base, 0.35));
+  for (const x of [3, 9]) g.box(x, 0, 0, 4, 4, 1, item.base).box(x + 1, 1, 0, 2, 2, 1, item.trim);
+  return g;
 }
 
 // A pointed hat with a wide brim and a bent tip; taller and starrier for the best robes.

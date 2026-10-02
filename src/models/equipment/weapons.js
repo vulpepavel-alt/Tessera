@@ -2,9 +2,12 @@
 // They use the SAME cube size as bodies (VOXEL), so everything looks made
 // by the same hand. Each item in data/items.js names its `model` here.
 //
-//   buildHeld(gear, model)  attaches the main-hand and off-hand items to the
-//                           hand sockets (socket_hand_R / socket_hand_L)
+//   buildHeld(gear, model)   attaches the main-hand and off-hand items to the
+//                            hand sockets (socket_hand_R / socket_hand_L)
+//   placeHeld(model, drawn)  moves them to the hands (drawn) or to the back /
+//                            hip sockets (sheathed, out of combat)
 
+import { Object3D } from 'three';
 import { VoxelGrid } from '../VoxelGrid.js';
 import { attach, lighter, darker, VOXEL } from '../humanoid.js';
 
@@ -23,29 +26,68 @@ const HOLD = {
   shortbow: { arm: 'off', tilt: 0.05 }, longbow: { arm: 'off', tilt: 0.05 }, recurve: { arm: 'off', tilt: 0.05 },
 };
 
+// Where each item rests when not in use: big things on the back, one-handed
+// weapons on the hip (main hand on the left hip, so it's drawn across).
+const SHEATH = {
+  great: 'socket_back', bow: 'socket_back', crossbow: 'socket_back', staff: 'socket_back', shield: 'socket_back',
+  blade: 'socket_hip_L', dagger: 'socket_hip_L', wand: 'socket_hip_L', focus: 'socket_hip_R',
+};
+
+// Builds the held items and puts them in the hands (drawn). Returns the
+// records placeHeld() uses to move them between hands and sheaths.
 export function buildHeld(gear, model) {
-  const { socket_hand_R: right, socket_hand_L: left } = model.sockets;
   const main = gear.mainHand;
   const off = gear.offHand;
-  if (main) hold(main, HOLD[main.model]?.arm === 'off' ? left : right, HOLD[main.model]?.tilt ?? 0.3);
+  const held = [];
+  if (main) held.push(holdable(main, HOLD[main.model]?.arm === 'off' ? 'socket_hand_L' : 'socket_hand_R', 'main'));
   if (off && !(main && main.kind === 'great')) { // two-handed weapons leave no room for an off-hand item
-    if (off.model === 'roundShield' || off.model === 'kiteShield') {
-      // Strapped to the forearm, facing forward.
-      const shield = attach(left, MODELS[off.model](off), [1, 6, 6], [-2.5 * VOXEL, 1.5 * VOXEL, 1 * VOXEL]);
-      shield.rotation.y = -Math.PI / 2;
-    } else {
-      hold(off, left, HOLD[off.model]?.tilt ?? 0.3);
-    }
+    held.push(holdable(off, 'socket_hand_L', 'off'));
   }
+  model.held = held;
+  placeHeld(model, true);
+  return held;
 }
 
-function hold(item, socket, tilt) {
+// drawn = true: items in the hands; false: on the back or the hip.
+export function placeHeld(model, drawn) {
+  for (const h of model.held ?? []) {
+    const shield = h.item.kind === 'shield';
+    const socket = model.sockets[drawn ? h.hand : SHEATH[h.item.kind] ?? 'socket_back'];
+    socket.add(h.holder);
+    h.holder.position.set(0, 0, 0);
+    h.holder.rotation.set(0, 0, 0);
+    h.inner.rotation.set(0, 0, 0);
+    h.inner.position.set(0, 0, 0);
+    if (drawn) {
+      if (shield) {
+        // Strapped to the forearm, facing forward.
+        h.inner.rotation.y = -Math.PI / 2;
+        h.inner.position.set(-2.5 * VOXEL, 1.5 * VOXEL, 1 * VOXEL);
+      } else {
+        h.inner.rotation.x = Math.PI * h.tilt;
+      }
+    } else if (socket.name === 'socket_back') {
+      // Across the back, tilted, a little behind the body (and behind a cape).
+      h.holder.position.set(0, 1 * VOXEL, -1.5 * VOXEL);
+      if (shield) h.holder.rotation.y = Math.PI / 2;
+      else h.holder.rotation.set(0, 0, h.side === 'main' ? 0.75 : -0.75);
+    } else {
+      // Hanging at the hip, point down and slightly back.
+      h.holder.rotation.set(Math.PI - 0.35, 0, h.side === 'main' ? -0.15 : 0.15);
+    }
+  }
+  model.weaponsDrawn = drawn;
+}
+
+function holdable(item, hand, side) {
   const grid = MODELS[item.model](item);
   // Bows are held in the middle, staffs a third of the way up, the rest by the grip.
   const gripY = { shortbow: grid.sizeY / 2, longbow: grid.sizeY / 2, recurve: grid.sizeY / 2, staff: 11, crossbow: 1 };
-  const pivot = [grid.sizeX / 2, gripY[item.model] ?? 2, grid.sizeZ / 2];
-  const g = attach(socket, grid, pivot, [0, 0, 0]);
-  g.rotation.x = Math.PI * tilt;
+  const shield = item.kind === 'shield';
+  const pivot = shield ? [1, 6, 6] : [grid.sizeX / 2, gripY[item.model] ?? 2, grid.sizeZ / 2];
+  const holder = new Object3D();
+  const inner = attach(holder, grid, pivot, [0, 0, 0]);
+  return { item, hand, side, holder, inner, tilt: HOLD[item.model]?.tilt ?? 0.3 };
 }
 
 const trimOf = (item) => (item.tier >= 5 ? GOLD : BRASS);

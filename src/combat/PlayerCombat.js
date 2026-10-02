@@ -53,6 +53,7 @@ export class PlayerCombat {
     this.comboTimer = Math.max(0, this.comboTimer - dt);
     this.heavyCooldown = Math.max(0, this.heavyCooldown - dt);
     this.sinceCombat += dt;
+    this.sinceAttack = (this.sinceAttack ?? 99) + dt;
 
     if (this.current) this.advance(dt * this.haste);
     if (this.skillPose) {
@@ -94,6 +95,7 @@ export class PlayerCombat {
   }
 
   begin(attack) {
+    this.sinceAttack = 0;
     this.current = { ...attack, time: 0, struck: false, aimYaw: this.aimYaw() };
   }
 

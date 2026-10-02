@@ -103,6 +103,11 @@ export function pelvisGrid(r) {
     if (r.legs.style === 'mail') checker(g, r.legs.base);
   }
   if (r.chest?.style === 'robe') g.box(0, 0, 0, 8, 3, D, r.chest.base).box(3, 0, D - 1, 2, 3, 1, r.chest.trim);
+  if (r.belt) {
+    g.box(0, 2, 0, 8, 1, D, r.belt.color);
+    if (r.belt.sash) g.box(5, 0, D - 1, 2, 2, 1, r.belt.color).set(6, 0, D - 1, r.belt.trim); // knot hanging down
+    else g.box(3, 2, D - 1, 2, 1, 1, r.belt.trim);                                        // buckle
+  }
   return g;
 }
 
