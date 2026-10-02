@@ -22,10 +22,10 @@ export const POST = {
   aoResolution: 0.5,   // the AO is computed at this fraction of the screen size (speed)
   maxPixelRatio: 1.5,  // sharpness cap for the effects (speed on high-DPI screens)
   aoIntensity: 0.85,   // 0 = no ambient occlusion, 1 = full
-  contrast: 1.06,
-  saturation: 1.04,
+  contrast: 1.1,
+  saturation: 1.22,    // bright, toy-like colours
   warmth: 0.025,       // warm tint in bright areas, cool tint in dark ones
-  vignette: 0.16,
+  vignette: 0.1,
 };
 
 const GradeShader = {

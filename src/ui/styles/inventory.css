@@ -1,0 +1,278 @@
+/* The inventory window (ui/InventoryWindow.js): dark see-through boxes with
+   a thin light frame and slightly rounded corners, over the live world. */
+
+.inv {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none; /* only the boxes catch the mouse */
+}
+
+.inv.hidden {
+  display: none;
+}
+
+.inv > * {
+  pointer-events: auto;
+}
+
+.ibox {
+  background: rgba(10, 12, 18, 0.62);
+  border: 2px solid #e4e8f0;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+.ibox canvas {
+  display: block;
+}
+
+/* Middle top: the bag */
+.inv-bag {
+  position: absolute;
+  top: 9vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 396px;
+}
+
+.inv-tabs {
+  display: flex;
+  gap: 4px;
+  margin: -4px 0 2px;
+}
+
+.inv-tab {
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(228, 232, 240, 0.35);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.inv-tab.selected {
+  border-color: #ffe27a;
+  background: rgba(255, 226, 122, 0.12);
+}
+
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 44px);
+  gap: 3px;
+}
+
+.inv-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 236px;
+  padding-top: 10px;
+}
+
+.inv-gold {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inv-gold canvas:last-child {
+  margin-left: auto;
+}
+
+/* One square */
+.inv-sq {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(228, 232, 240, 0.28);
+  border-radius: 4px;
+  cursor: default;
+}
+
+.inv-sq[class*='r-'] {
+  cursor: pointer;
+}
+
+.inv-sq img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.inv-sq:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Rarity shows on the frame */
+.inv-sq.r-uncommon { border-color: rgba(111, 220, 90, 0.8); }
+.inv-sq.r-rare { border-color: rgba(77, 143, 240, 0.9); }
+.inv-sq.r-epic { border-color: rgba(180, 108, 255, 0.9); }
+.inv-sq.r-legendary { border-color: rgba(255, 200, 58, 0.95); }
+
+.inv-sq.unusable img {
+  filter: grayscale(0.7) brightness(0.7);
+}
+
+.inv-sq.unusable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(200, 40, 30, 0.22);
+}
+
+/* Middle bottom: worn items in two columns, the hero visible between them */
+.inv-worn {
+  position: absolute;
+  top: calc(9vh + 360px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 396px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.inv-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.inv-slotrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inv-col.right .inv-slotrow {
+  flex-direction: row-reverse;
+}
+
+.inv-col .inv-sq {
+  background: rgba(10, 12, 18, 0.62);
+  border-color: #e4e8f0;
+}
+
+/* Left: stats */
+.inv-stats {
+  position: absolute;
+  top: 9vh;
+  left: max(16px, calc(50% - 198px - 16px - 250px));
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Right: the item under the mouse */
+.inv-tip {
+  position: absolute;
+  top: 9vh;
+  left: calc(50% + 198px + 16px);
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.inv-tip.hidden {
+  display: none;
+}
+
+.tip-icon {
+  width: 72px;
+  height: 72px;
+  align-self: center;
+}
+
+.inv-close {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* While the inventory is open the HUD's bottom bars step aside. */
+.hud.inv-open .hud-bottom {
+  display: none;
+}
+
+/* Short screens: smaller squares so everything fits */
+@media (max-height: 820px) {
+  .inv-bag,
+  .inv-stats,
+  .inv-tip {
+    top: 70px;
+  }
+
+  .inv-worn {
+    top: calc(70px + 330px);
+  }
+
+  .inv-grid {
+    grid-template-columns: repeat(8, 40px);
+  }
+
+  .inv-bag {
+    width: 368px;
+  }
+
+  .inv-sq {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Narrow screens: everything in one scrolling column */
+@media (max-width: 1000px) {
+  .inv {
+    overflow-y: auto;
+    pointer-events: auto;
+    background: rgba(10, 12, 18, 0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .inv.hidden {
+    display: none;
+  }
+
+  .inv > *,
+  .inv-worn {
+    position: static;
+    transform: none;
+    width: min(396px, 100%);
+  }
+
+  .inv-grid {
+    grid-template-columns: repeat(auto-fill, 44px);
+  }
+}

@@ -60,8 +60,7 @@
   margin: 0 auto;
 }
 
-.pbutton:hover:not(:disabled) canvas,
-.class-option:hover canvas:first-child {
+.pbutton:hover:not(:disabled) canvas {
   filter: sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.15);
 }
 
@@ -72,19 +71,21 @@
 
 .pbutton.boxed,
 .pbox {
-  /* TESSERA colours: deep royal blue panels with a golden-yellow frame */
-  background: rgba(16, 32, 92, 0.8);
-  border: 2px solid #ffc83a;
-  border-radius: 0;
-  box-shadow: 0 0 0 2px rgba(8, 14, 44, 0.75);
+  /* Clean and simple: dark see-through boxes with a thin light frame and
+     slightly rounded corners, so the bright world shows through. */
+  background: rgba(10, 12, 18, 0.6);
+  border: 2px solid #e4e8f0;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
 }
 
 .pbutton.boxed:hover:not(:disabled) {
-  background: rgba(36, 72, 184, 0.85);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #ffffff;
 }
 
 .pbutton.boxed {
-  padding: 10px 22px;
+  padding: 8px 18px;
 }
 
 .pbutton.mini {
@@ -134,15 +135,16 @@
   height: 14px;
   padding: 2px;
   box-sizing: border-box;
-  background: rgba(16, 32, 92, 0.8);
-  border: 2px solid #ffc83a;
-  border-radius: 0;
+  background: rgba(10, 12, 18, 0.6);
+  border: 2px solid #e4e8f0;
+  border-radius: 6px;
 }
 
 .pbar > div {
   height: 100%;
   width: 0;
-  background: #ffc83a;
+  border-radius: 3px;
+  background: #ffe27a;
   transition: width 0.2s;
 }
 
@@ -183,7 +185,25 @@
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
-  min-width: 300px;
+  min-width: 240px;
+}
+
+/* How to Play */
+.howto-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.howto-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-self: stretch;
 }
 
 .pause-controls {

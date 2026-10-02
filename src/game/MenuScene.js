@@ -12,6 +12,7 @@ import { MainMenu } from '../ui/MainMenu.js';
 import { buildCharacter } from '../models/characterModel.js';
 import { CharacterAnimator } from '../entities/CharacterAnimator.js';
 import { ITEMS } from '../data/items.js';
+import { placeHeld } from '../models/equipment/weapons.js';
 import { settings } from '../save/Settings.js';
 
 const ORBIT_RADIUS = 64;
@@ -114,6 +115,7 @@ export class MenuScene {
   setPreview(kind) {
     this.preview = kind;
     this.previewTime = 0;
+    if (this.model) placeHeld(this.model, kind === 'combat');
   }
 
   // Turn to a fixed view: 'front', 'side' or 'back'.
@@ -129,6 +131,7 @@ export class MenuScene {
       this.model.root.traverse((o) => o.geometry?.dispose());
     }
     this.model = buildCharacter(classId, look, { equipment: this.equipment });
+    placeHeld(this.model, this.preview === 'combat'); // weapons on the back unless fighting
     this.animator = new CharacterAnimator(this.model);
     this.model.root.visible = true;
     this.model.root.traverse((o) => { if (o.isMesh) o.castShadow = true; });

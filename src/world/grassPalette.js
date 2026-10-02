@@ -8,12 +8,12 @@
 // (for grass tufts standing on it), so plants match the ground under them.
 
 export const GRASS_SHADES = [
-  0x2f8a3e, // deep green
-  0x44a03e, // mid green
-  0x5cb83e, // bright grass green
-  0x76c63e, // light green
-  0x96c43a, // yellow-green
-  0x7f973a, // olive
+  0x34a03a, // deep green
+  0x4cb83a, // mid green
+  0x66cc36, // bright grass green
+  0x84dc34, // light lime
+  0xa2dc36, // yellow-green
+  0x8cb43a, // olive
 ];
 
 const LOW = 23;   // around this height the grass is at its greenest

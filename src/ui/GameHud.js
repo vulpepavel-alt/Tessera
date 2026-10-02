@@ -1,6 +1,7 @@
 // The in-game HUD, kept small and clean like a classic voxel adventure:
-//   top-left     portrait, name, level, small HP and XP bars, gold
-//   top-right    time and temperature, compass, region and place names, minimap
+//   top-left     portrait, name, level, small HP and XP bars
+//   top-right    time and temperature, region and place names, minimap
+//                (gold is shown in the inventory, key I)
 //   bottom       HP and resource bars side by side, the hotbar, the "E" prompt
 //   bottom-left  message log (ChatLog.js)
 // All labels use the pixel font from pixelFont.js.
@@ -24,24 +25,19 @@ export class GameHud {
     this.portrait = el('img', { class: 'hud-portrait', src: portraitUrl, alt: '' });
     this.miniHealth = smallBar('#e84a3a', 'HP');
     this.xp = smallBar('#8a5cff', 'XP');
-    this.gold = pixelLabel('0', { scale: 2, color: '#ffe27a' });
     this.topLeft = el('div', { class: 'hud-topleft' },
       this.portrait,
       el('div', { class: 'hud-who' },
-        pixelLabel(player.name, { scale: 2 }),
-        pixelLabel(`LVL 1 ${info.name}`, { scale: 1.5, color: '#7fe8f0' }),
-        this.miniHealth.root, this.xp.root,
-        el('div', { class: 'hud-gold' }, el('span', { class: 'coin' }), this.gold)));
+        pixelLabel(player.name, { scale: 1.5 }),
+        pixelLabel(`LVL 1 ${info.name}`, { scale: 1, color: '#7fe8f0' }),
+        this.miniHealth.root, this.xp.root));
 
     // Top-right
-    this.info = pixelLabel('', { scale: 1.5, color: '#ffffff' });
-    this.compass = el('div', { class: 'hud-compass' },
-      ...['N', 'E', 'S', 'W'].map((d) => el('span', { class: `cd-${d}` },
-        pixelLabel(d, { scale: 1.5, color: d === 'N' ? '#ff5a4a' : '#ffffff' }))));
-    this.regionLabel = pixelLabel('', { scale: 2 });
-    this.placeLabel = pixelLabel('', { scale: 1.5, color: '#ffe27a' });
+    this.info = pixelLabel('', { scale: 1, color: '#ffffff' });
+    this.regionLabel = pixelLabel('', { scale: 1.5 });
+    this.placeLabel = pixelLabel('', { scale: 1, color: '#ffe27a' });
     const topRight = el('div', { class: 'hud-topright' },
-      el('div', { class: 'hud-inforow' }, this.info, this.compass),
+      el('div', { class: 'hud-inforow' }, this.info),
       el('div', { class: 'hud-names' }, this.regionLabel, this.placeLabel),
       minimap.root);
 
@@ -57,7 +53,7 @@ export class GameHud {
       r: slot('R', 'locked'),
       q: slot('Q', 'roll'),
     };
-    this.comboLabel = pixelLabel('', { scale: 3, color: '#ffe27a' });
+    this.comboLabel = pixelLabel('', { scale: 2, color: '#ffe27a' });
     this.combo = el('div', { class: 'hud-combo' }, this.comboLabel);
     this.promptText = pixelLabel('', { scale: 1.5 });
     this.prompt = el('div', { class: 'hud-prompt hidden' }, el('span', { class: 'hud-key' }, 'E'), this.promptText);
@@ -94,14 +90,9 @@ export class GameHud {
     this.placeLabel.style.display = name ? '' : 'none';
   }
 
-  // "TIME 10:05  TEMP 18°C" and the compass turned to match the camera.
-  setInfo({ clock, temperature, cameraYaw }) {
+  // "TIME 10:05  TEMP 18°C"
+  setInfo({ clock, temperature }) {
     this.info.setText(`${clock}   TEMP ${temperature}°C`);
-    this.compass.style.transform = `rotate(${cameraYaw}rad)`;
-  }
-
-  setGold(amount) {
-    this.gold.setText(String(amount));
   }
 
   setPrompt(text) {
@@ -179,10 +170,10 @@ export class GameHud {
 // A main bar: a small label above, the value written inside.
 function bar(color, name) {
   const fill = el('div', { class: 'bar-fill', style: { background: color } });
-  const text = pixelLabel('', { scale: 1.5 });
+  const text = pixelLabel('', { scale: 1 });
   const root = el('div', { class: 'hud-bar' },
-    pixelLabel(name, { scale: 1, color: '#ffffff' }),
     el('div', { class: 'bar' }, fill, el('div', { class: 'bar-label' }, text)));
+  root.title = name;
   let last = '';
   return {
     root,
@@ -191,7 +182,7 @@ function bar(color, name) {
       if (key === last) return;
       last = key;
       fill.style.transform = `scaleX(${Math.max(0, Math.min(1, ratio))})`;
-      text.setText(value);
+      text.setText(`${name} ${value}`);
     },
   };
 }
@@ -206,14 +197,14 @@ function smallBar(color, name) {
 // One hotbar slot: key label, icon, and a dark cover that shrinks during cooldowns.
 function slot(key, icon) {
   const cover = el('div', { class: 'slot-cover' });
-  let picture = iconCanvas(icon, 3);
+  let picture = iconCanvas(icon, 2.5);
   const root = el('div', { class: `hud-slot${icon === 'locked' ? ' locked' : ''}` },
     picture, cover, el('span', { class: 'slot-key' }, pixelLabel(key, { scale: 1 })));
   let last = '';
   return {
     root,
     setIcon(name) {
-      const next = iconCanvas(name, 3);
+      const next = iconCanvas(name, 2.5);
       picture.replaceWith(next);
       picture = next;
       root.classList.toggle('locked', name === 'locked');

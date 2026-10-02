@@ -1,6 +1,6 @@
 // The four playable classes: names, descriptions, health and the class
 // resource (rage / energy / mana). The class sets abilities and progression,
-// not looks: everyone starts in plain clothes, with no armour or weapon.
+// not looks: everyone starts in plain clothes with one starter weapon (STARTER_KIT).
 // (The internal ids - bulwark, windstrider, starweaver, shade - stay the same
 // so old saves keep working.) "look" colours are only used by the glider and
 // small effects.
@@ -60,17 +60,20 @@ export const CLASSES = {
 };
 
 // The plain clothes everyone starts in (the colours can be changed at
-// character creation). No class starts with armour or a weapon: those are
-// found, earned and bought on the journey.
+// character creation). No class starts with armour: that is found, earned
+// and bought on the journey.
 export const STARTER_CLOTHES = { outfitColor: 0xe8dcc0, accentColor: 0x8a6a3a, pantsColor: 0x6e5a3a, bootsColor: 0x5a3e28 };
 
-// What each class can use, shown on the class screen.
-export const CLASS_GEAR_TEXT = {
-  bulwark: { weapons: 'Clubs, swords, axes, hammers, greatswords and shields', armour: 'Cloth, leather, chain, iron, steel and rare plate' },
-  windstrider: { weapons: 'Shortbows, longbows, recurve bows and crossbows', armour: 'Cloth, leather, hunter gear and reinforced leather' },
-  starweaver: { weapons: 'Wands, staffs, spell tomes and orbs', armour: 'Cloth and robes' },
-  shade: { weapons: 'Daggers, shortswords, two at once', armour: 'Cloth, leather, hoods and light armour' },
+// What each class carries on day one: ONE starter weapon in the hands (the
+// ranger also gets a quiver of arrows on the back), plus a small travel kit
+// in the bag for everyone. Ids from data/items.js.
+export const STARTER_KIT = {
+  bulwark: { mainHand: 'sword' },
+  windstrider: { mainHand: 'shortbow', back: 'quiver' },
+  starweaver: { mainHand: 'wand' },
+  shade: { mainHand: 'dagger' },
 };
+export const STARTER_BAG = ['travel-cape', 'rope-belt'];
 
 export const CLASS_ORDER = ['bulwark', 'windstrider', 'starweaver', 'shade'];
 

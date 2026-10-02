@@ -1,6 +1,9 @@
-// Character creation (spec section 13): your hero stands on the stone
-// pedestal in the world (game/MenuScene.js) while you change their look in
-// the panel at the bottom left, one tab at a time:
+// Character creation (spec section 13), ONE clean screen like classic voxel
+// adventures: your hero stands on the stone pedestal in the world
+// (game/MenuScene.js); a small panel at the bottom left has the essentials
+// (race, class, face, haircut, skin and hair colours) and the seed, name and
+// START sit at the bottom middle. "MORE OPTIONS" opens every detail, one tab
+// at a time:
 //   BODY      race, body frame, skin tone
 //   FACE      face preset, eye colour, marks (freckles, scars, paint...)
 //   HAIR      hairstyle, hair colour, facial hair
@@ -8,11 +11,13 @@
 //   IDENTITY  name and pronouns
 // Drag the background to turn the hero, scroll to zoom from full body to face.
 // Every option comes from data files (data/appearance.js, data/races.js).
-// No armour or weapons here: everyone starts unequipped.
+// No armour here; each class starts with one weapon (data/classes.js STARTER_KIT).
 
 import { el, replaceChildren } from './dom.js';
 import { ptext, pparagraph, pbutton, pbox, chooser, dragToTurn } from './menuKit.js';
-import { NAME_IDEAS } from '../data/classes.js';
+import { NAME_IDEAS, CLASSES, CLASS_ORDER, STARTER_KIT } from '../data/classes.js';
+import { ITEMS } from '../data/items.js';
+import { SaveManager } from '../save/SaveManager.js';
 import { RACES, RACE_ORDER } from '../data/races.js';
 import { FRAMES } from '../data/characterSpec.js';
 import {
@@ -27,14 +32,18 @@ const hex = (c) => `#${c.toString(16).padStart(6, '0')}`;
 const words = (id) => id.replace(/_/g, ' ');
 
 export class CharacterCreator {
-  // stage: the MenuScene (pedestal). onBack(), onNext().
-  constructor({ stage, onBack, onNext }) {
+  // stage: the MenuScene (pedestal). onBack(), onStart(slot).
+  constructor({ stage, onBack, onStart }) {
     this.stage = stage;
-    this.classId = 'bulwark';
+    this.onStart = onStart;
+    this.classId = 'windstrider';
     this.name = pickFrom(NAME_IDEAS, Math.random);
     this.look = fresh();
     this.tab = 'BODY';
-    this.seed = 1;
+    this.more = false; // false: the short panel; true: every option in tabs
+    this.seed = 1;     // for the RANDOM look button
+    this.worldSeed = randomSeed();
+    this.slot = firstEmptySlot();
 
     this.nameInput = el('input', {
       type: 'text', class: 'pinput', maxlength: 16, value: this.name, 'aria-label': 'Character name',
@@ -43,14 +52,21 @@ export class CharacterCreator {
     this.panel = pbox('creator-panel');
     const back = pbutton('BACK', onBack, { scale: 2, boxed: true });
     back.classList.add('back');
+    this.seedInput = el('input', {
+      type: 'text', class: 'pinput', maxlength: 24, value: this.worldSeed, 'aria-label': 'World seed',
+      oninput: (e) => { this.worldSeed = e.target.value; },
+    });
+    this.slotInfo = el('div', { class: 'slot-info' });
     this.root = el('div', { class: 'stage-screen' },
       back,
-      el('div', { class: 'stage-title' }, ptext('CREATE YOUR HERO', { scale: 3 })),
       this.panel,
       this.viewBar = el('div', { class: 'stage-views' }),
       el('div', { class: 'stage-bottom' },
-        ptext('DRAG TO TURN - SCROLL TO ZOOM', { scale: 2, color: '#cfd8e8' }),
-        pbutton('NEXT', onNext, { scale: 3, boxed: true })));
+        el('div', { class: 'start-fields' },
+          ptext('SEED (ANY WORD OR NUMBER)', { scale: 1.5 }), this.seedInput,
+          ptext('NAME', { scale: 1.5 }), this.nameInput),
+        this.slotInfo,
+        pbutton('START', () => this.start(), { scale: 2, boxed: true })));
     this.view = 'front';
     this.renderViewBar();
     dragToTurn(this.root, stage);
@@ -62,6 +78,12 @@ export class CharacterCreator {
 
   // Called when the screen is shown (also after coming back from the class screen).
   render() {
+    this.renderSlot();
+    this.viewBar.classList.toggle('hidden', !this.more);
+    if (!this.more) {
+      this.renderSimple();
+      return;
+    }
     const a = this.look;
     const race = RACES[a.race];
     const tabs = el('div', { class: 'colour-tabs' }, TABS.map((t) => el('button', {
@@ -115,9 +137,63 @@ export class CharacterCreator {
 
     replaceChildren(this.panel, tabs, rows,
       el('div', { class: 'panel-actions' },
-        pbutton('RANDOM', () => this.randomLook(), { scale: 2, boxed: true }),
-        pbutton('RESET TAB', () => this.resetTab(), { scale: 2, boxed: true })));
+        pbutton('RESET TAB', () => this.resetTab(), { scale: 1.5, boxed: true }),
+        pbutton('FEWER OPTIONS', () => { this.more = false; this.render(); }, { scale: 1.5, boxed: true })));
+    this.showHero();
+  }
+
+  // The short panel: only the essentials, like classic voxel adventures.
+  renderSimple() {
+    const a = this.look;
+    const race = RACES[a.race];
+    const c = CLASSES[this.classId];
+    const weapon = ITEMS[STARTER_KIT[this.classId].mainHand];
+    replaceChildren(this.panel,
+      chooser('RACE', RACE_ORDER, a.race, (v) => this.setRace(v), (v) => RACES[v].name),
+      chooser('CLASS', CLASS_ORDER, this.classId, (v) => { this.classId = v; this.render(); }, (v) => CLASSES[v].name),
+      ptext(`${c.role} - starts with a ${weapon.name}`.toUpperCase(), { scale: 1, color: '#b8c0d0' }),
+      race.variants ? chooser('EYES', race.variants, a.raceVariant ?? race.variants[0], (v) => this.set('raceVariant', v), (v) => v.toUpperCase()) : null,
+      chooser('FACE', Object.keys(FACE_PRESETS), a.face, (v) => this.set('face', v), (v) => words(v)),
+      race.hair ? chooser('HAIRCUT', HAIR_STYLES, a.hairStyle, (v) => this.set('hairStyle', v), (v) => words(v)) : null,
+      el('div', { class: 'panel-sub' }, ptext('SKIN', { scale: 1.5 })),
+      swatches(race.skins.map((id) => [id, SKIN[id].base, SKIN[id].displayName]), a.skin, (v) => this.set('skin', v)),
+      race.hair ? el('div', { class: 'panel-sub' }, ptext('HAIR COLOR', { scale: 1.5 })) : null,
+      race.hair ? swatches(HAIR_PALETTES.map((p) => [p.id, p.base, p.displayName]), a.hairColor, (v) => this.set('hairColor', v)) : null,
+      el('div', { class: 'panel-actions' },
+        pbutton('RANDOM', () => this.randomLook(), { scale: 1.5, boxed: true }),
+        pbutton('MORE OPTIONS', () => { this.more = true; this.render(); }, { scale: 1.5, boxed: true })));
+    this.showHero();
+  }
+
+  // The hero on the pedestal, holding the class's starter weapon.
+  showHero() {
+    this.stage.equipment = { ...STARTER_KIT[this.classId] };
     this.stage.setCharacter(this.classId, this.look);
+  }
+
+  // Which save slot the new hero goes into: the first empty one. When all
+  // are taken, you choose which one to replace (with a clear warning).
+  renderSlot() {
+    const slots = SaveManager.list();
+    if (slots.some((s) => !s.data)) {
+      this.slot = firstEmptySlot();
+      replaceChildren(this.slotInfo);
+      return;
+    }
+    const taken = slots[this.slot - 1].data;
+    replaceChildren(this.slotInfo,
+      chooser('SLOT', slots.map((s) => s.slot), this.slot, (v) => { this.slot = v; this.renderSlot(); },
+        (v) => `${v} ${slots[v - 1].data.name}`),
+      ptext(`THIS WILL ERASE ${taken.name}`.toUpperCase(), { scale: 1.5, color: '#ff9a6a' }));
+  }
+
+  start() {
+    const seed = this.worldSeed.trim() || randomSeed();
+    SaveManager.create(this.slot, {
+      name: this.finalName(), classId: this.classId, seed,
+      appearance: { ...this.look, overlays: [...this.look.overlays] }, // kept apart from class data
+    });
+    this.onStart(this.slot);
   }
 
   // View buttons (front / side / back) and preview modes (idle / walk / combat).
@@ -158,11 +234,6 @@ export class CharacterCreator {
     const list = this.look.overlays;
     this.look.overlays = list.includes(o) ? list.filter((x) => x !== o) : [...list, o];
     this.render();
-  }
-
-  // The class screen changes the class. It never changes the look.
-  setClass(classId) {
-    this.classId = classId;
   }
 
   randomName() {
@@ -218,6 +289,14 @@ function swatches(options, value, onPick) {
 
 function fresh() {
   return { ...DEFAULT_APPEARANCE, overlays: [...DEFAULT_APPEARANCE.overlays] };
+}
+
+function firstEmptySlot() {
+  return SaveManager.list().find((s) => !s.data)?.slot ?? 1;
+}
+
+function randomSeed() {
+  return Math.random().toString(36).slice(2, 8);
 }
 
 function pickFrom(list, rng) {

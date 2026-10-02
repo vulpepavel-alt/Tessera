@@ -4,7 +4,7 @@
 
 import * as THREE from 'three';
 import { PLAYER } from '../data/player.js';
-import { CLASSES } from '../data/classes.js';
+import { CLASSES, STARTER_KIT, STARTER_BAG } from '../data/classes.js';
 import { buildCharacter } from '../models/characterModel.js';
 import { placeHeld } from '../models/equipment/weapons.js';
 import { buildGlider } from '../models/travelModels.js';
@@ -58,7 +58,11 @@ export class Player {
 
     this.scene = scene;
     this.look = save;
-    this.equipment = { ...(save.equipment ?? {}) }; // { slot: itemId }; empty at the start
+    // A brand-new adventure (or a save from before the bag existed) gets the
+    // class's starter weapon and the travel kit (data/classes.js STARTER_KIT).
+    const fresh = !Array.isArray(save.bag);
+    this.equipment = fresh ? { ...STARTER_KIT[save.classId], ...(save.equipment ?? {}) } : { ...(save.equipment ?? {}) }; // { slot: itemId }
+    this.bag = fresh ? [...STARTER_BAG] : [...save.bag]; // item ids in the bag (game/Inventory.js)
     // The glider wears TESSERA's own colours: golden yellow with royal blue stripes.
     this.glider = buildGlider({ cloth: 0xffc83a, trim: 0x2448b8 });
     this.glider.position.set(0, 1.25, 0);

@@ -15,8 +15,8 @@ const VIEW = 180;             // blocks across the visible square
 const REVEAL_RADIUS = 3;      // chunks around you that count as "explored"
 const REDRAW_EVERY = 1 / 12;  // seconds between redraws
 const FLOOR = WORLD.seaLevel - 8; // columns start here (keeps them short)
-const WIDTH = 236;
-const HEIGHT = 186;
+const WIDTH = 210;
+const HEIGHT = 166;
 
 export class Minimap {
   constructor(chunks, explored = []) {

@@ -1,5 +1,6 @@
 // The main menu and its screens: the title (big logo over the world),
-// character creation, class choice, Continue and Settings.
+// character creation (race, class, looks, seed and name on one screen),
+// Continue, How to Play and Settings.
 // Only one screen is visible at a time.
 
 import './styles/menu.css';
@@ -9,8 +10,8 @@ import './styles/stage.css';
 import { el, replaceChildren } from './dom.js';
 import { logo, pbutton } from './menuKit.js';
 import { CharacterCreator } from './CharacterCreator.js';
-import { ClassScreen } from './ClassScreen.js';
 import { createSettingsPanel } from './SettingsPanel.js';
+import { howToPlayPanel } from './GameScreens.js';
 import { SaveManager, formatPlayTime } from '../save/SaveManager.js';
 import { CLASSES } from '../data/classes.js';
 
@@ -25,12 +26,6 @@ export class MainMenu {
     this.creator = new CharacterCreator({
       stage,
       onBack: () => this.showMain(),
-      onNext: () => this.showClasses(),
-    });
-    this.classes = new ClassScreen({
-      stage,
-      creator: this.creator,
-      onBack: () => this.showCreator(),
       onStart: (slot) => this.onPlay(slot),
     });
     this.showMain();
@@ -50,6 +45,7 @@ export class MainMenu {
       el('div', { class: 'title-buttons' },
         pbutton('START GAME', () => this.showCreator()),
         hasSave ? pbutton('CONTINUE', () => this.showContinue()) : null,
+        pbutton('HOW TO PLAY', () => this.showHowTo()),
         pbutton('OPTIONS', () => this.showSettings())),
       el('div', { class: 'title-note' }, 'An original voxel adventure · work in progress')),
     { bare: true });
@@ -61,10 +57,8 @@ export class MainMenu {
     this.setScreen(this.creator.root, { mode: 'stage', bare: true });
   }
 
-  showClasses() {
-    this.stage.spin = 0;
-    this.classes.render();
-    this.setScreen(this.classes.root, { mode: 'stage', bare: true });
+  showHowTo() {
+    this.setScreen(howToPlayPanel(() => this.showMain()), { dim: true });
   }
 
   showSettings() {

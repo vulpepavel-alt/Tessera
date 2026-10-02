@@ -6,28 +6,48 @@ import './styles/screens.css';
 import './styles/title.css';
 import { el, replaceChildren } from './dom.js';
 import { createSettingsPanel } from './SettingsPanel.js';
-import { logo, ptext, pbutton } from './menuKit.js';
+import { logo, ptext, pparagraph, pbutton } from './menuKit.js';
 
 export const CONTROLS = [
   ['W A S D', 'Move'],
+  ['Mouse', 'Look around'],
   ['Left click', 'Attack (hold for a 3-hit combo)'],
   ['Right click', 'Heavy attack'],
   ['1 / 2', 'Class skills'],
   ['R', 'Ultimate (charges as you deal damage)'],
-  ['Tab', 'Lock on to an enemy'],
-  ['E', 'Talk to villagers'],
-  ['Mouse', 'Look around'],
-  ['Scroll', 'Zoom the camera'],
+  ['Q', 'Dodge roll (uses stamina)'],
   ['Space', 'Jump · in the air: open / close glider'],
   ['Shift', 'Sprint · swim fast (uses stamina)'],
-  ['Q', 'Dodge roll (uses stamina)'],
+  ['I', 'Inventory: put on and take off gear'],
+  ['E', 'Talk to villagers'],
+  ['Tab', 'Lock on to an enemy'],
   ['B', 'Place / leave boat (next to water)'],
   ['C', 'Dive (while swimming)'],
+  ['Scroll', 'Zoom the camera'],
   ['Esc', 'Pause'],
   ['F3', 'FPS and debug info'],
   ['F4', 'Debug: free-fly camera'],
   [']', 'Debug: skip one hour'],
 ];
+
+// A few lines for new players, shown on the How to Play page.
+const TIPS = [
+  'You start with one weapon of your class. Better gear is found, earned and bought.',
+  'Open the inventory (I) and click an item to put it on. Click worn gear to take it off.',
+  'Roll (Q) out of the way when an enemy glows red: it is about to strike.',
+  'Talk to villagers (E). The Guildmaster teaches your class specializations.',
+  'Jump off high ground and press Space again to glide.',
+];
+
+// The How to Play page: tips, then every key. onBack() closes it.
+export function howToPlayPanel(onBack) {
+  return el('div', { class: 'pbox howto-panel' },
+    ptext('HOW TO PLAY', { scale: 3, color: '#ffe27a' }),
+    el('div', { class: 'howto-tips' }, TIPS.map((t) => pparagraph(`- ${t}`, { chars: 60, scale: 1.5 }))),
+    el('div', { class: 'pause-controls' },
+      CONTROLS.flatMap(([key, action]) => [ptext(key.toUpperCase(), { scale: 1.5, color: '#ffe27a' }), ptext(action.toUpperCase(), { scale: 1.5 })])),
+    pbutton('BACK', onBack, { scale: 2, boxed: true }));
+}
 
 export class LoadingScreen {
   constructor() {
@@ -53,7 +73,7 @@ export class LoadingScreen {
 }
 
 export class PauseMenu {
-  // actions: { onResume, onSaveAndQuit }
+  // actions: { onResume, onInventory, onSaveAndQuit }
   constructor(actions) {
     this.actions = actions;
     this.root = el('div', { class: 'screen dim hidden' });
@@ -76,17 +96,21 @@ export class PauseMenu {
     return !this.root.classList.contains('hidden');
   }
 
-  // Pixel style: pixel text, square boxes, blue panel with a yellow frame.
+  // A short, plain list of choices; the controls live on the How to Play page.
   renderMain() {
-    const controls = el('div', { class: 'pause-controls' },
-      CONTROLS.flatMap(([key, action]) => [ptext(key, { color: '#ffc83a' }), ptext(action, { color: '#e8eef8' })]));
+    const ready = this.title === 'Ready';
     replaceChildren(this.root, el('div', { class: 'pbox pause-panel' },
-      ptext(this.title, { scale: 4, color: '#ffc83a' }),
+      ptext(ready ? 'READY?' : 'PAUSED', { scale: 3 }),
       el('div', { class: 'pause-buttons' },
-        pbutton(this.title === 'Ready' ? 'BEGIN' : 'RESUME', () => this.actions.onResume(), { scale: 2, boxed: true }),
+        pbutton(ready ? 'BEGIN' : 'RESUME', () => this.actions.onResume(), { scale: 2, boxed: true }),
+        ready ? null : pbutton('INVENTORY', () => this.actions.onInventory(), { scale: 2, boxed: true }),
+        pbutton('HOW TO PLAY', () => this.renderHowTo(), { scale: 2, boxed: true }),
         pbutton('SETTINGS', () => this.renderSettings(), { scale: 2, boxed: true }),
-        pbutton('SAVE & QUIT TO MENU', () => this.actions.onSaveAndQuit(), { scale: 2, boxed: true })),
-      controls));
+        pbutton('SAVE & QUIT', () => this.actions.onSaveAndQuit(), { scale: 2, boxed: true }))));
+  }
+
+  renderHowTo() {
+    replaceChildren(this.root, howToPlayPanel(() => this.renderMain()));
   }
 
   renderSettings() {

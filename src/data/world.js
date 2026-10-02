@@ -41,9 +41,9 @@ export const WORLD = {
 };
 
 export const ATMOSPHERE = {
-  skyTop: 0x2a7ff0,      // colour straight up
-  skyHorizon: 0xbfe4ff,  // colour at the horizon (also the fog colour)
-  fogStart: 0.42,        // fog starts at this fraction of the view distance (subtle haze)
+  skyTop: 0x1468ff,      // colour straight up (a deep, saturated blue)
+  skyHorizon: 0x7cc4ff,  // colour at the horizon (also the fog colour): far hills turn blue, not white
+  fogStart: 0.55,        // fog starts at this fraction of the view distance (subtle haze)
   sunColor: 0xffe6bc,      // slightly warm sunlight
   sunIntensity: 2.2,
   skyLight: 0xcfe2ff,    // soft, cool light coming from the sky

@@ -14,6 +14,8 @@ import { FreeCamera } from '../core/FreeCamera.js';
 import { Player } from '../entities/Player.js';
 import { Battle } from './Battle.js';
 import { GuildPanel } from '../ui/GuildPanel.js';
+import { InventoryWindow } from '../ui/InventoryWindow.js';
+import { Inventory } from './Inventory.js';
 import { VillageLife } from './VillageLife.js';
 import { Minimap } from '../ui/Minimap.js';
 import { ChatLog } from '../ui/ChatLog.js';
@@ -86,8 +88,15 @@ export class Game {
     });
     this.debug = new DebugOverlay(engine.renderer);
     this.loading = new LoadingScreen();
+    this.inventory = new Inventory(this.player);
+    this.inventoryWindow = new InventoryWindow({
+      inventory: this.inventory,
+      onClose: () => this.closeInventory(),
+      onMessage: (text) => this.hud.toast(text),
+    });
     this.pause = new PauseMenu({
       onResume: () => this.input.lock(),
+      onInventory: () => this.openInventory(),
       onSaveAndQuit: () => this.quitToMenu(),
     });
 
@@ -102,6 +111,14 @@ export class Game {
     this.input.onPress('KeyE', () => {
       if (this.state === 'playing') this.villageLife.interact(this.world.dayNight.isNight);
     });
+    // I opens and closes the inventory; Esc also closes it.
+    this.input.onPress('KeyI', () => {
+      if (this.inventoryWindow.visible) this.closeInventory();
+      else if (this.state === 'playing') this.openInventory();
+    });
+    this.input.onPress('Escape', () => {
+      if (this.inventoryWindow.visible) this.closeInventory();
+    });
     this.input.onPress('Tab', () => {
       if (this.state === 'playing') this.battle.toggleLock();
     });
@@ -111,7 +128,7 @@ export class Game {
     });
     this.input.onLockChange((locked) => {
       if (this.state === 'loading') return;
-      if (this.guild.visible) {
+      if (this.guild.visible || this.inventoryWindow.visible) {
         // The Guild window is open: no pause menu; the game waits.
         this.state = locked ? 'playing' : 'paused';
         return;
@@ -233,6 +250,24 @@ export class Game {
   }
 
   // The Guildmaster opens the specialization window.
+  // The inventory: the mouse is freed to click items; the world keeps going
+  // behind it (your hero stays visible between the equipment columns).
+  openInventory() {
+    if (this.state === 'loading') return;
+    this.pause.hide();
+    this.inventoryWindow.show();
+    this.hud.root.classList.add('inv-open'); // the hotbar makes room for the equipment
+    this.input.unlock();
+    this.state = 'paused';
+  }
+
+  closeInventory() {
+    this.inventoryWindow.hide();
+    this.hud.root.classList.remove('inv-open');
+    this.saveNow();
+    this.input.lock(); // back to the game (this key press / click counts as the needed user action)
+  }
+
   openGuild(guildmaster) {
     this.guild.show(this.player, guildmaster.name);
     this.input.unlock();
@@ -320,6 +355,7 @@ export class Game {
       time: { day: this.world.dayNight.day, hour: this.world.dayNight.hour },
       spec: this.player.spec,
       equipment: this.player.equipment,
+      bag: this.player.bag,
       explored: [...this.minimap.explored],
     });
   }

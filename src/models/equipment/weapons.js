@@ -90,6 +90,11 @@ function holdable(item, hand, side) {
   return { item, hand, side, holder, inner, tilt: HOLD[item.model]?.tilt ?? 0.3 };
 }
 
+// Just the voxel grid of a held item (used for inventory icons).
+export function heldGrid(item) {
+  return MODELS[item.model]?.(item) ?? null;
+}
+
 const trimOf = (item) => (item.tier >= 5 ? GOLD : BRASS);
 
 const MODELS = {
