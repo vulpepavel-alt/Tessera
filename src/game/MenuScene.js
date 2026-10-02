@@ -10,12 +10,15 @@ import { DEFAULT_SEED } from '../data/world.js';
 import { WorldView } from '../world/WorldView.js';
 import { MainMenu } from '../ui/MainMenu.js';
 import { buildCharacter } from '../models/characterModel.js';
+import { CharacterAnimator } from '../entities/CharacterAnimator.js';
+import { ITEMS } from '../data/items.js';
+import { settings } from '../save/Settings.js';
 
 const ORBIT_RADIUS = 64;
 const ORBIT_HEIGHT = 30;   // camera height above the ground (above the tallest trees)
 const ORBIT_SPEED = 0.025; // radians per second
-const STAGE_VIEW = new THREE.Vector3(0, 2.05, 4.6); // camera offset in front of the pedestal (whole body)
-const FACE_VIEW = new THREE.Vector3(0, 2.4, 2.3); // camera offset when zoomed in on the face
+const STAGE_VIEW = new THREE.Vector3(0, 1.95, 3.6); // camera offset in front of the pedestal (whole body)
+const FACE_VIEW = new THREE.Vector3(0, 2.45, 1.9); // camera offset when zoomed in on the face
 const PEDESTAL = { width: 3.2, height: 0.9, depth: 2.4 };
 
 export class MenuScene {
@@ -84,12 +87,40 @@ export class MenuScene {
     this.engine.scene.add(this.stage);
     this.model = null;
     this.spin = 0;
+    this.spinGoal = null;     // set by the FRONT / SIDE / BACK buttons
+    this.preview = 'idle';    // idle | walk | combat
+    this.previewTime = 0;
+
+    // Studio lights for the creator: a warm key light from the front-left and
+    // a cool rim light from behind, so the face and silhouette read clearly.
+    this.keyLight = new THREE.DirectionalLight(0xfff0dc, 1.1);
+    this.rimLight = new THREE.DirectionalLight(0xbcd8ff, 1.4);
+    for (const l of [this.keyLight, this.rimLight]) {
+      l.visible = false;
+      l.target = this.turner;
+      this.engine.scene.add(l);
+    }
   }
 
   // 'title' or 'stage'.
   setMode(mode) {
     this.mode = mode;
     this.stage.visible = mode === 'stage';
+    this.keyLight.visible = this.rimLight.visible = mode === 'stage';
+    if (mode !== 'stage') this.world.atmosphere.setViewDistance(settings.get('renderDistance')); // undo the creator haze
+  }
+
+  // Creator preview: 'idle', 'walk' or 'combat' (a short attack combo, looped).
+  setPreview(kind) {
+    this.preview = kind;
+    this.previewTime = 0;
+  }
+
+  // Turn to a fixed view: 'front', 'side' or 'back'.
+  setView(view) {
+    const target = { front: 0, side: Math.PI / 2, back: Math.PI }[view] ?? 0;
+    const turns = Math.round((this.spin - target) / (Math.PI * 2));
+    this.spinGoal = target + turns * Math.PI * 2;
   }
 
   setCharacter(classId, look) {
@@ -97,7 +128,8 @@ export class MenuScene {
       this.turner.remove(this.model.root);
       this.model.root.traverse((o) => o.geometry?.dispose());
     }
-    this.model = buildCharacter(classId, look);
+    this.model = buildCharacter(classId, look, { equipment: this.equipment });
+    this.animator = new CharacterAnimator(this.model);
     this.model.root.visible = true;
     this.model.root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     this.turner.add(this.model.root);
@@ -111,19 +143,48 @@ export class MenuScene {
   // Turn the character on the pedestal (radians).
   turn(amount) {
     this.spin += amount;
+    this.spinGoal = null;
+  }
+
+  // Animate the preview: standing, walking on the spot, or a looping combo.
+  animatePreview(dt) {
+    if (!this.animator) return;
+    this.previewTime += dt;
+    const state = { mode: 'walk', speed: 0, grounded: true, sprinting: false, inWater: false, rolling: -1, attack: null };
+    if (this.preview === 'walk') state.speed = 3.6;
+    if (this.preview === 'combat') {
+      const kind = ITEMS[this.equipment?.mainHand]?.kind;
+      const pose = { blade: 'swing', great: 'swing', dagger: 'thrust', bow: 'shoot', crossbow: 'shoot', wand: 'cast', staff: 'cast' }[kind] ?? 'thrust';
+      const step = 0.45;
+      const loop = this.previewTime % (step * 3 + 0.7); // three hits, then a breath
+      if (loop < step * 3) state.attack = { kind: pose, t: (loop % step) / step, index: Math.floor(loop / step) };
+    }
+    this.animator.update(dt, state);
   }
 
   update(dt, elapsed) {
     const camera = this.engine.camera;
     if (this.mode === 'stage') {
+      if (this.spinGoal !== null) this.spin += (this.spinGoal - this.spin) * Math.min(1, dt * 8);
       this.turner.rotation.y = this.spin;
+      this.animatePreview(dt);
       const z = this.zoomT ?? 0;
       const view = STAGE_VIEW.clone().lerp(FACE_VIEW, z);
       const offset = view.applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.stageYaw);
       camera.position.copy(this.stagePos).add(offset);
       // Look at the middle of the body, or at the face when zoomed in.
-      camera.lookAt(this.stagePos.x, this.stagePos.y + 1.8 + z * 0.5, this.stagePos.z);
+      camera.lookAt(this.stagePos.x, this.stagePos.y + 1.7 + z * 0.6, this.stagePos.z);
+      // Lights follow the camera: key from the front-left above, rim from behind.
+      const key = new THREE.Vector3(-2, 3, 3).applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.stageYaw);
+      this.keyLight.position.copy(this.stagePos).add(key);
+      this.rimLight.position.copy(this.stagePos).add(key.set(1.5, 2.5, -3).applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.stageYaw));
       this.world.update(dt, elapsed, this.stagePos);
+      // The world behind melts into a soft haze, so nothing competes with the hero.
+      const fog = this.engine.scene.fog;
+      if (fog) {
+        fog.near = 7;
+        fog.far = 42;
+      }
       return;
     }
     this.angle += dt * ORBIT_SPEED;

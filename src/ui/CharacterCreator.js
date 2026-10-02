@@ -47,9 +47,12 @@ export class CharacterCreator {
       back,
       el('div', { class: 'stage-title' }, ptext('CREATE YOUR HERO', { scale: 3 })),
       this.panel,
+      this.viewBar = el('div', { class: 'stage-views' }),
       el('div', { class: 'stage-bottom' },
         ptext('DRAG TO TURN - SCROLL TO ZOOM', { scale: 2, color: '#cfd8e8' }),
         pbutton('NEXT', onNext, { scale: 3, boxed: true })));
+    this.view = 'front';
+    this.renderViewBar();
     dragToTurn(this.root, stage);
     this.root.addEventListener('wheel', (e) => {
       e.preventDefault();
@@ -77,6 +80,7 @@ export class CharacterCreator {
       ];
     } else if (this.tab === 'FACE') {
       rows = [
+        race.variants ? chooser('EYES', race.variants, a.raceVariant ?? race.variants[0], (v) => this.set('raceVariant', v), (v) => v.toUpperCase()) : null,
         chooser('FACE', Object.keys(FACE_PRESETS), a.face, (v) => this.set('face', v), (v) => words(v)),
         el('div', { class: 'panel-sub' }, ptext('EYE COLOUR')),
         swatches(EYE_PALETTE.map((c, i) => [c, c, `Eye colour ${i + 1}`]), a.eyeColor, (v) => this.set('eyeColor', v)),
@@ -116,6 +120,24 @@ export class CharacterCreator {
     this.stage.setCharacter(this.classId, this.look);
   }
 
+  // View buttons (front / side / back) and preview modes (idle / walk / combat).
+  renderViewBar() {
+    const button = (label, selected, onclick) => el('button', {
+      class: `tab${selected ? ' selected' : ''}`, 'aria-label': label, onclick,
+    }, ptext(label));
+    replaceChildren(this.viewBar,
+      ['FRONT', 'SIDE', 'BACK'].map((v) => button(v, this.view === v.toLowerCase(), () => {
+        this.view = v.toLowerCase();
+        this.stage.setView?.(this.view);
+        this.renderViewBar();
+      })),
+      el('span', { class: 'view-gap' }),
+      ['IDLE', 'WALK', 'COMBAT'].map((p) => button(p, (this.stage.preview ?? 'idle') === p.toLowerCase(), () => {
+        this.stage.setPreview?.(p.toLowerCase());
+        this.renderViewBar();
+      })));
+  }
+
   set(field, value) {
     this.look[field] = value;
     this.render();
@@ -125,6 +147,7 @@ export class CharacterCreator {
   setRace(id) {
     const race = RACES[id];
     this.look.race = id;
+    this.look.raceVariant = race.variants?.[0] ?? null;
     if (!race.skins.includes(this.look.skin)) this.look.skin = race.skins[0];
     this.look.frame = race.frame ?? 'straight';
     if (race.facialHair) this.look.facialHair = race.facialHair;

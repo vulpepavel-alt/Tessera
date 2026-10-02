@@ -258,3 +258,19 @@
 .panel-actions {
   gap: 8px;
 }
+
+/* Front / side / back and idle / walk / combat buttons, top right */
+.stage-views {
+  position: absolute;
+  top: 70px;
+  right: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  max-width: 330px;
+}
+
+.view-gap {
+  width: 100%;
+}
