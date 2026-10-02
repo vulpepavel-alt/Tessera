@@ -85,6 +85,10 @@ export class LineupScene {
     // ?lineup&focus=human,frogfolk : only those races, from every side, for comparisons.
     const params = new URLSearchParams(window.location.search);
     const focus = params.get('focus');
+    if (params.has('creatures')) {
+      this.buildCreatures(views);
+      return;
+    }
     if (params.has('weapons')) {
       this.buildWeapons();
       return;
@@ -115,7 +119,7 @@ export class LineupScene {
     this.heading('VILLAGERS AND CREATURES', row);
     const roles = [['villager', 0.11], ['villager', 0.52], ['guard', 0.3], ['merchant', 0.7], ['guildmaster', 0.9]];
     roles.forEach(([role, seed], i) => this.place(buildVillager(seed, role).root, i, row, 0.35, role.toUpperCase()));
-    this.place(buildCreature('bramblehog').root, roles.length, row, 0.9, 'BRAMBLEHOG');
+    ['bramblehog', 'duskwolf', 'meadowSlime'].forEach((id, i) => this.place(buildCreature(id).root, roles.length + i, row, 0.9, id.toUpperCase()));
     this.rows = row + 1;
     this.finishSetup();
   }
@@ -138,6 +142,19 @@ export class LineupScene {
       r++;
     });
     this.rows = r;
+    this.cols = 6;
+    this.finishSetup();
+  }
+
+  // ?lineup&creatures : every creature from every side, a person first for scale.
+  buildCreatures(views) {
+    const ids = ['bramblehog', 'duskwolf', 'meadowSlime'];
+    ids.forEach((id, r) => {
+      this.heading(`${id.toUpperCase()} (WITH A PERSON FOR SCALE)`, r);
+      this.place(buildCharacter('bulwark', LOOK).root, 0, r, 0.5, 'PERSON');
+      views.slice(0, 5).forEach(([name, yaw], i) => this.place(buildCreature(id).root, i + 1, r, yaw, name));
+    });
+    this.rows = ids.length;
     this.cols = 6;
     this.finishSetup();
   }

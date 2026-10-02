@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { COMBAT } from '../data/combat.js';
 import { ENEMIES } from '../data/enemies.js';
-import { buildCreature, animateQuadruped } from '../models/creatureModels.js';
+import { buildCreature } from '../models/creatureModels.js';
 import { moveBody, isLiquidBlock } from './physics.js';
 
 const GRAVITY = 30;
@@ -219,6 +219,7 @@ export class Enemy {
         const a = this.type.attack;
         this.velocity.x = this.attackDir.x * a.speed;
         this.velocity.z = this.attackDir.z * a.speed;
+        if (a.hop && this.stateTime < dt * 1.5 && this.grounded) this.velocity.y = a.hop; // slimes leap at you
         if (!this.hasHit && playerAvailable && this.touches(player)) {
           this.hasHit = true;
           this.combat.hit(player, { attacker: this, damage: this.damage, knockback: a.knockback, from: this.position });
@@ -304,7 +305,7 @@ export class Enemy {
 
     // A flinch tilts the body back for a moment.
     this.model.body.rotation.x = -0.35 * Math.min(1, (this.stagger ?? 0) / COMBAT.staggerHit) * (this.alive ? 1 : 0);
-    animateQuadruped(this.model, {
+    this.model.animate(this.model, {
       speed: Math.hypot(this.velocity.x, this.velocity.z),
       windup: this.state === 'windup' && this.alive,
       charging: this.state === 'attack',
