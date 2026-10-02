@@ -104,11 +104,6 @@
   height: 166px;
 }
 
-.minimap-canvas {
-  display: block;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
-}
-
 /* Bottom: prompt, stamina, bars, hotbar */
 .hud-bottom {
   position: absolute;

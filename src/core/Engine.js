@@ -23,6 +23,7 @@ export class Engine {
     this.post = new PostEffects(this.renderer, this.scene, this.camera);
 
     this.updaters = [];
+    this.overlays = []; // drawn on top of the finished picture (e.g. the minimap)
     this.timer = new THREE.Timer();
     this.timer.connect(document); // pauses time while the tab is hidden
 
@@ -38,6 +39,13 @@ export class Engine {
     this.updaters.push(fn);
   }
 
+  // Register a function that draws on top of the finished picture: fn(renderer).
+  // Everything is drawn by this one renderer: a second WebGL renderer on the
+  // page makes the browser wait between the two every frame (stutter).
+  onAfterRender(fn) {
+    this.overlays.push(fn);
+  }
+
   start() {
     this.renderer.setAnimationLoop((timestamp) => {
       this.timer.update(timestamp);
@@ -51,6 +59,7 @@ export class Engine {
       } else {
         this.renderer.render(this.scene, this.camera);
       }
+      for (const fn of this.overlays) fn(this.renderer);
     });
   }
 

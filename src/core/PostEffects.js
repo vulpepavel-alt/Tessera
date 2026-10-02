@@ -22,7 +22,7 @@ export const POST = {
   aoResolution: 0.5,   // the AO is computed at this fraction of the screen size (speed)
   maxPixelRatio: 1.5,  // sharpness cap for the effects (speed on high-DPI screens)
   aoIntensity: 0.55,   // 0 = no ambient occlusion, 1 = full
-  contrast: 1.04,
+  contrast: 1.15,     // punchy, like the classic look: bright lit faces, deeper shade
   saturation: 1.3,     // bright, toy-like colours
   warmth: 0.025,       // warm tint in bright areas, cool tint in dark ones
   vignette: 0.1,
@@ -60,13 +60,21 @@ const GradeShader = {
 export class PostEffects {
   constructor(renderer, scene, camera) {
     const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-    const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
+    this.depth = new THREE.DepthTexture(size.x, size.y);
+    const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4, depthTexture: this.depth });
     this.composer = new EffectComposer(renderer, target);
     this.composer.setPixelRatio(Math.min(renderer.getPixelRatio(), POST.maxPixelRatio));
     this.renderPass = new RenderPass(scene, camera);
     this.ao = new GTAOPass(scene, camera, size.x, size.y);
     this.ao.blendIntensity = POST.aoIntensity;
     this.ao.updateGtaoMaterial({ radius: POST.aoRadius, distanceExponent: 1.5, thickness: 1.2, scale: 1.1, samples: 12 });
+    // The AO reads the depth the main picture already drew (both of the
+    // composer's buffers share one depth texture) and works out each face's
+    // direction from it. It used to draw the whole world a second time just
+    // for that, which made the game stutter while walking. For a world of flat
+    // cube faces the result is the same.
+    this.composer.renderTarget2.depthTexture = this.depth;
+    this.ao.setGBuffer(this.depth);
     this.grade = new ShaderPass(GradeShader);
     this.composer.addPass(this.renderPass);
     this.composer.addPass(this.ao);

@@ -64,6 +64,7 @@ export class Game {
     this.spawn = valid ? new THREE.Vector3(p.x, p.y, p.z) : vec(this.world.generator.findSpawn());
 
     this.minimap = new Minimap(this.world.chunks, save.explored ?? []);
+    engine.onAfterRender((renderer) => this.minimap.draw(renderer));
     // The portrait shows just your face: no helmet or hood.
     const portraitModel = buildCharacter(save.classId, save, { bareHead: true });
     this.hud = new GameHud(this.player, this.minimap, renderPortrait(portraitModel));

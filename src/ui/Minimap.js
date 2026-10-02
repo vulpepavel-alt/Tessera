@@ -2,8 +2,9 @@
 // table. It turns with the camera (what's ahead of you is always "up"), and
 // only shows land you have been near. Villages, enemies and you are marked.
 //
-// It has its own little renderer and scene. Every explored chunk becomes a set
-// of small columns (one per 2 x 2 blocks) coloured like the ground.
+// It has its own little scene, drawn by the game's main renderer into the
+// minimap's corner of the screen (see draw()). Every explored chunk becomes a
+// set of small columns (one per 2 x 2 blocks) coloured like the ground.
 
 import * as THREE from 'three';
 import { addFaceShading } from '../world/faceShading.js';
@@ -20,16 +21,12 @@ const HEIGHT = 166;
 
 export class Minimap {
   constructor(chunks, explored = []) {
+    this.ready = false; // true once the camera has been placed (first update)
     this.pending = new Map();           // "cx,cz" -> { pixels, heights } loaded but not explored
     this.tiles = new Map();             // "cx,cz" -> instanced mesh, explored
     this.explored = new Set(explored);  // keys, also stored in the save file
     chunks.onMap = (cx, cz, pixels, heights) => this.receive(cx, cz, pixels, heights);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setSize(WIDTH, HEIGHT);
-    this.renderer.localClippingEnabled = true;
-    this.renderer.domElement.className = 'minimap-canvas';
 
     this.scene = new THREE.Scene();
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x6a6a7a, 2));
@@ -44,9 +41,11 @@ export class Minimap {
     this.box = new THREE.BoxGeometry(CELL, 1, CELL).translate(0, 0.5, 0);
 
     this.markers = createMarkers(this.scene);
+    // An empty box that holds the minimap's place in the HUD; draw() paints into it.
     this.root = document.createElement('div');
     this.root.className = 'minimap';
-    this.root.append(this.renderer.domElement);
+    this.root.style.width = `${WIDTH}px`;
+    this.root.style.height = `${HEIGHT}px`;
     this.timer = 0;
   }
 
@@ -120,7 +119,30 @@ export class Minimap {
     this.camera.lookAt(p.x, FLOOR + 10, p.z);
 
     placeMarkers(this.markers, p, facing, markers, this.clip);
-    this.renderer.render(this.scene, this.camera);
+    this.ready = true;
+  }
+
+  // Called by the engine every frame, after the world: paints the diorama
+  // into the minimap's box with the main renderer (no second renderer).
+  draw(renderer) {
+    if (!this.ready || this.root.offsetParent === null) return; // HUD hidden
+    const rect = this.root.getBoundingClientRect();
+    if (rect.width === 0) return;
+    const y = window.innerHeight - rect.bottom;
+    const autoClear = renderer.autoClear;
+    renderer.autoClear = false;
+    renderer.localClippingEnabled = true;
+    renderer.setRenderTarget(null);
+    renderer.setScissorTest(true);
+    renderer.setScissor(rect.left, y, rect.width, rect.height);
+    renderer.setViewport(rect.left, y, rect.width, rect.height);
+    renderer.clearDepth();
+    renderer.shadowMap.autoUpdate = false; // the diorama casts no shadows
+    renderer.render(this.scene, this.camera);
+    renderer.shadowMap.autoUpdate = true;
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+    renderer.autoClear = autoClear;
   }
 }
 

@@ -48,7 +48,7 @@ export const ATMOSPHERE = {
   sunIntensity: 2.2,
   skyLight: 0xcfe2ff,    // soft, cool light coming from the sky
   groundLight: 0x6f8a68, // green bounce light from the grass: soft, friendly shadows
-  skyLightIntensity: 1.3,
+  skyLightIntensity: 1.15, // a little less fill light, so shaded sides read darker (more contrast)
   cloudY: 0,             // height of the cloud layer that fills the rifts
   cloudColor: 0xf4f7fb,
 };
