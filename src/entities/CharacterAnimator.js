@@ -60,6 +60,10 @@ export class CharacterAnimator {
     parts.armL.rotation.z = lerp(parts.armL.rotation.z, pose.armLz, k);
     parts.armR.rotation.z = lerp(parts.armR.rotation.z, pose.armRz, k);
     parts.torso.rotation.y = lerp(parts.torso.rotation.y, pose.twist, k);
+    // A bow in hand stays upright whatever the arm does (raised to aim, swinging while walking).
+    for (const h of this.model.held ?? []) {
+      if (h.hold.turn && this.model.weaponsDrawn) h.holder.rotation.x = -parts.armL.rotation.x;
+    }
     parts.torso.position.y = this.torsoY + pose.bob;
 
     if (state.rolling >= 0) {

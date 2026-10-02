@@ -13,6 +13,7 @@ import { CLASSES } from '../data/classes.js';
 import { RACES, RACE_ORDER } from '../data/races.js';
 import { DEFAULT_APPEARANCE } from '../data/appearance.js';
 import { loadReference } from './referenceModel.js';
+import { placeHeld } from '../models/equipment/weapons.js';
 import { el } from '../ui/dom.js';
 import { ptext, logo } from '../ui/menuKit.js';
 import '../ui/styles/menu.css';
@@ -84,6 +85,10 @@ export class LineupScene {
     // ?lineup&focus=human,frogfolk : only those races, from every side, for comparisons.
     const params = new URLSearchParams(window.location.search);
     const focus = params.get('focus');
+    if (params.has('weapons')) {
+      this.buildWeapons();
+      return;
+    }
     if (focus || params.has('reference')) {
       this.buildFocus((focus ?? 'human').split(','), views, params.has('reference'));
       return;
@@ -132,6 +137,34 @@ export class LineupScene {
       views.forEach(([name, yaw], i) => this.place(buildCharacter('bulwark', look).root, i, r, yaw, name));
       r++;
     });
+    this.rows = r;
+    this.cols = 6;
+    this.finishSetup();
+  }
+
+  // ?lineup&weapons : every class with its weapons, in the hands (drawn)
+  // and put away (sheathed), from the sides that show how they sit.
+  buildWeapons() {
+    const SHOTS = {
+      bulwark: [['sword', {}, 0, 1], ['sword', {}, Math.PI / 2, 1], ['iron-sword', { offHand: 'wood-shield' }, 0.6, 1],
+        ['greatsword', {}, 0.6, 1], ['sword', {}, Math.PI - 0.5, 0], ['greatsword', { offHand: 'iron-shield' }, Math.PI - 0.5, 0]],
+      windstrider: [['shortbow', { back: 'quiver' }, 0, 1], ['shortbow', { back: 'quiver' }, Math.PI / 2, 1], ['longbow', {}, 0.6, 1],
+        ['crossbow', {}, 0.6, 1], ['shortbow', { back: 'quiver' }, Math.PI - 0.5, 0], ['longbow', { back: 'quiver' }, -Math.PI / 2, 0]],
+      starweaver: [['wand', {}, 0, 1], ['wand', {}, Math.PI / 2, 1], ['staff', { offHand: 'tome' }, 0.6, 1],
+        ['crystal-staff', { offHand: 'orb' }, 0.6, 1], ['wand', {}, Math.PI - 0.5, 0], ['staff', { offHand: 'tome' }, Math.PI - 0.5, 0]],
+      shade: [['dagger', {}, 0, 1], ['dagger', {}, Math.PI / 2, 1], ['dagger', { offHand: 'parry-dagger' }, 0.6, 1],
+        ['shortsword', { offHand: 'off-shortsword' }, 0.6, 1], ['dagger', {}, Math.PI - 0.5, 0], ['shortsword', { offHand: 'off-shortsword' }, -Math.PI / 2, 0]],
+    };
+    let r = 0;
+    for (const [classId, shots] of Object.entries(SHOTS)) {
+      this.heading(`${CLASSES[classId].name} - WEAPONS IN HAND, THEN PUT AWAY`, r);
+      shots.forEach(([main, extra, yaw, drawn], i) => {
+        const model = buildCharacter(classId, LOOK, { equipment: { mainHand: main, ...extra } });
+        placeHeld(model, !!drawn);
+        this.place(model.root, i, r, yaw, `${main.toUpperCase()}${drawn ? '' : ' (AWAY)'}`);
+      });
+      r++;
+    }
     this.rows = r;
     this.cols = 6;
     this.finishSetup();
