@@ -1,11 +1,14 @@
 // Every piece of equipment in the game: armour, weapons and things worn on the
-// back. Nobody starts with any of it: equipment is found, earned or bought on
-// the journey, and every worn piece shows on the character model.
+// back. Apart from one starter weapon (data/classes.js STARTER_KIT),
+// equipment is found, earned or bought on the journey, and every worn piece
+// shows on the character model.
 //
 // An item is looked up by its id (saves store only ids):
 //   ITEMS['iron-chest'] -> { id, name, slot, tier, rarity, ... }
 //
 // tier: 1 (first finds) ... 7 (legendary). It sets the item's strength.
+
+import { catalogueWeapons } from './weaponCatalog.js';
 
 export const SLOTS = ['head', 'face', 'chest', 'shoulders', 'hands', 'waist', 'legs', 'feet', 'back', 'mainHand', 'offHand'];
 export const SLOT_NAMES = {
@@ -142,6 +145,7 @@ for (const [material, m] of Object.entries(MATERIALS)) {
   }
 }
 for (const w of WEAPON_LIST) add(w);
+for (const w of catalogueWeapons()) add(w); // 17 kinds x 5 materials x 5 shapes (data/weaponCatalog.js)
 for (const b of BACK_LIST) add({ classes: null, ...b });
 for (const f of FACE_WAIST_LIST) add({ classes: null, ...f });
 

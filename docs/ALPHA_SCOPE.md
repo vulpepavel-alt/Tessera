@@ -15,7 +15,7 @@ the alpha's invented creature and place names are not used.
 | | Alpha | TESSERA now |
 |---|---|---|
 | Races | 8 (human, elf, dwarf, orc, goblin, undead, frog people, lizard people) | 9 (the same 8 kinds + Foxkin) |
-| Gender choice | yes (male / female) | yes, from this round (affects which faces and hairstyles are offered first) |
+| Gender choice | yes (male / female) | yes (lashes and hairstyle order) |
 | Faces per race | about 6 per gender (12 per race) | 14 shared face presets + race features |
 | Hairstyles per race | about 10-23 per race (human: 15 + 7) | 17 shared styles (+ race rules) |
 | Hair colours | a rainbow grid | 20+ palettes |
@@ -27,8 +27,8 @@ the alpha's invented creature and place names are not used.
 |---|---|---|
 | Slots | 2 weapons, 2 rings, neck, chest, shoulders, hands, feet, pet (+ helmets) | 11 (head, face, chest, shoulders, hands, waist, legs, feet, back, 2 weapons) |
 | Cloth/armour materials | linen, wool, silk, satin, iron, silver, gold, obsidian, bone | cloth, leather, chain, iron, steel, runed, sunforged, hunter, shadow, silk, arcane... |
-| Weapon kinds | ~17: sword, longsword, greatsword, saber, axe, greataxe, mace, greatmace, dagger, fist, shield, bow, crossbow, boomerang, staff, wand, bracelet | 13 before this round; the missing kinds are added this round |
-| Shape variants | 5 random shapes per weapon kind and material | 1 per kind before this round; 5 variants per kind from this round |
+| Weapon kinds | ~17: sword, longsword, greatsword, saber, axe, greataxe, mace, greatmace, dagger, fist, shield, bow, crossbow, boomerang, staff, wand, bracelet | 17 (data/weaponCatalog.js) |
+| Shape variants | 5 random shapes per weapon kind and material | 5 per kind, in 5 materials (wood, iron, silver, gold, obsidian): 425 weapons; see ?lineup&arsenal |
 | Jewellery | rings and amulets | not yet |
 | Pets | yes | not yet |
 

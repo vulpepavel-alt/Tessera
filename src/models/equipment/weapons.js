@@ -22,6 +22,9 @@ const HOLD = {
   wand: { tilt: 0.25, out: 0.1 }, staff: { tilt: 0.03, out: 0.06 }, crossbow: { tilt: 0 },
   shortbow: { arm: 'off', tilt: 0.03, turn: true }, longbow: { arm: 'off', tilt: 0.03, turn: true }, recurve: { arm: 'off', tilt: 0.03, turn: true },
   tome: { tilt: 0.05 }, orb: { tilt: 0 },
+  longsword: { tilt: 0.27, out: 0.12 }, saber: { tilt: 0.28, out: 0.12 }, mace: { tilt: 0.28, out: 0.1 },
+  greatmace: { tilt: 0.22, out: 0.1 }, greataxe: { tilt: 0.22, out: 0.1 }, boomerang: { tilt: 0.1, out: 0.1 },
+  fist: { tilt: 0 }, bracelet: { tilt: 0 }, // worn around the fist
 };
 
 // Where each item rests when not in use. Long things go diagonally across
@@ -31,6 +34,8 @@ const SHEATH = {
   great: 'back', blade: 'back', bow: 'back', crossbow: 'back', staff: 'back', shield: 'back',
   dagger: 'hip', wand: 'hip', focus: 'hip',
 };
+
+const WORN_ON_FIST = new Set(['fist', 'bracelet']);
 
 // Builds the held items and puts them in the hands (drawn). Returns the
 // records placeHeld() uses to move them between hands and sheaths.
@@ -51,6 +56,7 @@ export function buildHeld(gear, model) {
 export function placeHeld(model, drawn) {
   for (const h of model.held ?? []) {
     const shield = h.item.kind === 'shield';
+    if (!drawn && WORN_ON_FIST.has(h.item.model)) continue; // fist weapons and bracelets stay on
     const rest = SHEATH[h.item.kind] ?? 'back';
     const socketName = drawn ? h.hand : rest === 'back' ? 'socket_back' : h.side === 'main' ? 'socket_hip_L' : 'socket_hip_R';
     model.sockets[socketName].add(h.holder);

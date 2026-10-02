@@ -13,7 +13,10 @@ import { CLASSES } from '../data/classes.js';
 import { RACES, RACE_ORDER } from '../data/races.js';
 import { DEFAULT_APPEARANCE } from '../data/appearance.js';
 import { loadReference } from './referenceModel.js';
-import { placeHeld } from '../models/equipment/weapons.js';
+import { placeHeld, heldGrid } from '../models/equipment/weapons.js';
+import { attach } from '../models/humanoid.js';
+import { ITEMS } from '../data/items.js';
+import { WEAPON_KINDS } from '../data/weaponCatalog.js';
 import { el } from '../ui/dom.js';
 import { ptext, logo } from '../ui/menuKit.js';
 import '../ui/styles/menu.css';
@@ -85,6 +88,10 @@ export class LineupScene {
     // ?lineup&focus=human,frogfolk : only those races, from every side, for comparisons.
     const params = new URLSearchParams(window.location.search);
     const focus = params.get('focus');
+    if (params.has('arsenal')) {
+      this.buildArsenal();
+      return;
+    }
     if (params.has('creatures')) {
       this.buildCreatures(views);
       return;
@@ -146,6 +153,26 @@ export class LineupScene {
     this.finishSetup();
   }
 
+  // ?lineup&arsenal : every weapon kind, its five iron shapes, then gold and obsidian.
+  buildArsenal() {
+    const kinds = Object.keys(WEAPON_KINDS);
+    kinds.forEach((kind, r) => {
+      this.heading(kind.toUpperCase(), r);
+      const ids = [1, 2, 3, 4, 5].map((v) => `iron-${kind}-${v}`).concat([`gold-${kind}-1`, `obsidian-${kind}-1`]);
+      ids.forEach((id, i) => {
+        const grid = heldGrid(ITEMS[id]);
+        const holder = new THREE.Group();
+        attach(holder, grid, [grid.sizeX / 2, 0, grid.sizeZ / 2], [0, 0, 0]);
+        holder.scale.setScalar(Math.min(1.6, 2.2 / (grid.sizeY * 0.0625))); // tall ones shrink to fit the row
+        holder.children[0].rotation.y = 0.9;
+        this.place(holder, i, r, 0, i < 5 ? `SHAPE ${i + 1}` : id.split('-')[0].toUpperCase());
+      });
+    });
+    this.rows = kinds.length;
+    this.cols = 7;
+    this.finishSetup();
+  }
+
   // ?lineup&creatures : every creature from every side, a person first for scale.
   buildCreatures(views) {
     const ids = ['bramblehog', 'duskwolf', 'meadowSlime'];
@@ -172,11 +199,15 @@ export class LineupScene {
       shade: [['dagger', {}, 0, 1], ['dagger', {}, Math.PI / 2, 1], ['dagger', { offHand: 'parry-dagger' }, 0.6, 1],
         ['shortsword', { offHand: 'off-shortsword' }, 0.6, 1], ['dagger', {}, Math.PI - 0.5, 0], ['shortsword', { offHand: 'off-shortsword' }, -Math.PI / 2, 0]],
     };
+    // The newer weapon kinds, each with the class that uses it.
+    SHOTS.more = [['iron-greataxe-1', {}, 0.6, 1, 'bulwark'], ['gold-greatmace-1', {}, 0.6, 1, 'bulwark'], ['iron-fist-1', {}, 0.6, 1, 'shade'],
+      ['silver-longsword-2', {}, 0.6, 1, 'shade'], ['wood-boomerang-1', {}, 0.6, 1, 'windstrider'], ['gold-bracelet-3', {}, 0.6, 1, 'starweaver']];
     let r = 0;
-    for (const [classId, shots] of Object.entries(SHOTS)) {
-      this.heading(`${CLASSES[classId].name} - WEAPONS IN HAND, THEN PUT AWAY`, r);
-      shots.forEach(([main, extra, yaw, drawn], i) => {
-        const model = buildCharacter(classId, LOOK, { equipment: { mainHand: main, ...extra } });
+    for (const [group, shots] of Object.entries(SHOTS)) {
+      const classId = CLASSES[group] ? group : null;
+      this.heading(classId ? `${CLASSES[classId].name} - WEAPONS IN HAND, THEN PUT AWAY` : 'NEW WEAPON KINDS', r);
+      shots.forEach(([main, extra, yaw, drawn, who], i) => {
+        const model = buildCharacter(who ?? classId, LOOK, { equipment: { mainHand: main, ...extra } });
         placeHeld(model, !!drawn);
         this.place(model.root, i, r, yaw, `${main.toUpperCase()}${drawn ? '' : ' (AWAY)'}`);
       });
