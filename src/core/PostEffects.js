@@ -21,9 +21,9 @@ export const POST = {
   aoRadius: 0.9,       // how far (in voxels) creases reach
   aoResolution: 0.5,   // the AO is computed at this fraction of the screen size (speed)
   maxPixelRatio: 1.5,  // sharpness cap for the effects (speed on high-DPI screens)
-  aoIntensity: 0.85,   // 0 = no ambient occlusion, 1 = full
-  contrast: 1.1,
-  saturation: 1.22,    // bright, toy-like colours
+  aoIntensity: 0.55,   // 0 = no ambient occlusion, 1 = full
+  contrast: 1.04,
+  saturation: 1.3,     // bright, toy-like colours
   warmth: 0.025,       // warm tint in bright areas, cool tint in dark ones
   vignette: 0.1,
 };

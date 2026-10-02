@@ -20,7 +20,7 @@ const ORBIT_HEIGHT = 30;   // camera height above the ground (above the tallest 
 const ORBIT_SPEED = 0.025; // radians per second
 const STAGE_VIEW = new THREE.Vector3(0, 1.9, 4.3);  // camera offset in front of the pedestal (whole body)
 const FACE_VIEW = new THREE.Vector3(0, 2.45, 1.9); // camera offset when zoomed in on the face
-const PEDESTAL = { width: 3.2, height: 0.9, depth: 2.4 };
+const PEDESTAL = { width: 6.4, height: 0.7, depth: 4.4 }; // a wide, low slab
 
 export class MenuScene {
   constructor(engine) {
@@ -45,7 +45,7 @@ export class MenuScene {
   }
 
   // The pedestal stands on a grassy spot a little outside the start village,
-  // turned so the village is in the background.
+  // turned so the countryside is in the background.
   buildStage(spawn) {
     const gen = this.world.generator;
     let spot = null;
@@ -60,8 +60,9 @@ export class MenuScene {
     spot ??= { x: Math.round(spawn.x), z: Math.round(spawn.z) };
     const ground = (flatTop(gen, spot.x, spot.z) ?? gen.column(spot.x, spot.z).top) + 1;
     this.stagePos = new THREE.Vector3(spot.x + 0.5, ground, spot.z + 0.5);
-    // Face away from the village, so the camera (in front) looks back at it.
-    this.stageYaw = Math.atan2(this.stagePos.x - spawn.x, this.stagePos.z - spawn.z);
+    // Face the village, so the camera (in front of the hero) looks out over
+    // the open countryside and its trees, like the classic creator screen.
+    this.stageYaw = Math.atan2(spawn.x - this.stagePos.x, spawn.z - this.stagePos.z);
 
     this.stage = new THREE.Group();
     this.stage.position.copy(this.stagePos);
@@ -94,7 +95,7 @@ export class MenuScene {
 
     // Studio lights for the creator: a warm key light from the front-left and
     // a cool rim light from behind, so the face and silhouette read clearly.
-    this.keyLight = new THREE.DirectionalLight(0xfff0dc, 1.1);
+    this.keyLight = new THREE.DirectionalLight(0xfff0dc, 1.9); // the hero is always brightly lit
     this.rimLight = new THREE.DirectionalLight(0xbcd8ff, 1.4);
     for (const l of [this.keyLight, this.rimLight]) {
       l.visible = false;
@@ -183,11 +184,12 @@ export class MenuScene {
       this.keyLight.position.copy(this.stagePos).add(key);
       this.rimLight.position.copy(this.stagePos).add(key.set(1.5, 2.5, -3).applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.stageYaw));
       this.world.update(dt, elapsed, this.stagePos);
-      // The world behind melts into a soft haze, so nothing competes with the hero.
+      // The world behind stays crisp and colourful nearby and fades to blue
+      // further away, like the classic creator screen.
       const fog = this.engine.scene.fog;
       if (fog) {
-        fog.near = 7;
-        fog.far = 42;
+        fog.near = 55;
+        fog.far = 150;
       }
       return;
     }

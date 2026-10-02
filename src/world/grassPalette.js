@@ -8,12 +8,12 @@
 // (for grass tufts standing on it), so plants match the ground under them.
 
 export const GRASS_SHADES = [
-  0x34a03a, // deep green
-  0x4cb83a, // mid green
-  0x66cc36, // bright grass green
-  0x84dc34, // light lime
-  0xa2dc36, // yellow-green
-  0x8cb43a, // olive
+  0x48c41c, // deep lime
+  0x58d01e, // mid lime
+  0x68da20, // bright lime
+  0x78e222, // light lime
+  0x8ce626, // yellow-lime
+  0x76c824, // olive-lime
 ];
 
 const LOW = 23;   // around this height the grass is at its greenest
@@ -31,7 +31,7 @@ export const GRASS_GLSL = `
     float moist = gNoise(cell.xz / 38.0);
     float spot = gNoise(cell.xz / 7.0 + 13.0);
     float high = clamp((cell.y - ${LOW.toFixed(1)}) / ${SPAN.toFixed(1)}, 0.0, 1.0);
-    float t = 0.02 + (1.0 - moist) * 0.55 + spot * 0.35 + high * 0.6 + (gHash(cell.xz) - 0.5) * 0.35;
+    float t = 0.1 + (1.0 - moist) * 0.5 + spot * 0.15 + high * 0.5 + (gHash(cell.xz) - 0.5) * 0.12;
     float k = clamp(t * 4.0, 0.0, 5.0);
     int i = int(floor(k + 0.5));
     return grassShades[i];
@@ -60,6 +60,6 @@ export function grassShadeIndex(x, y, z) {
   const moist = noise(cx / 38, cz / 38);
   const patch = noise(cx / 7 + 13, cz / 7 + 13);
   const high = Math.min(1, Math.max(0, (y - LOW) / SPAN));
-  const t = 0.02 + (1 - moist) * 0.55 + patch * 0.35 + high * 0.6 + (hash(cx, cz) - 0.5) * 0.35;
+  const t = 0.1 + (1 - moist) * 0.5 + patch * 0.15 + high * 0.5 + (hash(cx, cz) - 0.5) * 0.12;
   return Math.min(5, Math.max(0, Math.round(t * 4)));
 }

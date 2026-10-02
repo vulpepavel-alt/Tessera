@@ -15,7 +15,7 @@ const WIND = new THREE.Vector2(3.2, 1.1); // voxels per second
 
 export class SkyClouds {
   constructor(scene) {
-    this.material = addFaceShading(new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x6a7a90 }));
+    this.material = addFaceShading(new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x6a7a90, fog: false })); // crisp white, never hazed
     this.mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), this.material, COUNT * PIECES);
     this.mesh.frustumCulled = false;
     scene.add(this.mesh);

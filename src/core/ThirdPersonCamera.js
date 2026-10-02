@@ -17,7 +17,7 @@ export class ThirdPersonCamera {
     this.input = input;
     this.world = world;
     this.yaw = 0;
-    this.pitch = 0.2; // only a little from above: the world feels big around you
+    this.pitch = 0.32; // a little from above, looking out over the land around you
     this.distance = CAMERA.distance;      // wanted distance (zoom)
     this.actualDistance = CAMERA.distance; // after pulling in for walls
     this.sensitivity = 1;

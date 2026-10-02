@@ -41,14 +41,14 @@ export const WORLD = {
 };
 
 export const ATMOSPHERE = {
-  skyTop: 0x1468ff,      // colour straight up (a deep, saturated blue)
-  skyHorizon: 0x7cc4ff,  // colour at the horizon (also the fog colour): far hills turn blue, not white
-  fogStart: 0.55,        // fog starts at this fraction of the view distance (subtle haze)
+  skyTop: 0x0a5cff,      // colour straight up (a deep, saturated blue)
+  skyHorizon: 0x3a8cff,  // colour at the horizon (also the fog colour): far land fades to strong blue, never white
+  fogStart: 0.38,        // fog starts at this fraction of the view distance (subtle haze)
   sunColor: 0xffe6bc,      // slightly warm sunlight
   sunIntensity: 2.2,
   skyLight: 0xcfe2ff,    // soft, cool light coming from the sky
-  groundLight: 0x6c7896, // cool bounce light, so shadows lean blue
-  skyLightIntensity: 1.1,
+  groundLight: 0x6f8a68, // green bounce light from the grass: soft, friendly shadows
+  skyLightIntensity: 1.3,
   cloudY: 0,             // height of the cloud layer that fills the rifts
   cloudColor: 0xf4f7fb,
 };
@@ -58,7 +58,7 @@ export const CAMERA = {
   flySpeed: 24,            // debug fly mode (F4) speed, voxels per second
   fastMultiplier: 4,       // speed multiplier while holding Shift in fly mode
   mouseSensitivity: 0.0022,
-  distance: 8,             // how far behind the player the camera sits
+  distance: 11,            // how far behind the player the camera sits (wide view, hero small in the middle)
   minDistance: 3,
   maxDistance: 18,
   height: 2.1,             // the camera looks at this point above the player's feet (keeps
