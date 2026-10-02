@@ -32,9 +32,10 @@ export class Input {
       e.preventDefault();
     }, { passive: false });
 
-    // Mouse buttons count as keys named "Mouse0" (left) and "Mouse2" (right).
+    // Mouse buttons count as keys named "Mouse0" (left), "Mouse1" (middle) and "Mouse2" (right).
     document.addEventListener('mousedown', (e) => {
       if (!this.locked) return;
+      if (e.button === 1) e.preventDefault(); // middle button: dodge, not page scrolling
       const code = `Mouse${e.button}`;
       if (!this.keysDown.has(code)) this.pressedThisFrame.add(code);
       this.keysDown.add(code);

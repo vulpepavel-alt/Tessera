@@ -151,6 +151,14 @@
   overflow: hidden;
 }
 
+.hud-stamina {
+  transition: opacity 0.4s;
+}
+
+.hud-stamina.full {
+  opacity: 0;
+}
+
 .hud-stamina > div {
   height: 100%;
   background: #8fe36a;

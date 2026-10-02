@@ -128,6 +128,7 @@ export class GameHud {
     if (this.last.stamina !== st) {
       this.last.stamina = st;
       this.stamina.firstChild.style.transform = `scaleX(${st / 100})`;
+      this.stamina.classList.toggle('full', st >= 100); // hidden while full, like the classic HUD
     }
     this.slots.m2.cooldown(cooldowns.heavy ?? 0, cooldowns.heavyReady !== false);
     this.slots.q.cooldown(cooldowns.roll ?? 0, p.stamina >= PLAYER.rollCost);

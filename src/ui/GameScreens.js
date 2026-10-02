@@ -9,18 +9,19 @@ import { createSettingsPanel } from './SettingsPanel.js';
 import { logo, ptext, pparagraph, pbutton } from './menuKit.js';
 
 export const CONTROLS = [
-  ['W A S D', 'Move'],
-  ['Mouse', 'Look around'],
-  ['Left click', 'Attack (hold for a 3-hit combo)'],
-  ['Right click', 'Heavy attack'],
+  ['W A S D', 'Move (you always run)'],
+  ['Shift', 'Walk slowly'],
+  ['Mouse', 'Look around and aim'],
+  ['Left click', 'Attack (hold to keep attacking)'],
+  ['Right click', 'Special attack'],
   ['1 / 2', 'Class skills'],
-  ['R', 'Ultimate (charges as you deal damage)'],
-  ['Q', 'Dodge roll (uses stamina)'],
-  ['Space', 'Jump · in the air: open / close glider'],
-  ['Shift', 'Sprint · swim fast (uses stamina)'],
-  ['I', 'Inventory: put on and take off gear'],
+  ['R', 'Specialization skill'],
+  ['Middle click / Q', 'Dodge roll (uses stamina)'],
+  ['Space', 'Jump'],
+  ['Ctrl', 'Hold to climb walls'],
+  ['G', 'Glider (in the air) / boat (at the water)'],
+  ['B / I', 'Inventory'],
   ['E', 'Talk to villagers'],
-  ['B', 'Place / leave boat (next to water)'],
   ['C', 'Dive (while swimming)'],
   ['Scroll', 'Zoom the camera'],
   ['Esc', 'Pause'],
@@ -32,10 +33,10 @@ export const CONTROLS = [
 // A few lines for new players, shown on the How to Play page.
 const TIPS = [
   'You start with one weapon of your class. Better gear is found, earned and bought.',
-  'Open the inventory (I) and click an item to put it on. Click worn gear to take it off.',
-  'Roll (Q) out of the way when an enemy glows red: it is about to strike.',
+  'Open the inventory (B or I) and click an item to put it on. Click worn gear to take it off.',
+  'Roll (middle click or Q) out of the way when an enemy glows red: it is about to strike.',
   'Talk to villagers (E). The Guildmaster teaches your class specializations.',
-  'Jump off high ground and press Space again to glide.',
+  'Jump off high ground and press G to glide. Hold Ctrl to climb walls.',
 ];
 
 // The How to Play page: tips, then every key. onBack() closes it.

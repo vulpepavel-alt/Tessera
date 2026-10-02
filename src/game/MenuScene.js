@@ -154,7 +154,7 @@ export class MenuScene {
   animatePreview(dt) {
     if (!this.animator) return;
     this.previewTime += dt;
-    const state = { mode: 'walk', speed: 0, grounded: true, sprinting: false, inWater: false, rolling: -1, attack: null };
+    const state = { mode: 'walk', speed: 0, grounded: true, walking: false, inWater: false, rolling: -1, attack: null };
     if (this.preview === 'walk') state.speed = 3.6;
     if (this.preview === 'combat') {
       const kind = ITEMS[this.equipment?.mainHand]?.kind;

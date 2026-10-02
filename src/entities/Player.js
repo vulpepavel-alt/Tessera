@@ -47,13 +47,12 @@ export class Player {
     // Travel speed multipliers. Artifacts will raise these later.
     this.bonus = { glide: 1, boat: 1, climb: 1, swim: 1 };
 
-    this.sprinting = false;
+    this.walking = false; // holding Shift: slow walk
     this.roll = { time: -1, cooldown: 0, dir: new THREE.Vector3() };
     this.facing = save.player?.facing ?? 0; // model direction (radians)
     this.faceOverride = null; // set by combat to face the attack direction
     this.safePoint = null;
     this.safeTimer = 0;
-    this.exhaustedWarned = false;
     this.listeners = {};
 
     this.scene = scene;
@@ -155,8 +154,7 @@ export class Player {
   update(dt, input, cameraYaw) {
     const wish = this.readMoveInput(input, cameraYaw);
     const mode = this.motor.mode;
-    this.sprinting = mode === 'walk' && this.wantsSprint(input) && wish.lengthSq() > 0 && this.stamina > 0 && !this.inWater;
-    if (this.sprinting && this.grounded) this.drainStamina(PLAYER.sprintCost * dt);
+    this.walking = this.wantsWalk(input);
 
     this.motor.update(dt, input, cameraYaw, wish);
     this.regenerateStamina(dt);
@@ -177,11 +175,12 @@ export class Player {
     return wish;
   }
 
-  wantsSprint(input) {
+  // Holding Shift slows you to a walk (there is no sprint: you always run).
+  wantsWalk(input) {
     return input.isDown('ShiftLeft') || input.isDown('ShiftRight');
   }
 
-  // Dodge roll (Q). Called by the motor while walking.
+  // Dodge roll: middle mouse button, or Q (handy on a trackpad). Called by the motor.
   updateRoll(dt, input, wish) {
     const roll = this.roll;
     roll.cooldown = Math.max(0, roll.cooldown - dt);
@@ -194,7 +193,7 @@ export class Player {
       return;
     }
     const canRoll = this.grounded && roll.cooldown === 0 && this.stamina >= PLAYER.rollCost;
-    if (input.wasPressed('KeyQ') && canRoll) {
+    if ((input.wasPressed('Mouse1') || input.wasPressed('KeyQ')) && canRoll) {
       roll.time = 0;
       // Roll where you're moving, or straight ahead if standing still.
       if (wish.lengthSq() > 0) roll.dir.copy(wish);
@@ -209,22 +208,11 @@ export class Player {
     this.staminaDelay = PLAYER.staminaRegenDelay;
   }
 
-  // Stamina refills on land, in the boat and while gliding, but not while
-  // swimming or climbing.
+  // Stamina refills everywhere except while climbing.
   regenerateStamina(dt) {
     this.staminaDelay = Math.max(0, this.staminaDelay - dt);
-    const resting = this.mode === 'walk' || this.mode === 'boat' || this.mode === 'glide';
-    if (resting && this.staminaDelay === 0) {
+    if (this.mode !== 'climb' && this.staminaDelay === 0) {
       this.stamina = Math.min(PLAYER.staminaMax, this.stamina + PLAYER.staminaRegen * dt);
-      this.exhaustedWarned = false;
-    }
-  }
-
-  takeExhaustion(amount) {
-    this.health = Math.max(1, this.health - amount);
-    if (!this.exhaustedWarned) {
-      this.exhaustedWarned = true;
-      this.emit('message', 'Exhausted! Get out of the water!');
     }
   }
 
@@ -275,7 +263,7 @@ export class Player {
       mode,
       speed: Math.hypot(this.velocity.x, this.velocity.z),
       verticalSpeed: this.velocity.y,
-      sprinting: this.sprinting,
+      walking: this.walking,
       grounded: this.grounded,
       inWater: this.inWater,
       rolling: this.roll.time >= 0 ? this.roll.time / PLAYER.rollDuration : -1,

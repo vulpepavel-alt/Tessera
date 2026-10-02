@@ -112,11 +112,13 @@ export class Game {
     this.input.onPress('KeyE', () => {
       if (this.state === 'playing') this.villageLife.interact(this.world.dayNight.isNight);
     });
-    // I opens and closes the inventory; Esc also closes it.
-    this.input.onPress('KeyI', () => {
-      if (this.inventoryWindow.visible) this.closeInventory();
-      else if (this.state === 'playing') this.openInventory();
-    });
+    // B or I opens and closes the inventory (like the classic game); Esc also closes it.
+    for (const key of ['KeyB', 'KeyI']) {
+      this.input.onPress(key, () => {
+        if (this.inventoryWindow.visible) this.closeInventory();
+        else if (this.state === 'playing') this.openInventory();
+      });
+    }
     this.input.onPress('Escape', () => {
       if (this.inventoryWindow.visible) this.closeInventory();
     });

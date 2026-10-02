@@ -2,7 +2,7 @@
 // Everything is calculated from the character's state; there are no
 // pre-made animation files.
 //
-// Poses: walking / sprinting, standing (breathing), in the air, dodge roll,
+// Poses: running / walking, standing (breathing), in the air, dodge roll,
 // swimming, climbing, gliding, sitting in a boat, and attacks.
 
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -19,7 +19,7 @@ export class CharacterAnimator {
     this.center = model.bodyCenter ?? 0.85;    // height of the body's tilt/roll point
   }
 
-  // state: { mode, speed, verticalSpeed, sprinting, grounded, inWater, rolling, attack }
+  // state: { mode, speed, verticalSpeed, walking, grounded, inWater, rolling, attack }
   update(dt, state) {
     const { parts, body } = this.model;
     this.time += dt;
@@ -27,10 +27,10 @@ export class CharacterAnimator {
 
     // Walk cycle: the phase advances with the distance covered.
     const moving = state.grounded && state.speed > 0.5;
-    this.walkPhase += state.speed * dt * (state.sprinting ? 1.5 : 1.9);
+    this.walkPhase += state.speed * dt * (state.walking ? 1.9 : 1.6);
     this.swing = lerp(this.swing, moving ? Math.min(state.speed / 6, 1.3) : 0, Math.min(dt * 10, 1));
     const s = Math.sin(this.walkPhase);
-    const amount = this.swing * (state.sprinting ? 0.9 : 0.65);
+    const amount = this.swing * (state.walking ? 0.5 : 0.85);
 
     const pose = {
       legL: s * amount,
@@ -39,7 +39,7 @@ export class CharacterAnimator {
       armR: s * amount * 0.8,
       armLz: 0,
       armRz: 0,
-      lean: state.sprinting && moving ? 0.18 : 0,
+      lean: !state.walking && moving && state.speed > 5 ? 0.14 : 0,
       twist: 0,
       bodyY: this.center,
       bob: moving ? Math.abs(Math.cos(this.walkPhase)) * 0.05 * this.swing : Math.sin(this.time * 2) * 0.012,

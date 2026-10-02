@@ -1,10 +1,10 @@
-// How the player moves, in five "modes":
+// How the player moves, in five "modes" (controls like the classic game):
 //
-//   walk  - on the ground or in the air (jump, sprint, dodge roll)
-//   swim  - in deep water (uses stamina; with none left you start to tire)
-//   climb - walk into a wall 2+ blocks high to climb it (uses stamina)
-//   glide - press Space in the air to open the glider; Space again closes it
-//   boat  - press B next to water; B again to step out
+//   walk  - on the ground or in the air: you always run, Shift walks; jump, dodge roll
+//   swim  - in deep water (free); Space swims up, C dives
+//   climb - hold Ctrl and walk into a wall to climb it (uses stamina)
+//   glide - press G in the air to open the glider; G again (or landing) closes it
+//   boat  - press G next to water to place your boat; G again to step out
 //
 // Each frame the motor picks the right mode, changes the velocity, and moves
 // the body through the world with collisions.
@@ -28,7 +28,8 @@ export class PlayerMotor {
 
   update(dt, input, cameraYaw, wish) {
     const p = this.p;
-    if (input.wasPressed('KeyB')) this.toggleBoat();
+    // G: the special item - the glider in the air, the boat at the water.
+    if (input.wasPressed('KeyG')) this.useSpecialItem();
     if (this.mode === 'boat') return this.updateBoat(dt, input);
 
     if (this.mode === 'walk') this.walk(dt, input, wish);
@@ -65,9 +66,10 @@ export class PlayerMotor {
     if (this.mode === 'swim' && !p.submerged) this.mode = 'walk';
     if (this.mode === 'glide' && (p.grounded || p.inWater)) this.mode = 'walk';
 
-    // Walking into a tall wall starts climbing.
+    // Holding Ctrl while walking into a wall starts climbing.
     const blocked = (this.hit.x || this.hit.z) && wish.lengthSq() > 0;
-    if (blocked && (this.mode === 'walk' || this.mode === 'glide') && p.roll.time < 0 && p.stamina > 5) {
+    const ctrl = input.isDown('ControlLeft') || input.isDown('ControlRight');
+    if (ctrl && blocked && (this.mode === 'walk' || this.mode === 'glide') && p.roll.time < 0 && p.stamina > 5) {
       const dir = axisToward(wish);
       if (this.wallAt(dir, 1.2)) {
         this.climbDir.copy(dir);
@@ -86,24 +88,20 @@ export class PlayerMotor {
       v.x = p.roll.dir.x * PLAYER.rollSpeed;
       v.z = p.roll.dir.z * PLAYER.rollSpeed;
     } else {
-      let speed = (p.sprinting ? PLAYER.sprintSpeed : PLAYER.walkSpeed) * p.speedBonus * (p.attackMove ?? 1);
+      let speed = (p.walking ? PLAYER.walkSpeed : PLAYER.runSpeed) * p.speedBonus * (p.attackMove ?? 1);
       if (p.inWater) speed *= PLAYER.waterSpeedFactor;
       accelerate(v, wish, speed, (p.grounded ? PLAYER.groundAcceleration : PLAYER.airAcceleration) * dt);
     }
     v.y = Math.max(v.y - PLAYER.gravity * dt, -PLAYER.maxFallSpeed);
 
-    if (input.wasPressed('Space')) {
-      if (p.grounded && p.roll.time < 0) v.y = PLAYER.jumpVelocity;
-      else if (!p.grounded && this.heightAboveGround() >= PLAYER.glideMinHeight) this.mode = 'glide';
-    }
+    if (input.wasPressed('Space') && p.grounded && p.roll.time < 0) v.y = PLAYER.jumpVelocity;
   }
 
   // --- swim -----------------------------------------------------------
   swim(dt, input, wish) {
     const p = this.p;
     const v = p.velocity;
-    const fast = p.wantsSprint(input) && p.stamina > 0;
-    const speed = (fast ? PLAYER.swimFastSpeed : PLAYER.swimSpeed) * p.bonus.swim;
+    const speed = PLAYER.swimSpeed * p.bonus.swim;
     accelerate(v, wish, speed, 20 * dt);
 
     // Float at the surface; Space swims up, C dives.
@@ -111,9 +109,6 @@ export class PlayerMotor {
     if (input.isDown('Space')) targetVy = PLAYER.swimUpSpeed;
     if (input.isDown('KeyC')) targetVy = -PLAYER.swimUpSpeed;
     v.y += (targetVy - v.y) * Math.min(dt * 6, 1);
-
-    p.drainStamina((fast ? PLAYER.swimFastCost : PLAYER.swimCost) * dt);
-    if (p.stamina <= 0) p.takeExhaustion(PLAYER.exhaustedDamage * dt);
   }
 
   // --- climb ----------------------------------------------------------
@@ -121,6 +116,12 @@ export class PlayerMotor {
     const p = this.p;
     const v = p.velocity;
     const dir = this.climbDir;
+    // Let go of Ctrl to let go of the wall.
+    if (!input.isDown('ControlLeft') && !input.isDown('ControlRight')) {
+      v.set(-dir.x * 1.5, 0, -dir.z * 1.5);
+      this.mode = 'walk';
+      return;
+    }
     if (input.wasPressed('Space')) {
       // Kick off the wall.
       v.set(-dir.x * 5, 7, -dir.z * 5);
@@ -162,10 +163,6 @@ export class PlayerMotor {
   glide(dt, input, cameraYaw) {
     const p = this.p;
     const v = p.velocity;
-    if (input.wasPressed('Space')) {
-      this.mode = 'walk';
-      return;
-    }
     let speed = PLAYER.glideSpeed;
     if (input.isDown('KeyW')) speed = PLAYER.glideFastSpeed;
     if (input.isDown('KeyS')) speed = PLAYER.glideSlowSpeed;
@@ -179,6 +176,20 @@ export class PlayerMotor {
     // Sink slowly; if falling fast when opening, the glider brakes the fall.
     if (v.y < -PLAYER.glideSink) v.y += (-PLAYER.glideSink - v.y) * Math.min(dt * 3, 1);
     else v.y = Math.max(v.y - PLAYER.gravity * 0.25 * dt, -PLAYER.glideSink);
+  }
+
+  // --- G: glider or boat ---------------------------------------------
+  useSpecialItem() {
+    const p = this.p;
+    if (this.mode === 'glide') {
+      this.mode = 'walk';
+      return;
+    }
+    if (this.mode === 'walk' && !p.grounded && !p.inWater) {
+      if (this.heightAboveGround() >= PLAYER.glideMinHeight) this.mode = 'glide';
+      return;
+    }
+    this.toggleBoat();
   }
 
   // --- boat -----------------------------------------------------------
