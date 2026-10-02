@@ -5,3 +5,6 @@ dist/
 
 # Visual references that are not ours (fan art, never shipped)
 reference/
+
+# The packaged Mac app (npm run app:build)
+release/
