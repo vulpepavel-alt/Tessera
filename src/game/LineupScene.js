@@ -80,6 +80,20 @@ export class LineupScene {
     // 1. The base character from every side (nothing equipped).
     const views = [['FRONT', 0], ['BACK', Math.PI], ['LEFT', -Math.PI / 2], ['RIGHT', Math.PI / 2], ['3/4 FRONT', 0.6], ['3/4 BACK', Math.PI - 0.6]];
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+    // ?lineup&focus=human,frogfolk : only those races, from every side, for comparisons.
+    const focus = new URLSearchParams(window.location.search).get('focus');
+    if (focus) {
+      focus.split(',').forEach((token, r) => {
+        const [id, variant] = token.split(':'); // e.g. frogfolk:side
+        const look = { ...DEFAULT_APPEARANCE, race: id, skin: RACES[id]?.skins[0], frame: RACES[id]?.frame ?? 'straight', facialHair: RACES[id]?.facialHair ?? 'none', raceVariant: variant };
+        this.heading(`${RACES[id]?.name.toUpperCase() ?? id}${variant ? ` - ${variant.toUpperCase()}` : ''}`, r);
+        views.forEach(([name, yaw], i) => this.place(buildCharacter('bulwark', look).root, i, r, yaw, name));
+      });
+      this.rows = focus.split(',').length;
+      this.cols = 6;
+      this.finishSetup();
+      return;
+    }
     this.heading('BASE CHARACTER - NOTHING EQUIPPED', row);
     views.forEach(([name, yaw], i) => this.place(buildCharacter('bulwark', LOOK).root, i, row, yaw, name));
     // 2. Each class, start to legendary.
@@ -104,14 +118,18 @@ export class LineupScene {
     roles.forEach(([role, seed], i) => this.place(buildVillager(seed, role).root, i, row, 0.35, role.toUpperCase()));
     this.place(buildCreature('bramblehog').root, roles.length, row, 0.9, 'BRAMBLEHOG');
     this.rows = row + 1;
+    this.finishSetup();
+  }
 
+  // Camera, labels and resizing (after the models are placed).
+  finishSetup() {
     // Seen slightly from above, so tops of heads and shoulders show too.
     this.camera.rotation.x = -0.18;
-    engine.camera = this.camera;
-    engine.post = null; // a plain drawing: no screen effects on the reference sheet
+    this.engine.camera = this.camera;
+    this.engine.post = null; // a plain drawing: no screen effects on the reference sheet
     window.addEventListener('resize', () => this.fit());
     this.fit();
-    engine.onUpdate(() => this.updateLabels());
+    this.engine.onUpdate(() => this.updateLabels());
   }
 
   place(object, column, row, yaw, label) {
@@ -128,7 +146,7 @@ export class LineupScene {
 
   // Fit all rows on screen (an "orthographic" camera: no perspective, like a drawing).
   fit() {
-    const width = 9 * COLUMN; // the widest row (races)
+    const width = (this.cols ?? 9) * COLUMN; // the widest row (races: 9)
     const height = this.rows * ROW + 1.2;
     const aspect = window.innerWidth / window.innerHeight;
     const half = Math.max(height / 2, width / aspect / 2);

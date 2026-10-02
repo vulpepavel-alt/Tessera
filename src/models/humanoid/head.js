@@ -30,9 +30,16 @@ export function headGrid(r) {
   const g = new VoxelGrid(HEAD_GRID.w, HEAD_GRID.h, HEAD_GRID.d);
   const skin = r.skin;
   g.box(X0, Y0, Z0, 14, 14, 12, skin.base);
-  // Silhouette: one cube off each top-front corner, lower-front jaw corner, lower-back corner.
-  for (const [x, y, z] of [[X0, Y1, ZF], [X1, Y1, ZF], [X0, Y0, ZF], [X1, Y0, ZF], [X0, Y0, Z0], [X1, Y0, Z0]]) g.set(x, y, z, null);
-  g.box(X0, Y0, Z0, 14, 1, 12, skin.shadow).set(X0, Y0, ZF, null).set(X1, Y0, ZF, null).set(X0, Y0, Z0, null).set(X1, Y0, Z0, null);
+  g.box(X0, Y0, Z0, 14, 1, 12, skin.shadow); // shade under the jaw
+  // Silhouette: one cube off every edge of the block (except the chin's front
+  // edge), so the head reads as a rounded, stepped mass instead of a crate.
+  // (A TESSERA change from the spec, which only cut the corners; see docs.)
+  for (let y = Y0; y <= Y1; y++) for (let z = Z0; z <= ZF; z++) for (let x = X0; x <= X1; x++) {
+    const ex = x === X0 || x === X1;
+    const ey = y === Y0 || y === Y1;
+    const ez = z === Z0 || z === ZF;
+    if (ex + ey + ez >= 2 && !(y === Y0 && z === ZF && !ex)) g.set(x, y, z, null);
+  }
 
   const face = (fx, fy, color, out = 0) => g.set(fgx(fx), fgy(fy), ZF + out, color);
   const f = r.face;
@@ -75,11 +82,8 @@ export function headGrid(r) {
   // ---- Muzzle / snout (they carry the mouth) ----
   if (feat.muzzle) drawMuzzle(g, r);
   else if (feat.snout) drawSnout(g, r);
-  else if (feat.wideMouth) {
-    for (let x = 1; x <= 10; x++) face(x, 2, skin.deepShadow);
-    face(0, 3, skin.deepShadow);
-    face(11, 3, skin.deepShadow);
-  } else {
+  else if (feat.wideMouth) drawFrogMouth(g, r);
+  else {
     const m = skin.deepShadow;
     const mouths = {
       neutral: [[5, 1], [6, 1]],
@@ -97,7 +101,7 @@ export function headGrid(r) {
 
   // ---- Ears and race features ----
   drawEars(g, feat.ears ?? f.earSize, skin, r);
-  if (feat.frogEyes) drawFrogEyes(g, r);
+  if (feat.frogEyes) drawFrogEyes(g, r, r.raceVariant);
   if (feat.crest) {
     for (let z = Z0 + 1; z <= ZF - 1; z++) {
       const h = 1 + ((z - Z0) % 3 === 0 ? 2 : 1);
@@ -118,14 +122,17 @@ function drawEye(face, f, inner, outer, r, side) {
   const iris = r.eyeColor;
   const pupil = r.features.glowEyes ? lighter(iris, 0.6) : darker(iris, 0.7);
   const cols = [inner, outer];
-  const rows = f.eyeShape === 'square' || f.eyeShape === 'sleepy' ? [5, 6] : [5, 6, 7];
+  // Big eyes, sitting a little below the middle of the head, so they read at
+  // gameplay distance: tall = 2x4, square = 2x3, sleepy = 2x2 under a lid.
+  const rows = { square: [4, 5, 6], sleepy: [4, 5] }[f.eyeShape] ?? [4, 5, 6, 7];
   for (const x of cols) for (const y of rows) face(x, y, iris);
   if (f.eyeShape === 'soft-corner') face(outer, 7, r.skin.base);
-  // The pupil sits on the inner side; a white glint at the top outside.
+  // A dark pupil on the inner side, a white glint at the top outside.
+  face(inner, 4, pupil);
   face(inner, 5, pupil);
-  if (f.pupilSize === '1x2') face(inner, 6, pupil);
-  face(outer, rows[rows.length - 1], r.features.glowEyes ? lighter(iris, 0.8) : WHITE);
-  if (f.eyeShape === 'sleepy') for (const x of cols) face(x, 7, r.skin.shadow); // the lid
+  if (f.pupilSize === '1x2') face(outer, 4, pupil);
+  face(outer, rows[rows.length - 1] - (f.eyeShape === 'soft-corner' ? 1 : 0), r.features.glowEyes ? lighter(iris, 0.8) : WHITE);
+  if (f.eyeShape === 'sleepy') for (const x of cols) face(x, 6, r.skin.shadow); // the lid
 }
 
 function drawOverlay(face, o, skin) {
@@ -210,13 +217,56 @@ function drawSnout(g, r) {
   for (let x = fgx(5); x <= fgx(6); x++) for (let y = fgy(0); y <= fgy(2); y++) g.set(x, y, ZF + 5, s.base);
 }
 
-// Frogfolk: two round eye domes on top of the head, eyes looking forward.
-function drawFrogEyes(g, r) {
+// Frogfolk mouth: a wide groove right across the face with an upper lip that
+// sticks out over it, corners curling up, puffy cheek pouches at the sides
+// and a pale throat under the chin (it carries on into the chest).
+function drawFrogMouth(g, r) {
   const s = r.skin;
-  for (const ex of [X0, X0 + 10]) {
-    g.box(ex, Y1 - 1, ZF - 4, 4, 4, 4, s.base).set(ex, Y1 + 2, ZF - 4, null).set(ex + 3, Y1 + 2, ZF - 4, null);
-    g.box(ex, Y1 - 1, ZF, 4, 3, 1, r.eyeColor).box(ex, Y1 - 1, ZF, 4, 1, 1, s.shadow); // big round eye, lid below
-    g.box(ex + (ex === X0 ? 2 : 1), Y1, ZF, 1, 2, 1, darker(r.eyeColor, 0.7)).set(ex + (ex === X0 ? 1 : 2), Y1 + 1, ZF, WHITE);
+  const throat = mix(s.base, 0xfff2cc, 0.6);
+  for (let fx = 0; fx <= 11; fx++) {
+    g.set(fgx(fx), fgy(2), ZF, s.deepShadow);                // the mouth line
+    if (fx >= 1 && fx <= 10) g.set(fgx(fx), fgy(3), ZF + 1, s.base); // upper lip ledge
+  }
+  g.set(fgx(0), fgy(3), ZF, s.deepShadow).set(fgx(11), fgy(3), ZF, s.deepShadow); // corners curl up
+  g.set(fgx(4), fgy(5), ZF, s.deepShadow).set(fgx(7), fgy(5), ZF, s.deepShadow);   // nostrils
+  for (let x = X0 + 1; x <= X1 - 1; x++) {
+    for (let y = Y0; y <= fgy(1); y++) g.set(x, y, ZF, throat);  // pale chin and throat
+    for (let z = Z0 + 2; z <= ZF; z++) g.set(x, Y0, z, throat);  // the underside too
+  }
+  for (const x of [X0 - 1, X1 + 1]) g.box(x, fgy(1), ZF - 4, 1, 3, 3, s.highlight); // cheek pouches
+}
+
+// Frogfolk eyes, three designs (appearance.raceVariant), compared side by side
+// in ?lineup&focus=frogfolk:dome,frogfolk:side,frogfolk:ridge:
+//   dome  - two big domes on top of the head with large eyes (chosen default:
+//           the most frog-like silhouette, eyes still readable from the front)
+//   side  - bulging out at the upper sides, looking a little outwards
+//   ridge - set into a raised ridge across the top front
+function drawFrogEyes(g, r, variant = 'dome') {
+  const s = r.skin;
+  const pupil = darker(r.eyeColor, 0.75);
+  const eye = (x0, y0, z, w = 3, h = 3) => {
+    g.box(x0, y0, z, w, h, 1, WHITE);                                   // white of the eye
+    g.box(x0 + Math.floor((w - 2) / 2), y0, z, 2, h - 1, 1, r.eyeColor); // iris
+    g.set(x0 + Math.floor((w - 2) / 2), y0, z, pupil).set(x0 + Math.floor((w - 2) / 2) + 1, y0 + 1, z, pupil);
+    g.box(x0, y0 + h, z, w, 1, 1, s.shadow);                            // eyelid
+  };
+  if (variant === 'side') {
+    for (const [x, out] of [[X0 - 3, -1], [X1 + 1, 1]]) {
+      g.box(x, Y1 - 5, ZF - 5, 3, 5, 5, s.base).box(x, Y1 - 5, ZF - 5, 3, 1, 5, s.shadow);
+      eye(x, Y1 - 4, ZF, 3, 3);
+      g.box(out < 0 ? x : x + 2, Y1 - 4, ZF - 4, 1, 3, 3, WHITE).set(out < 0 ? x : x + 2, Y1 - 3, ZF - 2, pupil);
+    }
+  } else if (variant === 'ridge') {
+    g.box(X0 + 1, Y1, ZF - 3, 12, 2, 4, s.base).box(X0 + 1, Y1 + 1, ZF - 3, 12, 1, 4, s.highlight);
+    for (const x of [X0 + 2, X1 - 5]) eye(x, Y1 - 2, ZF + 1, 4, 3);
+  } else {
+    for (const x of [X0, X1 - 4]) {
+      g.box(x, Y1 - 1, ZF - 5, 5, 5, 5, s.base);                        // the dome
+      for (const [dx, dz] of [[0, 0], [4, 0], [0, 4], [4, 4]]) g.set(x + dx, Y1 + 3, ZF - 5 + dz, null);
+      g.box(x + 1, Y1 + 3, ZF - 4, 3, 1, 3, s.highlight);
+      eye(x === X0 ? x : x + 1, Y1 - 1, ZF + 1, 4, 3); // big, readable eyes on the dome fronts
+    }
   }
 }
 

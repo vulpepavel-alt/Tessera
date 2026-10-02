@@ -14,13 +14,15 @@ export const SCHEMA_VERSION = 2; // appearance data version (saves are migrated)
 
 // Each part: size [w, h, d] in MV, and its joint ("pivot") position.
 // Pivots are given in body space (MV, origin between the feet).
-// TESSERA tweak: hands are 4 MV (spec: 3) and feet 5 x 2 x 7 (spec: 4 x 2 x 6),
-// slightly oversized so they read well from the gameplay camera.
+// TESSERA tweaks, tested in game (docs/character_combat_visual_audit.md):
+// hands 4 MV (spec 3) and feet 5 x 2 x 7 (spec 4 x 2 x 6) so they read from the
+// gameplay camera; torso 8 deep (spec 6) and pelvis 7 deep (spec 6) so the
+// profile doesn't look like a big head on a thin stick.
 export const BODY = {
   height: 32,
   head: { size: [14, 14, 12], pivot: [0, 18, 0] },        // bottom-centre (neck)
-  torso: { size: [10, 8, 6], pivot: [0, 18, 0] },         // top-centre (shoulder line)
-  pelvis: { size: [8, 3, 6], pivot: [0, 10, 0] },         // top-centre
+  torso: { size: [10, 8, 8], pivot: [0, 18, 0] },         // top-centre (shoulder line)
+  pelvis: { size: [8, 3, 7], pivot: [0, 10, 0] },         // top-centre
   arm: { size: [3, 7, 3], pivot: [6.5, 17, 0] },          // shoulder centre (x is mirrored)
   hand: { size: [4, 4, 4], pivot: [6.5, 10, 0] },         // wrist centre
   leg: { size: [4, 7, 4], pivot: [2.25, 8.5, 0] },        // hip centre (legs go up into the pelvis)
@@ -42,15 +44,15 @@ export const SOCKETS = {
   socket_ear_L: { parent: 'head', at: [-7, 6, 0] },
   socket_ear_R: { parent: 'head', at: [7, 6, 0] },
   socket_neck: { parent: 'torso', at: [0, 0, 0] },
-  socket_chest: { parent: 'torso', at: [0, -4, 3] },
-  socket_back: { parent: 'torso', at: [0, -4, -3] },
+  socket_chest: { parent: 'torso', at: [0, -4, 4] },
+  socket_back: { parent: 'torso', at: [0, -4, -4] },
   socket_shoulder_L: { parent: 'torso', at: [-6.5, -1, 0] },
   socket_shoulder_R: { parent: 'torso', at: [6.5, -1, 0] },
   socket_hand_L: { parent: 'handL', at: [0, -2, 0] },
   socket_hand_R: { parent: 'handR', at: [0, -2, 0] },
   socket_hip_L: { parent: 'pelvis', at: [-4, -1.5, 0] },
   socket_hip_R: { parent: 'pelvis', at: [4, -1.5, 0] },
-  socket_waist_back: { parent: 'pelvis', at: [0, -1.5, -3] },
+  socket_waist_back: { parent: 'pelvis', at: [0, -1.5, -3.5] },
   socket_foot_L: { parent: 'footL', at: [0, 0, 0] },
   socket_foot_R: { parent: 'footR', at: [0, 0, 0] },
 };

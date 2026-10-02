@@ -103,9 +103,16 @@ export function drawHair(g, r) {
 function drawTop(kind, set, shade, hi, c, lo) {
   const top = Y1 + 2;
   if (kind === 'spikes') {
-    for (let x = X0; x <= X1; x += 3) for (let z = Z0 + 1; z <= ZF - 2; z += 3) {
+    // Chunky 2 x 2 tufts that lean backwards, in a staggered pattern.
+    for (let x = X0; x <= X1 - 1; x += 3) for (let z = Z0 + ((x / 3) % 2 ? 1 : 0); z <= ZF - 2; z += 3) {
       const tall = 2 + ((x + z) % 2);
-      for (let k = 0; k < tall; k++) set(x + (k > 1 ? 1 : 0), top + k, z - (k > 1 ? 1 : 0), k === tall - 1 ? hi : c);
+      for (let k = 0; k < tall; k++) {
+        const back = k > 0 ? 1 : 0;
+        for (const [dx, dz] of [[0, 0], [1, 0], [0, 1], [1, 1]]) {
+          if (k === tall - 1 && dx + dz === 2) continue; // pointed tip
+          set(x + dx, top + k, z + dz - back, k === tall - 1 ? hi : c);
+        }
+      }
     }
   } else if (kind === 'crest') {
     for (let z = Z0 - 1; z <= ZF; z++) {

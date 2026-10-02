@@ -63,7 +63,8 @@ export const RACES = {
     name: 'Frogfolk',
     description: 'Cheerful pond-dwellers with eyes on top of their heads and a wide grin.',
     skins: ['frog_green', 'frog_teal', 'frog_orange', 'frog_blue', 'frog_yellow'],
-    features: { ears: 'none', frogEyes: true, wideMouth: true },
+    features: { ears: 'none', frogEyes: true, wideMouth: true, webbed: true },
+    variants: ['dome', 'side', 'ridge'], // eye designs (the first is the default)
     scale: 0.94, frame: 'soft', hair: false,
   },
   foxkin: {

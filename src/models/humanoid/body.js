@@ -19,12 +19,14 @@ export function torsoGrid(r) {
   const broad = r.frame === 'broad' ? 1 : 0;
   const W = 10 + broad * 2;
   const H = 8;
-  const D = 6;
+  const D = 8;
   const g = new VoxelGrid(W, H, D);
   const x0 = broad;
   g.box(x0, 0, 0, 10, H, D, r.skin.base);
   if (broad) g.box(0, H - 3, 0, W, 3, D, r.skin.base); // wider shoulders
-  if (r.frame === 'soft') for (const [x, z] of [[0, 0], [9, 0], [0, 5], [9, 5]]) g.box(x, 0, z, 1, H, 1, null);
+  // Every frame gets slightly rounded back corners; "soft" rounds all four.
+  for (const [x, z] of [[x0, 0], [x0 + 9, 0]]) g.box(x, 0, z, 1, H, 1, null);
+  if (r.frame === 'soft') for (const [x, z] of [[0, D - 1], [9, D - 1]]) g.box(x, 0, z, 1, H, 1, null);
 
   const front = D - 1;
   const paint = (color) => {
@@ -32,9 +34,13 @@ export function torsoGrid(r) {
   };
   const under = r.under1;
   paint(under);
-  // Neckline: a little V of skin at the top front.
-  g.set(x0 + 4, H - 1, front, r.skin.base).set(x0 + 5, H - 1, front, r.skin.base);
-  if (r.underlayer === 'tunic') g.set(x0 + 4, H - 2, front, r.skin.shadow).set(x0 + 5, H - 2, front, r.skin.shadow);
+  // Neckline: a little V of skin at the top front (pale belly skin for frogs and lizards),
+  // and a collar ring that makes a clean step between head and body.
+  const chest = r.features.webbed || r.features.snout ? mix(r.skin.base, 0xfff2cc, 0.6) : r.skin.base;
+  g.box(x0 + 3, H - 1, 1, 4, 1, D - 2, chest); // the neck seen from above
+  g.set(x0 + 4, H - 1, front, chest).set(x0 + 5, H - 1, front, chest);
+  if (r.underlayer === 'tunic') g.set(x0 + 4, H - 2, front, chest).set(x0 + 5, H - 2, front, chest);
+  g.box(x0 + 2, H - 1, 0, 1, 1, D, darker(under, 0.2)).box(x0 + 7, H - 1, 0, 1, 1, D, darker(under, 0.2)); // collar
   g.box(0, 0, 0, W, 1, D, darker(under, 0.18)); // hem
   if (r.underlayer === 'tunic' && broad) for (const x of [0, W - 1]) g.box(x, H - 3, 0, 1, 3, D, r.skin.base); // sleeveless
 
@@ -86,16 +92,17 @@ export function torsoGrid(r) {
 // ---- Pelvis ----------------------------------------------------------------
 export function pelvisGrid(r) {
   const cloth = r.underlayer === 'undertunic' ? r.under1 : r.under2;
-  const g = new VoxelGrid(8, 3, 6).box(0, 0, 0, 8, 3, 6, cloth);
-  g.box(0, 2, 0, 8, 1, 6, darker(cloth, 0.25)); // a thin cord, no big buckle
-  if (r.clothing?.style === 'robe') g.box(0, 0, 0, 8, 3, 6, r.clothing.color);
-  if (r.clothing?.apron) g.box(1, 0, 5, 6, 3, 1, r.clothing.apron);
+  const D = 7;
+  const g = new VoxelGrid(8, 3, D).box(0, 0, 0, 8, 3, D, cloth);
+  g.box(0, 2, 0, 8, 1, D, darker(cloth, 0.25)); // a thin cord, no big buckle
+  if (r.clothing?.style === 'robe') g.box(0, 0, 0, 8, 3, D, r.clothing.color);
+  if (r.clothing?.apron) g.box(1, 0, D - 1, 6, 3, 1, r.clothing.apron);
   if (r.legs) {
-    g.box(0, 0, 0, 8, 3, 6, r.legs.base);
-    g.box(0, 2, 0, 8, 1, 6, r.legs.trim);
+    g.box(0, 0, 0, 8, 3, D, r.legs.base);
+    g.box(0, 2, 0, 8, 1, D, r.legs.trim);
     if (r.legs.style === 'mail') checker(g, r.legs.base);
   }
-  if (r.chest?.style === 'robe') g.box(0, 0, 0, 8, 3, 6, r.chest.base).box(3, 0, 5, 2, 3, 1, r.chest.trim);
+  if (r.chest?.style === 'robe') g.box(0, 0, 0, 8, 3, D, r.chest.base).box(3, 0, D - 1, 2, 3, 1, r.chest.trim);
   return g;
 }
 
@@ -119,6 +126,13 @@ export function armGrid(r) {
 
 export function handGrid(r) {
   const c = r.hands ? r.hands.base : r.skin.base;
+  if (r.features.webbed && !r.hands) {
+    // Frogfolk: a wide, flat webbed hand with three round finger pads.
+    const g = new VoxelGrid(5, 3, 5).box(0, 0, 0, 5, 3, 5, c).box(0, 0, 0, 5, 1, 5, r.skin.shadow);
+    for (const x of [0, 2, 4]) g.set(x, 1, 4, r.skin.highlight).set(x, 0, 4, r.skin.highlight);
+    g.set(1, 1, 4, null).set(3, 1, 4, null);
+    return g;
+  }
   const g = new VoxelGrid(4, 4, 4).box(0, 0, 0, 4, 4, 4, c);
   g.box(0, 0, 0, 4, 1, 4, r.hands ? darker(c, 0.15) : r.skin.shadow); // shade underneath
   if (r.hands) g.box(0, 3, 0, 4, 1, 4, r.hands.trim); // glove cuff
@@ -143,6 +157,13 @@ export function legGrid(r) {
 }
 
 export function footGrid(r) {
+  if (!r.feet && r.features.webbed) {
+    // Frogfolk: long flipper feet with three toes.
+    const g = new VoxelGrid(6, 2, 8).box(0, 0, 0, 6, 2, 8, r.skin.base).box(0, 0, 0, 6, 1, 8, r.skin.shadow);
+    g.box(1, 1, 7, 1, 1, 1, null).box(4, 1, 7, 1, 1, 1, null);
+    for (const x of [0, 2, 3, 5]) g.set(x, 1, 7, r.skin.highlight);
+    return g;
+  }
   if (!r.feet) {
     // A bare foot: skin with a shaded sole.
     return new VoxelGrid(5, 2, 7).box(0, 0, 0, 5, 2, 7, r.skin.base).box(0, 0, 0, 5, 1, 7, r.skin.shadow);
@@ -167,4 +188,10 @@ function checker(g, color) {
   for (let y = 0; y < g.sizeY; y++) for (let z = 0; z < g.sizeZ; z++) for (let x = 0; x < g.sizeX; x++) {
     if ((x + y + z) % 2 === 0 && g.get(x, y, z) === color) g.set(x, y, z, dark);
   }
+}
+
+function mix(a, b, t) {
+  const ch = (c, sh) => (c >> sh) & 255;
+  const m = (sh) => Math.round(ch(a, sh) + (ch(b, sh) - ch(a, sh)) * t);
+  return (m(16) << 16) | (m(8) << 8) | m(0);
 }

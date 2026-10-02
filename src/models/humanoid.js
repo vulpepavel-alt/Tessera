@@ -48,6 +48,7 @@ export function resolveLook(appearance) {
     facialHair: a.facialHair ?? race.facialHair ?? 'none',
     overlays: a.overlays ?? [],
     features: { ...race.features },
+    raceVariant: a.raceVariant ?? race.variants?.[0] ?? null,
     underlayer: a.underlayer,
     under1: a.underColor,
     under2: a.underColor2,
@@ -77,8 +78,8 @@ export function buildHumanoid(r) {
   const broad = r.frame === 'broad' ? 1 : 0;
   const shoulder = BODY.arm.pivot[0] + broad;
   const parts = {};
-  parts.pelvis = attach(frame, pelvisGrid(r), [4, 3, 3], mv(0, BODY.pelvis.pivot[1], 0));
-  parts.torso = attach(parts.pelvis, torsoGrid(r), [5 + broad, 8, 3], mv(0, BODY.torso.pivot[1] - BODY.pelvis.pivot[1], 0));
+  parts.pelvis = attach(frame, pelvisGrid(r), [4, 3, 3.5], mv(0, BODY.pelvis.pivot[1], 0));
+  parts.torso = attach(parts.pelvis, torsoGrid(r), [5 + broad, 8, 4], mv(0, BODY.torso.pivot[1] - BODY.pelvis.pivot[1], 0));
 
   // Head (with hair and headgear in the same grid, so they share shading).
   const head = headGrid(r);
@@ -90,10 +91,12 @@ export function buildHumanoid(r) {
   for (const [side, s] of [['L', -1], ['R', 1]]) {
     const arm = attach(parts.torso, armGrid(r), [1.5, 7, 1.5], mv(s * shoulder, BODY.arm.pivot[1] - BODY.torso.pivot[1], 0));
     parts[`arm${side}`] = arm;
-    parts[`hand${side}`] = attach(arm, handGrid(r), [2, 4, 2], mv(0, BODY.hand.pivot[1] - BODY.arm.pivot[1], 0));
+    const hand = handGrid(r);
+    parts[`hand${side}`] = attach(arm, hand, [hand.sizeX / 2, hand.sizeY, hand.sizeZ / 2], mv(0, BODY.hand.pivot[1] - BODY.arm.pivot[1], 0));
     const leg = attach(parts.pelvis, legGrid(r), [2, 6.5, 2], mv(s * BODY.leg.pivot[0], BODY.leg.pivot[1] - BODY.pelvis.pivot[1], 0));
     parts[`leg${side}`] = leg;
-    parts[`foot${side}`] = attach(leg, footGrid(r), [2.5, 2, 3], mv(0, BODY.foot.pivot[1] - BODY.leg.pivot[1], BODY.foot.pivot[2]));
+    const foot = footGrid(r);
+    parts[`foot${side}`] = attach(leg, foot, [foot.sizeX / 2, 2, foot.sizeZ / 2 - 0.5], mv(0, BODY.foot.pivot[1] - BODY.leg.pivot[1], BODY.foot.pivot[2]));
   }
 
   // Sockets: empty attachment points named as in the spec.
