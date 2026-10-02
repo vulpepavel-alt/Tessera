@@ -120,12 +120,21 @@ Character creation has tabs: Body (race, frame, skin), Face (12 presets, eye col
 marks), Hair (16 styles, 24 colours, 8 beards), Clothes (3 neutral underlayers, dyes) and
 Identity (name, pronouns); drag to turn, scroll to zoom to the face.
 
+### Combat feel
+
+Attacks have an anticipation, a sharp impact and a recovery; the last hit of a combo is a
+finisher (bigger hit-stop, knockback and stagger). You move slowly while attacking, a dodge
+roll (Q) cancels any attack, enemies flinch when hit, stagger on finishers and are winded
+right after they charge. Small procedural sounds and voxel trails give feedback. See
+`docs/character_combat_visual_audit.md`.
+
 ### Equipment
 
 Every class starts the same way: plain clothes and bare fists. Weapons and armour
 are found, earned and bought on the journey (loot, chests and shops come next), and
-every piece shows on your character: head, chest, hands, legs, feet, back, main hand
-and off hand are all separate. The weapon in your hand decides your basic and heavy
+every piece shows on your character: head, face, chest, shoulders, hands, waist, legs,
+feet, back, main hand and off hand are all separate. Out of combat, weapons rest on your
+back or hip. The weapon in your hand decides your basic and heavy
 attack (fists, blades, greatswords, daggers, bows, crossbows, wands, staffs); better
 weapons hit harder. Armour goes from cloth to legendary, and later pieces make the
 silhouette bigger. The full list is in `src/data/items.js`.

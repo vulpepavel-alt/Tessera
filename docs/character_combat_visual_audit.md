@@ -93,3 +93,38 @@ Observed problems in the current build (screenshot of the creator):
 - Male/female body variants (the reference has them) need a design decision:
   TESSERA uses frames (straight/soft/broad) without gender locks.
 - Exact combat numbers are tuned by playing; values here are first passes.
+
+## 5. What was implemented (and verified in the running game)
+
+Comparison images: `docs/comparisons/` (00/01 before, 02-14 after).
+
+| Change | Files | Verified how |
+|---|---|---|
+| Bevelled heads, bigger lower eyes, deeper torso/pelvis, collar step | `models/humanoid/head.js`, `body.js`, `data/characterSpec.js` | `?lineup&focus=human,frogfolk` front/side/back/3-4 + perspective close-ups |
+| Frogfolk rebuilt: 3 eye designs tested (dome chosen, side + ridge selectable), lip, nostrils, cheeks, pale throat, webbed hands, flipper feet | `head.js`, `body.js`, `data/races.js` | `?lineup&focus=frogfolk:dome,frogfolk:side,frogfolk:ridge` |
+| Chunky 2x2 hair tufts | `models/humanoid/hair.js` | close-up |
+| Creator: bigger hero, studio lights, hazed background, FRONT/SIDE/BACK, IDLE/WALK/COMBAT previews, frog eye chooser | `game/MenuScene.js`, `ui/CharacterCreator.js` | screenshots 08-09; all options saved and reloaded (checked the save JSON and the loaded player) |
+| Face / shoulders / waist slots; weapons sheathed on back or hip out of combat | `data/items.js`, `models/equipment/*.js`, `entities/Player.js`, `game/Battle.js` | lineup 10, sheathed/drawn 11-12 |
+| Attack phases, distinct combo poses, finisher, slow movement while attacking, lunge | `entities/CharacterAnimator.js`, `combat/PlayerCombat.js`, `data/combat.js` | live fight: finisher logged ("26 FIN"), screenshot 13 |
+| Dodge cancels attacks | `combat/PlayerCombat.js` | attacking before roll = true, after = false |
+| Enemy flinch, stagger (breaks wind-up), winded recovery window | `entities/Enemy.js`, `data/enemies.js` | states seen: windup*, attack*, recover |
+| Sounds (Web Audio) | `audio/Sfx.js`, `game/Game.js` | code paths run without errors; **not heard** (the test browser has no audio output) |
+| Projectile trails, arrows at character cube size | `effects/Particles.js`, `combat/Projectile.js` | arrow fired; trail is small at gameplay distance |
+| Combat camera pull-back | `core/ThirdPersonCamera.js` | `inCombat` true next to an angry enemy |
+
+Spec changes (documented in `data/characterSpec.js`): torso 8 deep (spec 6),
+pelvis 7 deep (spec 6), every head edge bevelled (spec: corners only), hands 4,
+feet 5x2x7 (frog flippers 6x2x8, webbed hands 5x3x5).
+
+## 6. Not verified / remaining work
+
+- **Sound** was not listened to; volumes and timbres need a human ear.
+- **Combat numbers** (phases, lunge, stagger, recovery) are first passes,
+  tested against one enemy type; they need play-testing per class.
+- **Creatures**: the Bramblehog still uses 0.1 cubes; it and all future
+  creatures should be re-authored at the character cube size (0.0625).
+- **Art to make by hand** (the systems are ready for it): more hairstyles
+  and faces, armour sets per material, weapon families from the reference
+  (boomerangs, bracelets, fist weapons, greataxes, greatmaces), creature
+  models, real sound effects.
+- Only one enemy type exists, so "enemy reactions" are tested on it alone.
