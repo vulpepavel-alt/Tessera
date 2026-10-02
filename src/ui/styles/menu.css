@@ -1,0 +1,182 @@
+/* Menus: main menu, new game, continue, settings, pause, loading. */
+
+:root {
+  /* TESSERA colours: royal blue and golden yellow */
+  --panel: rgba(16, 32, 92, 0.9);
+  --panel-light: rgba(36, 66, 168, 0.9);
+  --line: rgba(255, 200, 58, 0.55);
+  --accent: #ffc83a;
+  --gold: #ffd27a;
+  --text: #eef3ff;
+  --muted: #9fb0cc;
+  --danger: #ff7b6b;
+}
+
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+  font: 15px/1.45 system-ui, -apple-system, sans-serif;
+  color: var(--text);
+  z-index: 10;
+}
+
+.screen.hidden {
+  display: none;
+}
+
+.screen.dim {
+  background: rgba(8, 12, 24, 0.45);
+}
+
+.panel {
+  background: var(--panel);
+  border: 2px solid #ffc83a;
+  border-radius: 0;
+  padding: 22px 26px;
+  box-shadow: 0 0 0 2px rgba(8, 14, 44, 0.75);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(44px, 9vw, 84px);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.25), 0 0 30px rgba(127, 232, 240, 0.45);
+}
+
+.subtitle {
+  display: inline-block;
+  margin: 4px 0 28px;
+  padding: 4px 14px;
+  border-radius: 0;
+  background: rgba(13, 19, 36, 0.6);
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.menu-main {
+  text-align: center;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(280px, 80vw);
+  margin: 0 auto;
+}
+
+.btn {
+  /* Flat, square, blocky buttons (no rounded "app" look). */
+  font: 700 13px/1 ui-monospace, Menlo, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  background: var(--panel-light);
+  border: 2px solid var(--line);
+  border-radius: 0;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(47, 95, 208, 0.95);
+  border-color: var(--accent);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn.primary {
+  color: #1a2050;
+  background: #ffc83a;
+  border-color: #fff0b0;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #ffd65a;
+}
+
+.btn.danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn.small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font: 800 20px/1.2 ui-monospace, Menlo, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
+
+h3 {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.row.end {
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+input[type='text'] {
+  font: inherit;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--line);
+  border-radius: 0;
+  padding: 8px 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+input[type='text']:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.footer-note {
+  margin-top: 22px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.menu-main > .footer-note {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 0;
+  background: rgba(13, 19, 36, 0.6);
+  color: var(--text);
+}

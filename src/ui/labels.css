@@ -1,0 +1,148 @@
+/* Labels floating over the 3D world. */
+
+.world-labels {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  font: 700 14px/1 system-ui, -apple-system, sans-serif;
+  z-index: 2;
+}
+
+.world-labels > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+.float-number {
+  white-space: nowrap;
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.55), 0 0 6px rgba(0, 0, 0, 0.4);
+  font-size: 18px;
+}
+
+.float-number.crit {
+  color: #ffd84a;
+  font-size: 26px;
+}
+
+.float-number.player {
+  color: #ff6b5e;
+}
+
+.float-number.heal {
+  color: #7dff7a;
+  font-size: 20px;
+}
+
+.float-number.info {
+  color: #9fe8ff;
+  font-size: 15px;
+}
+
+.enemy-bar {
+  width: 92px;
+  text-align: center;
+}
+
+.enemy-bar-name {
+  margin-bottom: 3px;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.enemy-bar.night .enemy-bar-name {
+  color: #c9b2ff;
+}
+
+.enemy-bar-track {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+.enemy-bar-fill {
+  height: 100%;
+  background: #e04848;
+  transform-origin: left;
+}
+
+.lock-marker {
+  width: 30px;
+  height: 30px;
+  border: 2px solid #ffd27a;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 210, 122, 0.8);
+}
+
+.lock-marker.hidden {
+  display: none;
+}
+
+.crosshair {
+  left: 50% !important;
+  top: 42% !important;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.speech-bubble {
+  max-width: 220px;
+  padding: 7px 10px;
+  border: 2px solid #f4f1ea;
+  border-radius: 4px;
+  background: rgba(16, 22, 44, 0.92);
+  color: #f4f1ea;
+  font: 700 12px/1.35 ui-monospace, Menlo, monospace;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: normal;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: #f4f1ea;
+  border-bottom: 0;
+}
+
+.name-tag {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #bfe7ff;
+  font: 700 11px/1.3 ui-monospace, Menlo, monospace;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.combo-counter {
+  left: 50% !important;
+  top: 62% !important;
+  transform: translateX(-50%);
+  font: 800 22px/1 ui-monospace, Menlo, monospace;
+  color: #ffe27a;
+  text-shadow: 0 2px 0 #000, 0 0 8px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.06em;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.combo-counter.show {
+  opacity: 1;
+}

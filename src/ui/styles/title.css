@@ -1,0 +1,194 @@
+/* Title, character creation, class choice and loading: pixel style over the
+   3D world (dark see-through boxes with a light border, pixel text). */
+
+.screen.bare {
+  padding: 0;
+}
+
+/* ---- The big logo ---- */
+.logo {
+  user-select: none;
+  pointer-events: none;
+  text-align: center;
+}
+
+.logo-image {
+  display: block;
+  width: min(900px, 86vw);
+  filter: drop-shadow(0 10px 12px rgba(6, 12, 40, 0.45));
+}
+
+.logo.small .logo-image {
+  width: min(520px, 70vw);
+}
+
+/* ---- Title screen ---- */
+.title-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5vh;
+  margin-top: -8vh;
+}
+
+.title-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-note {
+  position: fixed;
+  right: 16px;
+  bottom: 12px;
+  font: 12px system-ui, sans-serif;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* ---- Pixel buttons and boxes ---- */
+.pbutton {
+  background: none;
+  border: 0;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.pbutton canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+.pbutton:hover:not(:disabled) canvas,
+.class-option:hover canvas:first-child {
+  filter: sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.15);
+}
+
+.pbutton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pbutton.boxed,
+.pbox {
+  /* TESSERA colours: deep royal blue panels with a golden-yellow frame */
+  background: rgba(16, 32, 92, 0.8);
+  border: 2px solid #ffc83a;
+  border-radius: 0;
+  box-shadow: 0 0 0 2px rgba(8, 14, 44, 0.75);
+}
+
+.pbutton.boxed:hover:not(:disabled) {
+  background: rgba(36, 72, 184, 0.85);
+}
+
+.pbutton.boxed {
+  padding: 10px 22px;
+}
+
+.pbutton.mini {
+  padding: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 0;
+}
+
+.pbox {
+  padding: 12px 14px;
+  box-sizing: border-box;
+}
+
+.pbox canvas {
+  display: block;
+}
+
+.pinput {
+  font: 700 14px/1 ui-monospace, Menlo, monospace;
+  text-transform: uppercase;
+  color: #ffe9a8;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 0;
+  padding: 5px 7px;
+  min-width: 0;
+}
+
+.pinput:focus {
+  outline: 2px solid #ffd24a;
+}
+
+/* Loading */
+.loading-bg {
+  background: radial-gradient(ellipse at center, rgba(10, 14, 28, 0.35), rgba(10, 14, 28, 0.8));
+}
+
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.pbar {
+  width: min(420px, 80vw);
+  height: 14px;
+  padding: 2px;
+  box-sizing: border-box;
+  background: rgba(16, 32, 92, 0.8);
+  border: 2px solid #ffc83a;
+  border-radius: 0;
+}
+
+.pbar > div {
+  height: 100%;
+  width: 0;
+  background: #ffc83a;
+  transition: width 0.2s;
+}
+
+/* Character reference sheet (?lineup) */
+.lineup-labels {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.lineup-labels canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.lineup-logo {
+  position: fixed;
+  top: 10px;
+  right: 18px;
+  transform: scale(0.6);
+  transform-origin: top right;
+}
+
+/* Pause menu (pixel style) */
+.pause-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.pause-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 300px;
+}
+
+.pause-controls {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 5px 18px;
+  align-items: center;
+}

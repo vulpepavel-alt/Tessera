@@ -1,0 +1,249 @@
+/* Character creation and class screens: the panels around the character
+   standing on the pedestal (see ui/CharacterCreator.js, ui/ClassScreen.js). */
+
+/* ---- Screens with the character on the pedestal ---- */
+.stage-screen {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+}
+
+.stage-screen .back {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.stage-title {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.stage-bottom {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage-screen .pbox,
+.stage-screen button {
+  cursor: default;
+}
+
+.stage-screen button {
+  cursor: pointer;
+}
+
+/* "LABEL  ◀ value ▶" rows */
+.chooser {
+  display: grid;
+  grid-template-columns: 96px 22px 1fr 22px;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+}
+
+.chooser:has(> input) {
+  grid-template-columns: 96px 1fr 30px;
+}
+
+.chooser-value canvas {
+  margin: 0 auto;
+}
+
+.arrow {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+.arrow::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+}
+
+.arrow.left::before {
+  border-right: 10px solid #ffffff;
+}
+
+.arrow.right::before {
+  border-left: 10px solid #ffffff;
+}
+
+.arrow.left:hover::before {
+  border-right-color: #ffd24a;
+}
+
+.arrow.right:hover::before {
+  border-left-color: #ffd24a;
+}
+
+.panel-sub {
+  margin-top: 10px;
+}
+
+.panel-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* Character creation panel (bottom left) */
+.creator-panel {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  width: 350px;
+  max-height: calc(100% - 90px);
+  overflow-y: auto;
+}
+
+.colour-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.tab {
+  padding: 3px 5px;
+  background: rgba(47, 95, 208, 0.35);
+  border: 2px solid transparent;
+  border-radius: 0;
+}
+
+.tab.selected {
+  border-color: #ffd24a;
+}
+
+.grid-row.suggested {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.grid-row .cell {
+  width: 22px;
+  height: 22px;
+  border-radius: 0;
+}
+
+.colour-grid .grid {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+}
+
+.cell {
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+}
+
+.cell.selected {
+  outline: 3px solid #ffffff;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 4px #0a0e1c;
+}
+
+/* Class screen */
+.class-list {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-55%);
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.class-option {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  text-align: left;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 0;
+}
+
+.class-option.selected {
+  border-color: #ffc83a;
+  background: rgba(47, 95, 208, 0.45);
+}
+
+.class-detail {
+  position: absolute;
+  right: 16px;
+  top: 76px;
+  width: min(440px, 36vw);
+  max-height: calc(100% - 180px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.world-panel {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pixel-paragraph {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.stat-line {
+  display: flex;
+  gap: 18px;
+  margin: 4px 0;
+}
+
+.spec-text {
+  margin: 4px 0;
+}
+
+/* Narrow screens: panels stack and the page scrolls. */
+@media (max-width: 760px) {
+  .stage-screen {
+    overflow-y: auto;
+    padding: 70px 0 120px;
+    box-sizing: border-box;
+  }
+
+  .creator-panel,
+  .class-list,
+  .class-detail,
+  .world-panel {
+    position: static;
+    transform: none;
+    width: auto;
+    max-height: none;
+    margin: 8px 16px;
+  }
+}
