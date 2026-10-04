@@ -1,0 +1,76 @@
+/* The world map (ui/WorldMap.js): a full-screen dark page with the land drawn on it. */
+
+.wmap {
+  position: fixed;
+  inset: 0;
+  z-index: 14;
+  background: #0d1426;
+}
+
+.wmap.hidden {
+  display: none;
+}
+
+.wmap-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  cursor: grab;
+}
+
+.wmap-title {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.wmap-legend {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(10, 12, 18, 0.7);
+  border: 2px solid #e4e8f0;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.wmap-key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wmap-swatch {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #000;
+}
+
+.wmap-help {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.wmap-hover {
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 4px 8px;
+  background: rgba(10, 12, 18, 0.8);
+  border: 2px solid #e4e8f0;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.wmap-hover.hidden {
+  display: none;
+}

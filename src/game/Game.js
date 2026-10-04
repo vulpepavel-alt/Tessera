@@ -19,6 +19,10 @@ import { ShopWindow } from '../ui/ShopWindow.js';
 import { Pet } from '../entities/Pet.js';
 import { Bosses } from './Bosses.js';
 import { DungeonLife } from './DungeonLife.js';
+import { WorldMap } from '../ui/WorldMap.js';
+import { CHUNK, WORLD } from '../data/world.js';
+import { VILLAGE } from '../data/villages.js';
+import { DUNGEON } from '../world/Dungeons.js';
 import { stockFor, POTION } from '../data/shop.js';
 import { Inventory } from './Inventory.js';
 import { LootSystem } from './Loot.js';
@@ -123,6 +127,10 @@ export class Game {
       onMessage: (text) => { this.chat.add(null, text); this.hud.toast(text); },
       defeated: save.bossesDefeated ?? {},
     });
+    this.worldMap = new WorldMap({
+      generator: this.world.generator, explored: this.minimap.explored,
+      onClose: () => this.closeWorldMap(), markers: () => this.mapMarkers,
+    });
     this.dungeonLife = new DungeonLife({
       scene: engine.scene, world: this.world, battle: this.battle, loot: this.loot, player: this.player,
       onMessage: (text) => { this.chat.add(null, text); this.hud.toast(text); },
@@ -166,6 +174,11 @@ export class Game {
     this.input.onPress('KeyT', () => {
       if (this.state === 'playing') this.tryTame();
     });
+    // M: the world map.
+    this.input.onPress('KeyM', () => {
+      if (this.worldMap.visible) this.closeWorldMap();
+      else if (this.state === 'playing') this.openWorldMap();
+    });
     this.input.onPress('KeyV', () => {
       if (this.state !== 'playing') return;
       this.battle.labels.showAll = !this.battle.labels.showAll;
@@ -185,6 +198,7 @@ export class Game {
     });
     this.input.onPress('Escape', () => {
       if (this.shop.visible) this.closeShop();
+      if (this.worldMap.visible) this.closeWorldMap();
       if (this.inventoryWindow.visible) this.closeInventory();
     });
     // Debug: "]" jumps one hour ahead (handy for testing day and night).
@@ -193,7 +207,7 @@ export class Game {
     });
     this.input.onLockChange((locked) => {
       if (this.state === 'loading') return;
-      if (this.guild.visible || this.inventoryWindow.visible || this.shop.visible) {
+      if (this.guild.visible || this.inventoryWindow.visible || this.shop.visible || this.worldMap.visible) {
         // The Guild window is open: no pause menu; the game waits.
         this.state = locked ? 'playing' : 'paused';
         return;
@@ -359,6 +373,54 @@ export class Game {
     this.hud.root.classList.remove('inv-open');
     this.saveNow();
     this.input.lock(); // back to the game (this key press / click counts as the needed user action)
+  }
+
+  // M: the world map, with marks for everything in the explored land.
+  openWorldMap() {
+    this.mapMarkers = this.collectMapMarkers();
+    this.worldMap.show(this.player);
+    this.input.unlock();
+    this.state = 'paused';
+  }
+
+  closeWorldMap() {
+    this.worldMap.hide();
+    this.input.lock();
+  }
+
+  // Villages, boss lairs and crypts over the whole explored area.
+  collectMapMarkers() {
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (const key of this.minimap.explored) {
+      const [cx, cz] = key.split(',').map(Number);
+      x0 = Math.min(x0, cx * CHUNK.size); x1 = Math.max(x1, (cx + 1) * CHUNK.size);
+      z0 = Math.min(z0, cz * CHUNK.size); z1 = Math.max(z1, (cz + 1) * CHUNK.size);
+    }
+    const gen = this.world.generator;
+    const cells = (size, fn) => {
+      const out = [];
+      for (let j = Math.floor(z0 / size) - 1; j <= Math.ceil(z1 / size) + 1; j++) {
+        for (let i = Math.floor(x0 / size) - 1; i <= Math.ceil(x1 / size) + 1; i++) {
+          const m = fn(i, j);
+          if (m) out.push(m);
+        }
+      }
+      return out;
+    };
+    return {
+      villages: cells(VILLAGE.cellSize, (i, j) => {
+        const v = gen.villages.villageInCell(i, j);
+        return v && { x: v.center.x, z: v.center.z };
+      }),
+      dungeons: cells(DUNGEON.cellSize, (i, j) => {
+        const d = gen.dungeons.dungeonInCell(i, j);
+        return d && { x: d.x, z: d.z, cleared: this.dungeonLife.isCleared(d) };
+      }),
+      lairs: cells(WORLD.regionSize, (i, j) => {
+        const l = this.bosses.lairOf(gen.regions.site(i, j));
+        return l?.bossId && !this.bosses.isDefeated(l) ? { x: l.x, z: l.z } : null;
+      }),
+    };
   }
 
   // A tamed animal (or none). Replacing a pet sends the old one home.
