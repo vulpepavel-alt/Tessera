@@ -97,7 +97,7 @@ export class LineupScene {
       return;
     }
     if (params.has('creatures')) {
-      this.buildCreatures(views);
+      this.buildCreatures();
       return;
     }
     if (params.has('weapons')) {
@@ -191,16 +191,26 @@ export class LineupScene {
     this.finishSetup();
   }
 
-  // ?lineup&creatures : every creature from every side, a person first for scale.
-  buildCreatures(views) {
-    const ids = ['bramblehog', 'duskwolf', 'meadowSlime'];
-    ids.forEach((id, r) => {
-      this.heading(`${id.toUpperCase()} (WITH A PERSON FOR SCALE)`, r);
+  // ?lineup&creatures : every creature, one row per biome (front 3/4 and side),
+  // a person first for scale.
+  buildCreatures() {
+    const rows = {
+      'AMBER MEADOWS': ['bramblehog', 'duskwolf', 'meadowSlime'],
+      'CRYSTALFROST FOREST': ['frostWolf', 'frostSlime', 'snowhorn'],
+      'COPPER DUNES': ['duneSlime', 'sandScorpion', 'sunLizard'],
+      'LANTERN MARSH': ['bogSlime', 'marshToad', 'mireSnapper'],
+      'STORMSPIRE PEAKS': ['stormWolf', 'cragHorn', 'rockling'],
+    };
+    Object.entries(rows).forEach(([biome, ids], r) => {
+      this.heading(biome, r);
       this.place(buildCharacter('bulwark', LOOK).root, 0, r, 0.5, 'PERSON');
-      views.slice(0, 5).forEach(([name, yaw], i) => this.place(buildCreature(id).root, i + 1, r, yaw, name));
+      ids.forEach((id, i) => {
+        this.place(buildCreature(id).root, 1 + i * 2, r, 0.6, id.toUpperCase());
+        this.place(buildCreature(id).root, 2 + i * 2, r, Math.PI / 2, 'SIDE');
+      });
     });
-    this.rows = ids.length;
-    this.cols = 6;
+    this.rows = 5;
+    this.cols = 7;
     this.finishSetup();
   }
 
