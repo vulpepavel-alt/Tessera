@@ -26,6 +26,13 @@ function audio() {
 
 const volume = () => (settings.get('volume') ?? 70) / 100;
 
+// For the music and nature sounds (audio/Music.js): the shared audio context
+// and the white-noise buffer.
+export function sharedAudio() {
+  const a = audio();
+  return a ? { ctx: a, noise: noiseBuffer } : null;
+}
+
 // A burst of filtered noise: type = filter type, from/to = filter frequency sweep.
 function noise(duration, { type = 'bandpass', from = 800, to = 2000, gain = 0.3, q = 1 } = {}) {
   const a = audio();

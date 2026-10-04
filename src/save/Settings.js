@@ -4,20 +4,22 @@
 
 const STORAGE_KEY = 'tessera.settings';
 // Bumped when a default changes on purpose; older stored values for it are dropped.
-const VERSION = 3;
+const VERSION = 4;
 
 export const SETTING_RANGES = {
   mouseSensitivity: { label: 'Mouse sensitivity', min: 0.2, max: 3, step: 0.1, format: (v) => `${v.toFixed(1)}x` },
   renderDistance: { label: 'Render distance', min: 4, max: 12, step: 1, format: (v) => `${v} chunks` },
   fov: { label: 'Field of view', min: 40, max: 100, step: 1, format: (v) => `${v}°` },
   volume: { label: 'Volume', min: 0, max: 100, step: 5, format: (v) => `${v}%` },
+  music: { label: 'Music', min: 0, max: 100, step: 5, format: (v) => `${v}%` },
 };
 
 const DEFAULTS = {
   mouseSensitivity: 1,
   renderDistance: 8,
-  fov: 58,
+  fov: 66,
   volume: 70,
+  music: 50,
 };
 
 class SettingsStore {

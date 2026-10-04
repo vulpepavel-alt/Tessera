@@ -20,6 +20,7 @@ import { Pet } from '../entities/Pet.js';
 import { Bosses } from './Bosses.js';
 import { DungeonLife } from './DungeonLife.js';
 import { WorldMap } from '../ui/WorldMap.js';
+import { Music } from '../audio/Music.js';
 import { CHUNK, WORLD } from '../data/world.js';
 import { VILLAGE } from '../data/villages.js';
 import { DUNGEON } from '../world/Dungeons.js';
@@ -127,6 +128,7 @@ export class Game {
       onMessage: (text) => { this.chat.add(null, text); this.hud.toast(text); },
       defeated: save.bossesDefeated ?? {},
     });
+    this.music = new Music();
     this.worldMap = new WorldMap({
       generator: this.world.generator, explored: this.minimap.explored,
       onClose: () => this.closeWorldMap(), markers: () => this.mapMarkers,
@@ -210,6 +212,7 @@ export class Game {
       if (this.state === 'playing') this.world.dayNight.advance(1);
     });
     this.input.onLockChange((locked) => {
+      if (locked) this.music.start(); // the first click into the game lets sound play
       if (this.state === 'loading') return;
       if (this.guild.visible || this.inventoryWindow.visible || this.shop.visible || this.worldMap.visible) {
         // The Guild window is open: no pause menu; the game waits.
@@ -283,6 +286,7 @@ export class Game {
   update(dt, elapsed) {
     if (this.state === 'loading') this.updateLoading(elapsed);
     else this.updatePlaying(dt, elapsed);
+    if (this.state !== 'loading') this.updateMusic(dt);
 
     this.debug.update(dt, () => ({
       position: this.flying ? this.engine.camera.position : this.player.position,
@@ -610,6 +614,16 @@ export class Game {
       bag: this.player.bag,
       explored: [...this.minimap.explored],
     });
+  }
+
+  // The music and nature sounds follow the time of day, the land, and
+  // whether you are underground (in a crypt) or up high.
+  updateMusic(dt) {
+    const p = this.player.position;
+    const gen = this.world.generator;
+    const land = gen.regions.sample(p.x, p.z).site.biomeId;
+    const underground = p.y < gen.column(Math.floor(p.x), Math.floor(p.z)).top - 2;
+    this.music.update(dt, { isNight: this.world.dayNight.isNight, land, underground, altitude: p.y, paused: this.state !== 'playing' });
   }
 
   quitToMenu() {
