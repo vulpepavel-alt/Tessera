@@ -1,6 +1,7 @@
 // Brings enemies to life around the player and removes the ones left far
 // behind. More (and stronger) enemies appear at night.
 
+import { pushApart } from './physics.js';
 import * as THREE from 'three';
 import { CHUNK } from '../data/world.js';
 import { ENEMIES, SPAWNING } from '../data/enemies.js';
@@ -29,7 +30,7 @@ export class EnemySpawner {
       if (!keep || far) this.despawn(enemy);
     }
     this.combat.enemies = this.enemies.filter((e) => !e.removed);
-    this.separate();
+    this.separate(player);
 
     this.timer += dt;
     if (this.disabled || this.timer < SPAWNING.interval) return;
@@ -86,25 +87,14 @@ export class EnemySpawner {
     this.labels.removeBar(enemy);
   }
 
-  // Gently push enemies apart so they don't stand inside each other.
-  separate() {
-    const list = this.enemies;
+  // Gently push enemies apart (and away from the player) so nobody stands
+  // inside anybody else.
+  separate(player) {
+    const list = this.enemies.filter((e) => e.alive);
+    const world = this.worldView.collision;
     for (let i = 0; i < list.length; i++) {
-      for (let j = i + 1; j < list.length; j++) {
-        const a = list[i].position;
-        const b = list[j].position;
-        const dx = b.x - a.x;
-        const dz = b.z - a.z;
-        const d = Math.hypot(dx, dz);
-        const min = list[i].halfWidth + list[j].halfWidth;
-        if (d > 0.001 && d < min) {
-          const push = (min - d) / 2 / d;
-          a.x -= dx * push;
-          a.z -= dz * push;
-          b.x += dx * push;
-          b.z += dz * push;
-        }
-      }
+      for (let j = i + 1; j < list.length; j++) pushApart(list[i], list[j], world);
+      if (player?.alive) pushApart(player, list[i], world, { aFixed: true });
     }
   }
 

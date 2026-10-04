@@ -2,6 +2,7 @@
 // near, lets you talk to them (E), makes them chat on their own, and tells
 // the HUD which village you are in.
 
+import { pushApart } from '../entities/physics.js';
 import * as THREE from 'three';
 import { Villager } from '../entities/Villager.js';
 import { VILLAGE } from '../data/villages.js';
@@ -31,7 +32,15 @@ export class VillageLife {
 
   update(dt, player, isNight) {
     this.spawnAndDespawn(player);
-    for (const v of this.villagers) v.update(dt, player, isNight);
+    const people = this.villagers;
+    for (const v of people) v.update(dt, player, isNight);
+    // Villagers step aside instead of walking through you or each other.
+    const world = player.world;
+    const out = people.filter((v) => !v.inside);
+    for (let i = 0; i < out.length; i++) {
+      pushApart(player, out[i], world, { aFixed: true });
+      for (let j = i + 1; j < out.length; j++) pushApart(out[i], out[j], world);
+    }
 
     // Which villager can you talk to right now?
     this.talkTarget = this.nearestListener(player);

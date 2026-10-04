@@ -27,12 +27,12 @@ const HOLD = {
   fist: { tilt: 0 }, bracelet: { tilt: 0 }, // worn around the fist
 };
 
-// Where each item rests when not in use. Long things go diagonally across
-// the back (the legs are too short for a sword at the hip); daggers, wands
-// and focuses hang at the belt, main hand on the left, off hand on the right.
+// Where each item rests when not in use: everything goes diagonally across
+// the back, handle up over the shoulder, the classic way (the legs are too
+// short for anything at the hip; it would poke out in front of them).
 const SHEATH = {
   great: 'back', blade: 'back', bow: 'back', crossbow: 'back', staff: 'back', shield: 'back',
-  dagger: 'hip', wand: 'hip', focus: 'hip',
+  dagger: 'back', wand: 'back', focus: 'back',
 };
 
 const WORN_ON_FIST = new Set(['fist', 'bracelet']);
@@ -89,7 +89,11 @@ export function placeHeld(model, drawn) {
       // Diagonally across the back, lying flat, centred on the back; the
       // off-hand item (a shield) a little further out.
       h.holder.position.set(0, 0.5 * VOXEL, -(h.side === 'main' ? 1.5 : 3) * VOXEL);
-      h.holder.rotation.z = shield ? 0 : h.side === 'main' ? 0.7 : -0.7;
+      // Blades turn over (handle up over one shoulder); staffs and wands keep
+      // their magic head at the top.
+      const flip = !['staff', 'wand', 'focus', 'bow'].includes(h.item.kind);
+      const lean = h.side === 'main' ? 0.6 : -0.6;
+      h.holder.rotation.z = shield ? 0 : flip ? Math.PI - lean : lean;
       h.inner.rotation.y = shield ? -Math.PI / 2 : Math.PI / 2; // shields face outwards
       h.inner.position.y = -h.centre * VOXEL * h.inner.scale.y;
     } else {

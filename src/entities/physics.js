@@ -121,3 +121,22 @@ export function isStuck(body, world) {
   }
   return false;
 }
+
+// Characters don't walk through each other: if two bodies overlap, each is
+// nudged half the overlap away from the other (through moveBody, so nobody is
+// ever pushed into a wall). `fixed` bodies (e.g. the player vs a villager)
+// don't move; the other one takes the whole push.
+export function pushApart(a, b, world, { aFixed = false, bFixed = false } = {}) {
+  const dx = b.position.x - a.position.x;
+  const dz = b.position.z - a.position.z;
+  if (Math.abs(b.position.y - a.position.y) > Math.max(a.height ?? 1.8, b.height ?? 1.8)) return;
+  const d = Math.hypot(dx, dz);
+  const min = a.halfWidth + b.halfWidth;
+  if (d < 0.001 || d >= min || (aFixed && bFixed)) return;
+  const overlap = min - d;
+  const share = aFixed || bFixed ? 1 : 0.5;
+  const nx = dx / d;
+  const nz = dz / d;
+  if (!aFixed) moveBody(a, { x: -nx * overlap * share, y: 0, z: -nz * overlap * share }, world);
+  if (!bFixed) moveBody(b, { x: nx * overlap * share, y: 0, z: nz * overlap * share }, world);
+}

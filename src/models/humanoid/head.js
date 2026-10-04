@@ -186,12 +186,14 @@ function drawEars(g, kind, skin, r) {
   if (kind === 'fox') {
     // Tall pointed ears on top, standing clear of any hair.
     const tip = r.features.earTip ?? skin.deepShadow;
-    const widths = [4, 4, 3, 3, 2, 1];
-    for (const ex of [X0 + 1, X1 - 4]) {
+    // Tall enough to rise well above even spiky hair (hair fills their base).
+    const widths = [5, 5, 5, 4, 4, 4, 3, 3, 2, 1];
+    const top = widths.length;
+    for (const ex of [X0, X1 - 5]) {
       widths.forEach((w, k) => {
-        const x = ex + Math.floor((4 - w) / 2);
-        g.box(x, Y1 + 1 + k, Z0 + 4, w, 1, 3, k >= 4 ? tip : skin.base);
-        if (k >= 1 && k <= 3 && w > 2) g.box(x + 1, Y1 + 1 + k, Z0 + 6, w - 2, 1, 1, mix(skin.base, 0xffffff, 0.55));
+        const x = ex + Math.floor((5 - w) / 2);
+        g.box(x, Y1 + 1 + k, Z0 + 4, w, 1, 3, k >= top - 3 ? tip : skin.base);
+        if (k >= 2 && k <= top - 4 && w > 2) g.box(x + 1, Y1 + 1 + k, Z0 + 6, w - 2, 1, 1, mix(skin.base, 0xffffff, 0.55));
       });
     }
   }

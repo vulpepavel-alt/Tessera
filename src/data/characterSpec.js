@@ -68,7 +68,7 @@ export const HAIR_ZONES = ['cap', 'fringe', 'side_l', 'side_r', 'back', 'top', '
 // hair and big goblin ears, 4 behind for hair, 7 above for crests and tall
 // ears and tall spiky hair, 3 below for beards, 6 in front for snouts and muzzles.
 // The head itself fills x 4-19, y 3-15, z 4-16.
-export const HEAD_GRID = { w: 24, h: 26, d: 23, x0: 4, y0: 3, z0: 4 };
+export const HEAD_GRID = { w: 24, h: 30, d: 23, x0: 4, y0: 3, z0: 4 }; // tall: room for fox ears above hair
 
 // The face grid: 12 x 10 cells on the front of the head. FG(0,0) is the
 // lowest cell on the -X side; the face is symmetric, so only the order matters.

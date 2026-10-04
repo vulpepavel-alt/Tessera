@@ -9,6 +9,14 @@ import { addFaceShading } from '../world/faceShading.js';
 // The 6 sides of a cube: direction and 4 corners (counter-clockwise from outside).
 // Corner brightness by how open the corner is (see cornerAO).
 const AO_BRIGHTNESS = [0.5, 0.68, 0.85, 1.0];
+const VOXEL_GRAIN = 0.08; // +-4% brightness per cube
+
+// A fixed pseudo-random number 0..1 for a cube position (same every time).
+function voxelNoise(x, y, z) {
+  let h = Math.imul(x + 374761, 668265263) ^ Math.imul(y + 9001, 2246822519) ^ Math.imul(z + 4217, 3266489917);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
 
 const FACES = [
   { dir: [-1, 0, 0], corners: [[0, 1, 0], [0, 0, 0], [0, 1, 1], [0, 0, 1]] },
@@ -90,6 +98,9 @@ export class VoxelGrid {
           const hex = this.get(x, y, z);
           if (hex === null) continue;
           color.setHex(hex); // converts to the renderer's colour space
+          // Each cube is a touch lighter or darker than its neighbours, so big
+          // areas of one colour read as many little cubes (the voxel look).
+          const grain = 1 + (voxelNoise(x, y, z) - 0.5) * VOXEL_GRAIN;
           for (const face of FACES) {
             const [nx, ny, nz] = face.dir;
             if (this.get(x + nx, y + ny, z + nz) !== null) continue;
@@ -105,7 +116,7 @@ export class VoxelGrid {
               normals.push(nx, ny, nz);
               const level = this.cornerAO(x + nx, y + ny, z + nz, face.dir, corner);
               ao.push(level);
-              const k = AO_BRIGHTNESS[level];
+              const k = AO_BRIGHTNESS[level] * grain;
               colors.push(color.r * k, color.g * k, color.b * k);
             }
             // Split the square along the diagonal that keeps the shading smooth.

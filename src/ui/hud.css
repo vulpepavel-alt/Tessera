@@ -427,3 +427,14 @@
   75% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* Everything on the HUD is drawn bigger on bigger screens (set from JS as
+   --hud-scale: about 1.3 on a laptop, up to 1.8 on a large monitor). */
+.hud-topleft,
+.hud-topright,
+.hud-bottom,
+.hud-toasts,
+.hud-levelup,
+.chat-log {
+  zoom: var(--hud-scale, 1.3);
+}

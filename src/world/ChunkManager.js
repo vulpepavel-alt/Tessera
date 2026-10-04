@@ -4,6 +4,7 @@
 // distance are requested from the background workers (closest first); chunks
 // that are now too far away are removed to free memory.
 
+import { addPropCollision } from './propCollision.js';
 import * as THREE from 'three';
 import { CHUNK, WORLD } from '../data/world.js';
 import { WorkerPool } from '../core/WorkerPool.js';
@@ -15,6 +16,7 @@ import { BLOCK } from '../data/blocks.js';
 
 const S = CHUNK.size;
 const UNLOADED = BLOCK.DEEP_STONE;
+const PROP_SOLID = BLOCK.DEEP_STONE; // what a prop's cell counts as for collisions
 const DETAIL_RADIUS = 3; // grass tufts and flowers only show this many chunks around you
 
 export class ChunkManager {
@@ -88,6 +90,7 @@ export class ChunkManager {
     if (!chunk || chunk.token !== token) return;
     chunk.state = 'ready';
     chunk.voxels = result.voxels; // kept for collisions
+    addPropCollision(chunk.voxels, result.props, cx, cz, PROP_SOLID); // you can't walk through barrels
     this.onMap?.(cx, cz, result.map.pixels, result.map.heights);
     if (result.empty) return;
 

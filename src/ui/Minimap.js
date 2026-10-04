@@ -12,12 +12,12 @@ import { CHUNK, WORLD } from '../data/world.js';
 
 const S = CHUNK.size;
 const CELL = 2;               // blocks per minimap column
-const VIEW = 180;             // blocks across the visible square
+const VIEW = 220;             // blocks across the visible square
 const REVEAL_RADIUS = 3;      // chunks around you that count as "explored"
 const REDRAW_EVERY = 1 / 12;  // seconds between redraws
 const FLOOR = WORLD.seaLevel - 8; // columns start here (keeps them short)
-const WIDTH = 210;
-const HEIGHT = 166;
+const WIDTH = 270;
+const HEIGHT = 214;
 
 export class Minimap {
   constructor(chunks, explored = []) {

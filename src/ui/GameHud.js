@@ -19,6 +19,11 @@ const TOAST_SECONDS = 3.5;
 
 export class GameHud {
   constructor(player, minimap, portraitUrl) {
+    // Bigger HUD on bigger screens (720 px tall -> 1.3x, capped at 1.8x).
+    const fit = () => document.documentElement.style.setProperty('--hud-scale',
+      String(Math.min(1.8, Math.max(1.15, (window.innerHeight / 720) * 1.3)).toFixed(2)));
+    fit();
+    window.addEventListener('resize', fit);
     this.player = player;
     const info = player.classInfo;
 
