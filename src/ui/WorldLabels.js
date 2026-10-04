@@ -57,7 +57,7 @@ export class WorldLabels {
   addBar(enemy) {
     const fill = el('div', { class: 'enemy-bar-fill' });
     const name = el('div', { class: 'enemy-bar-name' },
-      pixelLabel(`LV ${enemy.level} ${enemy.name}`.toUpperCase(), { scale: 1, color: enemy.night ? '#c9b2ff' : '#ffffff' }));
+      pixelLabel(`LV ${enemy.level} ${enemy.name}`.toUpperCase(), { scale: 1, color: levelColor(enemy.level - (this.playerLevel ?? 1), enemy.night) }));
     const root = el('div', { class: `enemy-bar${enemy.night ? ' night' : ''}` }, name, el('div', { class: 'enemy-bar-track' }, fill));
     this.root.append(root);
     this.bars.set(enemy, { root, fill });
@@ -150,4 +150,13 @@ export class WorldLabels {
     const y = (-tmp.y * 0.5 + 0.5) * window.innerHeight;
     node.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
   }
+}
+
+// How dangerous a monster is, by its level compared with yours: red far above
+// you, orange a little above, white about the same, grey below.
+function levelColor(gap, night) {
+  if (gap >= 5) return '#ff5a4a';
+  if (gap >= 2) return '#ffa040';
+  if (gap <= -5) return '#9aa0aa';
+  return night ? '#c9b2ff' : '#ffffff';
 }

@@ -40,7 +40,7 @@ export function planVillage(seed, id, centre, baseY, biomeId) {
     const hx = Math.round(cx + Math.cos(angle) * dist);
     const hz = Math.round(cz + Math.sin(angle) * dist);
     const box = { x0: hx - (w - 1) / 2, x1: hx + (w - 1) / 2, z0: hz - (d - 1) / 2, z1: hz + (d - 1) / 2 };
-    if (taken.some((t) => overlaps(t, expand(box, 2)))) continue;
+    if (taken.some((t) => overlaps(t, expand(box, 4)))) continue; // a good gap between houses
     taken.push(box);
     plan.houses.push({ ...box, door: doorFacing(box, hx, hz, cx, cz), roof: pick(style.roofs),
       chimney: rng() < 0.5, flowers: pick(FLOWERS) });
@@ -51,7 +51,7 @@ export function planVillage(seed, id, centre, baseY, biomeId) {
 
   // Market stalls along the north side of the square.
   STALLS.forEach((stall, k) => {
-    const sx = cx - 5 + k * 5;
+    const sx = cx - 7 + k * 7;
     const sz = cz - ph + 2;
     plan.stalls.push({ ...stall, x: sx, z: sz, vendorSpot: { x: sx + 0.5, z: sz - 0.5 } });
   });

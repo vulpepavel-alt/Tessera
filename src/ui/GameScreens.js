@@ -18,7 +18,7 @@ export const CONTROLS = [
   ['R', 'Specialization skill'],
   ['Middle click / F', 'Dodge roll (uses stamina)'],
   ['Space', 'Jump'],
-  ['Ctrl', 'Hold to climb walls'],
+  ['Walk into a wall', 'Climb it (Space jumps off, S climbs down)'],
   ['G', 'Glider (in the air) / boat (at the water)'],
   ['B / I', 'Inventory'],
   ['Tab', 'Lock on to an enemy (again to switch / release)'],
@@ -40,7 +40,7 @@ const TIPS = [
   'Open the inventory (B or I) and click an item to put it on. Click worn gear to take it off.',
   'Roll (middle click or F) out of the way when an enemy glows red: it is about to strike.',
   'Talk to villagers (E). The Guildmaster teaches your class specializations.',
-  'Jump off high ground and press G to glide. Hold Ctrl to climb walls.',
+  'Jump off high ground and press G to glide. Walk into a wall to climb it.',
 ];
 
 // The How to Play page: tips, then every key. onBack() closes it.

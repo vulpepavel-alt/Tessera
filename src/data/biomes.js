@@ -8,6 +8,7 @@
 //   snowLine       - ground higher than this becomes the "peak" block
 //
 // Flora: what grows on the ground. "chance" is per column (0.01 = 1 in 100).
+// Kept sparse on purpose: wide open land with groves, the classic look.
 // "on" lists the ground blocks it may grow on. Types are built in world/Decorations.js.
 
 import { BLOCK } from './blocks.js';
@@ -32,13 +33,13 @@ export const BIOMES = {
       { type: 'prop', prop: 'bigRock', chance: 0.0006, on: [BLOCK.GRASS, BLOCK.GOLDEN_GRASS, BLOCK.STONE] },
       { type: 'prop', prop: 'mushroom', chance: 0.0015, on: [BLOCK.GRASS, BLOCK.GOLDEN_GRASS] },
       { type: 'prop', prop: 'log', chance: 0.0007, on: [BLOCK.GRASS, BLOCK.GOLDEN_GRASS] },
-      { type: 'oakTree', chance: 0.008, on: [BLOCK.GOLDEN_GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.AMBER_LEAVES, leavesDark: BLOCK.AMBER_LEAVES_DARK, leavesLight: BLOCK.AMBER_LEAVES_LIGHT },
+      { type: 'oakTree', chance: 0.0044, on: [BLOCK.GOLDEN_GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.AMBER_LEAVES, leavesDark: BLOCK.AMBER_LEAVES_DARK, leavesLight: BLOCK.AMBER_LEAVES_LIGHT },
       // Groves of leafy trees and layered pines around open meadows.
-      { type: 'oakTree', chance: 0.008, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
-      { type: 'pineTree', chance: 0.004, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
-      { type: 'tallTree', chance: 0.003, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
-      { type: 'blossomTree', chance: 0.0025, on: [BLOCK.GRASS], trunk: BLOCK.DARK_PLANKS, leaves: BLOCK.BLOSSOM, leavesDark: BLOCK.BLOSSOM_DARK, leavesLight: BLOCK.BLOSSOM_LIGHT, petals: BLOCK.FLOWER_PINK },
-      { type: 'bush', chance: 0.008, on: [BLOCK.GRASS, BLOCK.GOLDEN_GRASS], leaves: BLOCK.LEAVES },
+      { type: 'oakTree', chance: 0.0044, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
+      { type: 'pineTree', chance: 0.0022, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
+      { type: 'tallTree', chance: 0.0017, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
+      { type: 'blossomTree', chance: 0.0014, on: [BLOCK.GRASS], trunk: BLOCK.DARK_PLANKS, leaves: BLOCK.BLOSSOM, leavesDark: BLOCK.BLOSSOM_DARK, leavesLight: BLOCK.BLOSSOM_LIGHT, petals: BLOCK.FLOWER_PINK },
+      { type: 'bush', chance: 0.0044, on: [BLOCK.GRASS, BLOCK.GOLDEN_GRASS], leaves: BLOCK.LEAVES },
     ],
   },
 
@@ -58,8 +59,8 @@ export const BIOMES = {
     flora: [
       { type: 'prop', prop: 'rock', chance: 0.002, on: [BLOCK.FROST_GRASS, BLOCK.SNOW] },
       { type: 'prop', prop: 'bigRock', chance: 0.001, on: [BLOCK.FROST_GRASS, BLOCK.SNOW] },
-      { type: 'pineTree', chance: 0.02, on: [BLOCK.FROST_GRASS, BLOCK.SNOW], trunk: BLOCK.WOOD, leaves: BLOCK.PINE_LEAVES, leavesDark: BLOCK.PINE_LEAVES_DARK },
-      { type: 'crystalCluster', chance: 0.003, on: [BLOCK.FROST_GRASS, BLOCK.SNOW], block: BLOCK.FROST_CRYSTAL },
+      { type: 'pineTree', chance: 0.011, on: [BLOCK.FROST_GRASS, BLOCK.SNOW], trunk: BLOCK.WOOD, leaves: BLOCK.PINE_LEAVES, leavesDark: BLOCK.PINE_LEAVES_DARK },
+      { type: 'crystalCluster', chance: 0.0017, on: [BLOCK.FROST_GRASS, BLOCK.SNOW], block: BLOCK.FROST_CRYSTAL },
     ],
   },
 
@@ -79,9 +80,9 @@ export const BIOMES = {
     flora: [
       { type: 'prop', prop: 'rock', chance: 0.002, on: [BLOCK.COPPER_SAND, BLOCK.DUNE_SAND] },
       { type: 'prop', prop: 'bigRock', chance: 0.0012, on: [BLOCK.COPPER_SAND, BLOCK.DUNE_SAND] },
-      { type: 'cactus', chance: 0.006, on: [BLOCK.COPPER_SAND, BLOCK.DUNE_SAND], block: BLOCK.CACTUS },
-      { type: 'deadTree', chance: 0.0015, on: [BLOCK.COPPER_SAND], trunk: BLOCK.DEAD_WOOD },
-      { type: 'boulder', chance: 0.002, on: [BLOCK.COPPER_SAND, BLOCK.DUNE_SAND], block: BLOCK.SANDSTONE },
+      { type: 'cactus', chance: 0.0033, on: [BLOCK.COPPER_SAND, BLOCK.DUNE_SAND], block: BLOCK.CACTUS },
+      { type: 'deadTree', chance: 0.0008, on: [BLOCK.COPPER_SAND], trunk: BLOCK.DEAD_WOOD },
+      { type: 'boulder', chance: 0.0011, on: [BLOCK.COPPER_SAND, BLOCK.DUNE_SAND], block: BLOCK.SANDSTONE },
     ],
   },
 
@@ -101,9 +102,9 @@ export const BIOMES = {
     flora: [
       { type: 'prop', prop: 'mushroom', chance: 0.004, on: [BLOCK.MARSH_GRASS, BLOCK.MUD] },
       { type: 'prop', prop: 'log', chance: 0.002, on: [BLOCK.MARSH_GRASS, BLOCK.MUD] },
-      { type: 'roundTree', chance: 0.012, on: [BLOCK.MARSH_GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.MARSH_LEAVES, tall: true },
-      { type: 'lanternMushroom', chance: 0.008, on: [BLOCK.MARSH_GRASS, BLOCK.MUD], stem: BLOCK.MUSHROOM_STEM, cap: BLOCK.LANTERN_CAP },
-      { type: 'bush', chance: 0.01, on: [BLOCK.MARSH_GRASS], leaves: BLOCK.MARSH_LEAVES },
+      { type: 'roundTree', chance: 0.0066, on: [BLOCK.MARSH_GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.MARSH_LEAVES, tall: true },
+      { type: 'lanternMushroom', chance: 0.0044, on: [BLOCK.MARSH_GRASS, BLOCK.MUD], stem: BLOCK.MUSHROOM_STEM, cap: BLOCK.LANTERN_CAP },
+      { type: 'bush', chance: 0.0055, on: [BLOCK.MARSH_GRASS], leaves: BLOCK.MARSH_LEAVES },
     ],
   },
 
@@ -123,9 +124,9 @@ export const BIOMES = {
     flora: [
       { type: 'prop', prop: 'rock', chance: 0.004, on: [BLOCK.STORM_GRASS, BLOCK.DARK_ROCK] },
       { type: 'prop', prop: 'bigRock', chance: 0.002, on: [BLOCK.STORM_GRASS, BLOCK.DARK_ROCK] },
-      { type: 'pineTree', chance: 0.006, on: [BLOCK.STORM_GRASS], trunk: BLOCK.DEAD_WOOD, leaves: BLOCK.PINE_LEAVES, leavesDark: BLOCK.PINE_LEAVES_DARK },
-      { type: 'deadTree', chance: 0.004, on: [BLOCK.STORM_GRASS, BLOCK.DARK_ROCK], trunk: BLOCK.DEAD_WOOD },
-      { type: 'crystalCluster', chance: 0.002, on: [BLOCK.DARK_ROCK], block: BLOCK.STORM_CRYSTAL },
+      { type: 'pineTree', chance: 0.0033, on: [BLOCK.STORM_GRASS], trunk: BLOCK.DEAD_WOOD, leaves: BLOCK.PINE_LEAVES, leavesDark: BLOCK.PINE_LEAVES_DARK },
+      { type: 'deadTree', chance: 0.0022, on: [BLOCK.STORM_GRASS, BLOCK.DARK_ROCK], trunk: BLOCK.DEAD_WOOD },
+      { type: 'crystalCluster', chance: 0.0011, on: [BLOCK.DARK_ROCK], block: BLOCK.STORM_CRYSTAL },
     ],
   },
 };

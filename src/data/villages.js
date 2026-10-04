@@ -6,13 +6,13 @@ import { BLOCK } from './blocks.js';
 export const VILLAGE = {
   cellSize: 560,       // the world is split into cells; each may hold one village
   chance: 0.55,        // chance a cell (other than the start) has a village
-  radius: 34,          // flattened area around the village centre
-  blend: 14,           // how gently the land slopes back to normal outside it
-  plazaHalf: 7,        // the central square is (2 * plazaHalf + 1) blocks wide
-  houseRing: [17, 21], // houses stand this far from the centre
+  radius: 46,          // flattened area around the village centre (roomy, the classic way)
+  blend: 18,           // how gently the land slopes back to normal outside it
+  plazaHalf: 10,       // the central square is (2 * plazaHalf + 1) blocks wide
+  houseRing: [25, 31], // houses stand this far from the centre
   houses: [6, 8],      // how many houses
-  fieldDistance: 26,
-  startOffset: 46,     // the first village sits this far from the world centre
+  fieldDistance: 40,
+  startOffset: 60,     // the first village sits this far from the world centre
   lifeRange: 140,      // villagers live while you are this close
 };
 

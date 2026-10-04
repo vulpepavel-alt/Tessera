@@ -23,7 +23,7 @@ export const POST = {
   maxPixelRatio: 1.5,  // sharpness cap for the effects (speed on high-DPI screens)
   aoIntensity: 0.55,   // 0 = no ambient occlusion, 1 = full
   contrast: 1.15,     // punchy, like the classic look: bright lit faces, deeper shade
-  saturation: 1.3,     // bright, toy-like colours
+  saturation: 1.42,    // bright, toy-like colours
   warmth: 0.025,       // warm tint in bright areas, cool tint in dark ones
   vignette: 0.1,
 };

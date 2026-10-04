@@ -6,6 +6,7 @@
 // halfWidth, health, alive, team ('player' or 'enemy'), and optionally
 // invincible and receiveHit(info).
 
+import { levelGapFactor } from '../data/progression.js';
 import * as THREE from 'three';
 import { COMBAT } from '../data/combat.js';
 import { Projectile } from './Projectile.js';
@@ -84,7 +85,7 @@ export class CombatSystem {
     }
     const m = this.modifiers;
     const crit = Math.random() < critChance + m.critBonus(attacker);
-    const scaled = damage * m.outgoing(attacker, target) * m.incoming(target);
+    const scaled = damage * m.outgoing(attacker, target) * m.incoming(target) * levelGapFactor(attacker, target);
     const amount = Math.max(1, Math.round(scaled * (crit ? COMBAT.critMultiplier : 1)));
     target.health = Math.max(0, target.health - amount);
 

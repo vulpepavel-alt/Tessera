@@ -2,7 +2,7 @@
 //
 //   walk  - on the ground or in the air: you always run, Shift walks; jump, dodge roll
 //   swim  - in deep water (free); Space swims up, C dives
-//   climb - hold Ctrl and walk into a wall to climb it (uses stamina)
+//   climb - walk into a wall to climb it, automatically (uses stamina)
 //   glide - press G in the air to open the glider; G again (or landing) closes it
 //   boat  - press G next to water to place your boat; G again to step out
 //
@@ -15,6 +15,8 @@ import { moveBody, isLiquidBlock, isSolidBlock } from './physics.js';
 import { Boat } from './Boat.js';
 
 const tmp = new THREE.Vector3();
+
+const CLIMB_AFTER_FRAMES = 8; // about 0.13 s pushing against a wall starts a climb
 
 export class PlayerMotor {
   constructor(player, scene) {
@@ -66,10 +68,13 @@ export class PlayerMotor {
     if (this.mode === 'swim' && !p.submerged) this.mode = 'walk';
     if (this.mode === 'glide' && (p.grounded || p.inWater)) this.mode = 'walk';
 
-    // Holding Ctrl while walking into a wall starts climbing.
+    // Walking into a wall (taller than a step) for a moment starts climbing,
+    // the classic way: no button needed (Ctrl starts it at once).
     const blocked = (this.hit.x || this.hit.z) && wish.lengthSq() > 0;
+    this.pushing = blocked ? (this.pushing ?? 0) + 1 : 0;
     const ctrl = input.isDown('ControlLeft') || input.isDown('ControlRight');
-    if (ctrl && blocked && (this.mode === 'walk' || this.mode === 'glide') && p.roll.time < 0 && p.stamina > 5) {
+    const wantsClimb = ctrl || this.pushing >= CLIMB_AFTER_FRAMES;
+    if (wantsClimb && blocked && (this.mode === 'walk' || this.mode === 'glide') && p.roll.time < 0 && p.stamina > 5) {
       const dir = axisToward(wish);
       if (this.wallAt(dir, 1.2)) {
         this.climbDir.copy(dir);
@@ -116,12 +121,6 @@ export class PlayerMotor {
     const p = this.p;
     const v = p.velocity;
     const dir = this.climbDir;
-    // Let go of Ctrl to let go of the wall.
-    if (!input.isDown('ControlLeft') && !input.isDown('ControlRight')) {
-      v.set(-dir.x * 1.5, 0, -dir.z * 1.5);
-      this.mode = 'walk';
-      return;
-    }
     if (input.wasPressed('Space')) {
       // Kick off the wall.
       v.set(-dir.x * 5, 7, -dir.z * 5);

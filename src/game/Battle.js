@@ -68,6 +68,7 @@ export class Battle {
     const p = this.player;
     this.skills.update(dt, input, !this.dead && p.mode === 'walk' && p.roll.time < 0);
     this.lock.update(this.player);
+    this.labels.playerLevel = this.player.level;
     this.playerCombat.lockTarget = this.lock.target;
     this.cameraRig.lockTarget = this.lock.target;
     this.labels.lockTarget = this.lock.target;

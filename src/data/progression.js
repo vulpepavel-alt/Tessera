@@ -45,3 +45,17 @@ export const LOOT = {
 
 // Rarity colours (white, green, blue, purple, yellow) and star counts.
 export const RARITY_STARS = { common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5 };
+
+// The level gap, the classic way: monsters above your level are much tougher
+// than their numbers suggest. Each level they have over you cuts your damage
+// to them by 14% and adds 15% to theirs; a level-20 monster against a level-1
+// hero takes about a tenth of the damage and hits almost four times as hard.
+// Monsters below your level go down a little faster and hurt a little less.
+export function levelGapFactor(attacker, target) {
+  const a = attacker?.level;
+  const t = target?.level;
+  if (!a || !t) return 1;
+  const gap = t - a; // > 0: the target is stronger than the attacker
+  if (attacker.team === 'player') return gap > 0 ? Math.max(0.08, 0.86 ** gap) : Math.min(1.4, 1 - gap * 0.04);
+  return gap < 0 ? 1 + -gap * 0.15 : Math.max(0.5, 1 - gap * 0.05);
+}

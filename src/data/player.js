@@ -35,7 +35,7 @@ export const PLAYER = {
   swimSpeed: 4.5,
   swimUpSpeed: 4,
 
-  // Climbing (hold Ctrl and walk into a wall)
+  // Climbing (walk into a wall; it starts on its own)
   climbSpeed: 3.2,
   climbCost: 12,        // stamina per second
   mantleBoost: 6.5,     // upward push when reaching the top of a wall
