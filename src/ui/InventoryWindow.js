@@ -15,6 +15,7 @@ import { itemIcon } from './itemIcons.js';
 import { BAG_SIZE } from '../game/Inventory.js';
 import { ITEMS, RARITY, SLOT_NAMES, canUse } from '../data/items.js';
 import { CLASSES } from '../data/classes.js';
+import { RARITY_STARS } from '../data/progression.js';
 
 const LEFT_SLOTS = ['mainHand', 'head', 'chest', 'legs', 'feet', 'face'];
 const RIGHT_SLOTS = ['offHand', 'shoulders', 'hands', 'waist', 'back'];
@@ -70,7 +71,7 @@ export class InventoryWindow {
       ptext(label, { scale: 1.5, color: '#d8dde8' }), ptext(String(value), { scale: 1.5, color }));
     replaceChildren(this.stats,
       ptext(p.name, { scale: 2, color: '#ffe27a' }),
-      ptext(`LVL 1 ${p.classInfo.name}${spec ? ` - ${spec.name}` : ''}`, { scale: 1.5, color: '#7fe8f0' }),
+      ptext(`LVL ${p.level ?? 1} ${p.classInfo.name}${spec ? ` - ${spec.name}` : ''}`, { scale: 1.5, color: '#7fe8f0' }),
       el('div', { class: 'stat-list' },
         line('HEALTH', s.health, '#ff8a7a'),
         line('ARMOR', s.armor),
@@ -135,6 +136,8 @@ export class InventoryWindow {
     replaceChildren(this.tip,
       el('img', { class: 'tip-icon', src: itemIcon(h.id), alt: '' }),
       pparagraph(item.name.toUpperCase(), { chars: 18, scale: 2, color: rarity.color }),
+      el('div', { class: 'tip-stars', 'aria-label': `${RARITY_STARS[item.rarity]} stars` },
+        Array.from({ length: 5 }, (_, i) => el('span', { class: i < RARITY_STARS[item.rarity] ? 'on' : '', style: `--star:${rarity.color}` }))),
       ptext(`${rarity.name.toUpperCase()} ${SLOT_NAMES[item.slot].toUpperCase()}`, { scale: 1.5, color: '#b8c0d0' }),
       item.armor ? ptext(`ARMOR +${item.armor}`, { scale: 1.5 }) : null,
       item.kind ? ptext(`POWER ${Math.round(item.power * 10)}`, { scale: 1.5 }) : null,

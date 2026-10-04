@@ -12,6 +12,7 @@ import { el } from './dom.js';
 import { pixelLabel } from './pixelFont.js';
 import { iconCanvas, WEAPON_ICONS } from './icons.js';
 import { PLAYER } from '../data/player.js';
+import { xpToNext } from '../data/progression.js';
 import { SPEC_SKILLS } from '../data/skills.js';
 
 const TOAST_SECONDS = 3.5;
@@ -29,7 +30,7 @@ export class GameHud {
       this.portrait,
       el('div', { class: 'hud-who' },
         pixelLabel(player.name, { scale: 1.5 }),
-        pixelLabel(`LVL 1 ${info.name}`, { scale: 1, color: '#7fe8f0' }),
+        this.levelLabel = pixelLabel(`LVL ${player.level ?? 1} ${info.name}`, { scale: 1, color: '#7fe8f0' }),
         this.miniHealth.root, this.xp.root));
 
     // Top-right
@@ -65,12 +66,13 @@ export class GameHud {
       el('div', { class: 'hud-hotbar' }, ...Object.values(this.slots).map((s) => s.root)));
 
     this.toasts = el('div', { class: 'hud-toasts' });
+    this.levelBanner = el('div', { class: 'hud-levelup' }, pixelLabel('LEVEL UP!', { scale: 5, color: '#ffe27a' }));
     this.vignette = el('div', { class: 'hud-vignette' });
     this.death = el('div', { class: 'hud-death hidden' },
       pixelLabel('YOU HAVE FALLEN', { scale: 4, color: '#ffffff' }),
       pixelLabel('WAKING UP AT THE LAST SAFE SPOT', { scale: 1.5, color: '#e8d0d0' }));
 
-    this.root = el('div', { class: 'hud' }, this.vignette, this.death, this.topLeft, topRight, this.toasts, bottom);
+    this.root = el('div', { class: 'hud' }, this.vignette, this.death, this.topLeft, topRight, this.toasts, this.levelBanner, bottom);
     document.body.appendChild(this.root);
     this.last = {};
   }
@@ -94,6 +96,14 @@ export class GameHud {
   // "TIME 10:05  TEMP 18°C"
   setInfo({ clock, temperature }) {
     this.info.setText(`${clock}   TEMP ${temperature}°C`);
+  }
+
+  // LEVEL UP: the level label changes and big pixel text shows for a moment.
+  levelUp(level) {
+    this.levelLabel.setText(`LVL ${level} ${this.player.classInfo.name}`);
+    this.levelBanner.classList.remove('show');
+    void this.levelBanner.offsetWidth; // restart the animation
+    this.levelBanner.classList.add('show');
   }
 
   setPrompt(text) {
@@ -125,7 +135,8 @@ export class GameHud {
     this.miniHealth.set(p.health / p.maxHealth, hp);
     this.resource.set(p.resource / p.resourceMax, `${Math.floor(p.resource)}/${p.resourceMax}`);
     this.resource.setCharge(p.resource / p.resourceMax, (cooldowns.chargedMp ?? 0) / p.resourceMax);
-    this.xp.set(0, '0/50');
+    const need = xpToNext(p.level);
+    this.xp.set(p.xp / need, `${Math.floor(p.xp)}/${need}`);
     const st = Math.round((p.stamina / PLAYER.staminaMax) * 100);
     if (this.last.stamina !== st) {
       this.last.stamina = st;

@@ -47,7 +47,7 @@ export class SkillSystem {
 
   damageMultiplier() {
     const combo = 1 + Math.min(this.combo * COMBO.bonusPerHit, COMBO.maxBonus);
-    return combo * this.buffValue('damage', 1, 'max');
+    return combo * this.buffValue('damage', 1, 'max') * (this.player.levelPower ?? 1);
   }
 
   // Called for every hit you land.

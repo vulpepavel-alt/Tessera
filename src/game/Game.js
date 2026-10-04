@@ -16,6 +16,9 @@ import { Battle } from './Battle.js';
 import { GuildPanel } from '../ui/GuildPanel.js';
 import { InventoryWindow } from '../ui/InventoryWindow.js';
 import { Inventory } from './Inventory.js';
+import { LootSystem } from './Loot.js';
+import { ITEMS } from '../data/items.js';
+import { xpFor } from '../data/progression.js';
 import { VillageLife } from './VillageLife.js';
 import { Minimap } from '../ui/Minimap.js';
 import { ChatLog } from '../ui/ChatLog.js';
@@ -96,6 +99,11 @@ export class Game {
       onClose: () => this.closeInventory(),
       onMessage: (text) => this.hud.toast(text),
     });
+    this.loot = new LootSystem({
+      scene: engine.scene, player: this.player, inventory: this.inventory,
+      onMessage: (text) => this.chat.add(null, text),
+      onGold: (amount) => { this.player.gold += amount; },
+    });
     this.pause = new PauseMenu({
       onResume: () => this.input.lock(),
       onInventory: () => this.openInventory(),
@@ -110,8 +118,10 @@ export class Game {
   bindEvents() {
     this.input.onPress('F3', () => this.debug.toggle());
     this.input.onPress('F4', () => this.toggleFlying());
+    // E: pick up the gear next to you, or talk to the villager in front of you.
     this.input.onPress('KeyE', () => {
-      if (this.state === 'playing') this.villageLife.interact(this.world.dayNight.isNight);
+      if (this.state !== 'playing') return;
+      if (!this.loot.pickUp()) this.villageLife.interact(this.world.dayNight.isNight);
     });
     // B or I opens and closes the inventory (like the classic game); Esc also closes it.
     for (const key of ['KeyB', 'KeyI']) {
@@ -145,6 +155,13 @@ export class Game {
       else this.pause.show();
     });
     this.player.on('message', (text) => this.hud.toast(text));
+    this.player.on('levelup', (level) => {
+      this.hud.levelUp(level);
+      this.chat.add(null, `Level up! You are now level ${level}.`);
+      this.particles.burst('heal', this.player.position.clone().setY(this.player.position.y + 1));
+      Sfx.cast();
+      this.saveNow();
+    });
     // A new weapon changes your attacks.
     this.player.on('equipment', (eq) => {
       this.battle.playerCombat.setWeapon(eq.mainHand);
@@ -171,7 +188,11 @@ export class Game {
     this.battle.combat.on('killed', ({ target }) => {
       if (target === this.player) return;
       this.particles.burst('poof', target.position.clone().setY(target.position.y + 0.5));
-      this.chat.add(null, `${target.name} defeated.`); // quietly, in the message log
+      // XP and loot, reported quietly in the message log (like the classic game).
+      const xp = xpFor(target.type, target.level);
+      this.chat.add(null, `${target.name} defeated. You gain ${xp} XP.`);
+      this.player.gainXp(xp);
+      this.loot.dropFor(target);
     });
     this.player.on('fell', ({ lost }) => {
       this.chat.add(null, `You were brought back to safe ground (-${lost} health).`);
@@ -231,6 +252,8 @@ export class Game {
       if (this.flying) this.flyCamera.update(dt);
       else if (!this.battle.dead) this.player.update(gameDt, this.input, this.cameraRig.yaw);
       this.villageLife.update(gameDt, this.player, this.world.dayNight.isNight);
+      this.loot.update(gameDt);
+      if (this.loot.nearest) this.hud.setPrompt(`Pick up ${ITEMS[this.loot.nearest.id].name}`);
     }
     if (!this.flying) this.cameraRig.update(dt, this.player.model.root.position);
 
@@ -362,6 +385,9 @@ export class Game {
       player: this.player.position.y >= 1 ? this.player.toSave() : this.save.player,
       time: { day: this.world.dayNight.day, hour: this.world.dayNight.hour },
       spec: this.player.spec,
+      level: this.player.level,
+      xp: this.player.xp,
+      gold: this.player.gold,
       equipment: this.player.equipment,
       bag: this.player.bag,
       explored: [...this.minimap.explored],

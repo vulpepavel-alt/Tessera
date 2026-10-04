@@ -276,3 +276,18 @@
     grid-template-columns: repeat(auto-fill, 44px);
   }
 }
+
+/* Rarity stars under the item name: 1 (common) to 5 (legendary). */
+.tip-stars {
+  display: flex;
+  gap: 3px;
+}
+.tip-stars span {
+  width: 9px;
+  height: 9px;
+  background: #3a3550;
+  clip-path: polygon(50% 0, 63% 35%, 100% 38%, 72% 60%, 82% 100%, 50% 78%, 18% 100%, 28% 60%, 0 38%, 37% 35%);
+}
+.tip-stars span.on {
+  background: var(--star);
+}

@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { PLAYER } from '../data/player.js';
 import { CLASSES, STARTER_KIT, STARTER_BAG } from '../data/classes.js';
+import { LEVEL, xpToNext } from '../data/progression.js';
 import { buildCharacter } from '../models/characterModel.js';
 import { placeHeld } from '../models/equipment/weapons.js';
 import { buildGlider } from '../models/travelModels.js';
@@ -36,8 +37,13 @@ export class Player {
     this.submerged = false;
     this.headUnderwater = false;
 
+    // Level, XP and gold (data/progression.js): each level adds health and damage.
+    this.level = save.level ?? 1;
+    this.xp = save.xp ?? 0;
+    this.gold = save.gold ?? 0;
+    this.applyLevel();
+
     // Stats.
-    this.maxHealth = this.classInfo.health;
     this.health = save.player?.health ?? this.maxHealth;
     this.resourceMax = this.classInfo.resource.max;
     this.resource = save.player?.resource ?? (this.classInfo.resource.startsFull ? this.resourceMax : 0);
@@ -102,6 +108,24 @@ export class Player {
     }
     this.buildModel();
     this.emit('equipment', this.equipment);
+  }
+
+  // Health and damage for the current level.
+  applyLevel() {
+    this.maxHealth = Math.round(this.classInfo.health * (1 + LEVEL.healthPerLevel * (this.level - 1)));
+    this.levelPower = 1 + LEVEL.damagePerLevel * (this.level - 1);
+  }
+
+  // XP from a defeated monster; levels go up on their own (full health on level up).
+  gainXp(amount) {
+    this.xp += amount;
+    while (this.level < LEVEL.maxLevel && this.xp >= xpToNext(this.level)) {
+      this.xp -= xpToNext(this.level);
+      this.level++;
+      this.applyLevel();
+      this.health = this.maxHealth;
+      this.emit('levelup', this.level);
+    }
   }
 
   // Simple event system: on('fell', fn) is told when something happens.

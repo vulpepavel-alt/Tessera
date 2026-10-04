@@ -406,3 +406,24 @@
 .debug-overlay.hidden {
   display: none;
 }
+
+/* LEVEL UP! in the middle of the screen for a moment */
+.hud-levelup {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+.hud-levelup.show {
+  animation: levelup 2.4s ease-out;
+}
+
+@keyframes levelup {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.6); }
+  10% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+  20% { transform: translateX(-50%) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
