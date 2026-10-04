@@ -68,6 +68,8 @@ export class Battle {
     const pc = this.playerCombat;
     p.setWeaponsDrawn(Boolean(pc.current || pc.charge || pc.skillPose || pc.sinceAttack < 4 || pc.sinceCombat < 4));
 
+    // The enemy under the crosshair shows its name and health bar.
+    this.labels.focus = this.skills.aimTarget();
     this.combat.update(dt);
     this.spawner.update(dt, this.player, isNight);
     this.updateDeath(dt);

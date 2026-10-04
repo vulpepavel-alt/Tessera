@@ -120,6 +120,12 @@ export class Game {
         else if (this.state === 'playing') this.openInventory();
       });
     }
+    // V: show the health bars of every nearby enemy (off by default, like the classic game).
+    this.input.onPress('KeyV', () => {
+      if (this.state !== 'playing') return;
+      this.battle.labels.showAll = !this.battle.labels.showAll;
+      this.hud.toast(`All health bars ${this.battle.labels.showAll ? 'on' : 'off'}`);
+    });
     this.input.onPress('Escape', () => {
       if (this.inventoryWindow.visible) this.closeInventory();
     });

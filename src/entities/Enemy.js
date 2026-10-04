@@ -56,6 +56,7 @@ export class Enemy {
     this.hasHit = false;
     this.facing = Math.random() * Math.PI * 2;
     this.flash = 0;
+    this.sinceHurt = 99; // seconds since the player last hit it (its bar shows for a while)
     this.time = Math.random() * 10;
     this.deadTime = 0;
     // Status effects from skills: seconds left for each.
@@ -79,6 +80,7 @@ export class Enemy {
   // Called by the combat system when this enemy is hit.
   receiveHit({ push, heavy, finisher }) {
     this.flash = 0.12;
+    this.sinceHurt = 0;
     // Flinch on every hit; a finisher or heavy attack staggers longer and
     // breaks the wind-up of an attack (the player's reward for good timing).
     const big = heavy || finisher;
@@ -152,6 +154,7 @@ export class Enemy {
   // Returns false once the enemy should be removed from the world.
   update(dt, player) {
     this.time += dt;
+    this.sinceHurt += dt;
     this.stateTime += dt;
     this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     this.flash = Math.max(0, this.flash - dt);

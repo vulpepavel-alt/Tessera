@@ -1,12 +1,25 @@
 // Text and bars that float over things in the 3D world: damage numbers,
-// enemy health bars, speech bubbles and name tags. Each frame we work out where a
+// enemy health bars, speech bubbles and name tags.
+//
+// Like the classic HUD, enemy bars are contextual: only the enemy under the
+// crosshair and enemies you hit in the last few seconds show theirs. V shows
+// the bars of every nearby angry enemy (off by default). Each frame we work out where a
 // 3D point lands on the screen ("projecting" it) and move the label there.
 
 import * as THREE from 'three';
 import './labels.css';
 import { el } from './dom.js';
+import { pixelLabel } from './pixelFont.js';
 
-const NUMBER_LIFE = 0.9; // seconds a damage number stays visible
+const NUMBER_LIFE = 0.75; // seconds a damage number stays visible (quick and restrained)
+const HURT_SHOW = 4;      // seconds an enemy's bar stays after you hit it
+const NUMBER_STYLE = {
+  damage: { scale: 2, color: '#ffffff' },
+  crit: { scale: 3, color: '#ffd84a' },
+  player: { scale: 2, color: '#ff6b5e' },
+  heal: { scale: 2, color: '#7dff7a' },
+  info: { scale: 1.5, color: '#9fe8ff' },
+};
 const BAR_RANGE = 40;    // health bars are hidden beyond this distance
 const tmp = new THREE.Vector3();
 
@@ -21,6 +34,8 @@ export class WorldLabels {
     this.bars = new Map(); // enemy -> { root, fill }
     this.bubbles = new Map(); // speaker -> { node, time }
     this.tags = new Map();    // villager -> name tag node
+    this.focus = null;        // the enemy under the crosshair (set by the battle)
+    this.showAll = false;     // V: show every nearby angry enemy's bar
   }
 
   setVisible(visible) {
@@ -29,7 +44,7 @@ export class WorldLabels {
 
   // style: 'damage' | 'crit' | 'player' | 'heal' | 'info'
   number(position, text, style = 'damage') {
-    const node = el('div', { class: `float-number ${style}` }, text);
+    const node = el('div', { class: 'float-number' }, pixelLabel(String(text).toUpperCase(), NUMBER_STYLE[style] ?? NUMBER_STYLE.damage));
     this.root.append(node);
     this.numbers.push({
       node, age: 0,
@@ -39,7 +54,8 @@ export class WorldLabels {
 
   addBar(enemy) {
     const fill = el('div', { class: 'enemy-bar-fill' });
-    const name = el('div', { class: 'enemy-bar-name' }, `${enemy.name} · Lv ${enemy.level}`);
+    const name = el('div', { class: 'enemy-bar-name' },
+      pixelLabel(`LV ${enemy.level} ${enemy.name}`.toUpperCase(), { scale: 1, color: enemy.night ? '#c9b2ff' : '#ffffff' }));
     const root = el('div', { class: `enemy-bar${enemy.night ? ' night' : ''}` }, name, el('div', { class: 'enemy-bar-track' }, fill));
     this.root.append(root);
     this.bars.set(enemy, { root, fill });
@@ -97,16 +113,17 @@ export class WorldLabels {
         n.node.remove();
         return false;
       }
-      n.pos.y += dt * 1.6;
+      n.pos.y += dt * 1.2;
       this.place(n.node, n.pos);
       n.node.style.opacity = String(1 - Math.max(0, (n.age - NUMBER_LIFE * 0.5) / (NUMBER_LIFE * 0.5)));
       return true;
     });
 
-    // Health bars above enemies (only when hurt, targeted or nearby and angry).
+    // Health bars: the enemy under the crosshair and ones you just hit (V: all angry ones).
     for (const [enemy, bar] of this.bars) {
       const near = this.camera.position.distanceTo(enemy.position) < BAR_RANGE;
-      const show = near && enemy.alive && (enemy.health < enemy.maxHealth || enemy.isAngry);
+      const relevant = enemy === this.focus || enemy.sinceHurt < HURT_SHOW || (this.showAll && (enemy.isAngry || enemy.health < enemy.maxHealth));
+      const show = near && enemy.alive && relevant;
       bar.root.style.display = show ? '' : 'none';
       if (!show) continue;
       bar.fill.style.transform = `scaleX(${Math.max(0, enemy.health / enemy.maxHealth)})`;
