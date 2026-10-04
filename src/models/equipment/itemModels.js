@@ -17,6 +17,21 @@ export function itemGrid(item) {
 }
 
 const SHAPES = {
+  // A chunky ring standing up, with its gem on top.
+  ring(m, item) {
+    const g = new VoxelGrid(8, 9, 3).box(0, 0, 0, 8, 7, 3, item.base).box(2, 2, 0, 4, 3, 3, null);
+    g.box(0, 0, 0, 8, 1, 3, darker(item.base, 0.25)).box(1, 6, 0, 6, 1, 3, lighter(item.base, 0.2));
+    return g.box(2, 7, 0, 4, 2, 3, item.trim).set(3, 8, 2, lighter(item.trim, 0.5));
+  },
+  // An amulet: a loop of chain and a big gem in a setting.
+  neck(m, item) {
+    const g = new VoxelGrid(10, 11, 2);
+    for (let x = 1; x <= 8; x++) g.set(x, 10, 0, item.base);
+    for (let y = 5; y <= 10; y++) g.set(0, y, 0, item.base).set(9, y, 0, item.base);
+    g.box(1, 4, 0, 2, 1, 1, item.base).box(7, 4, 0, 2, 1, 1, item.base);
+    g.box(3, 0, 0, 4, 5, 2, darker(item.base, 0.1)).box(4, 1, 1, 2, 3, 1, item.trim).set(4, 3, 1, lighter(item.trim, 0.5));
+    return g;
+  },
   // A helmet / hood / cap: a rounded dome with a band; robes give a pointed hat.
   head(m) {
     if (m.style === 'robe') {

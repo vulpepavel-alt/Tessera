@@ -451,3 +451,8 @@
 .hud-levelup {
   zoom: var(--hud-scale, 1.3);
 }
+
+/* While the inventory is open, the minimap steps out of the way of the tooltip. */
+.hud.inv-open .hud-topright {
+  display: none;
+}

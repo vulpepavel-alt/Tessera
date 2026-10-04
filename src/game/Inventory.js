@@ -8,7 +8,7 @@
 //
 // The bag is a list of item ids (data/items.js), saved with the game.
 
-import { ITEMS, canUse } from '../data/items.js';
+import { ITEMS, canUse, slotFor } from '../data/items.js';
 import { CLASSES } from '../data/classes.js';
 import { CLASS_COMBAT } from '../data/combat.js';
 
@@ -44,9 +44,10 @@ export class Inventory {
       const who = item.classes.map((c) => CLASSES[c].name).join(' / ');
       return `Only a ${who} can use this`;
     }
-    const changes = { [item.slot]: id };
+    const slot = slotFor(item, p.equipment);
+    const changes = { [slot]: id };
     const removed = [];
-    if (p.equipment[item.slot]) removed.push(p.equipment[item.slot]);
+    if (p.equipment[slot]) removed.push(p.equipment[slot]);
     // Two hands for a two-handed weapon; and no off-hand item next to one.
     if (item.kind === 'great' && p.equipment.offHand) {
       removed.push(p.equipment.offHand);
@@ -81,6 +82,7 @@ export class Inventory {
       armor: p.armor,
       power: Math.round((weapon?.power ?? 1) * 10),
       crit: Math.round((CLASS_COMBAT[p.classId]?.critChance ?? 0) * 100),
+      damageBonus: Math.round(p.gearBonus('damage') * 100),
       resource: `${p.classInfo.resource.name} ${p.resourceMax}`,
     };
   }

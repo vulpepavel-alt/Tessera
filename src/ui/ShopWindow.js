@@ -9,6 +9,7 @@ import './styles/shop.css';
 import { el, replaceChildren } from './dom.js';
 import { ptext, pparagraph, pbutton } from './menuKit.js';
 import { itemIcon } from './itemIcons.js';
+import { bonusLines } from './InventoryWindow.js';
 import { iconCanvas } from './icons.js';
 import { ITEMS, RARITY, SLOT_NAMES, canUse } from '../data/items.js';
 import { RARITY_STARS } from '../data/progression.js';
@@ -117,6 +118,7 @@ export class ShopWindow {
       ptext(`${rarity.name.toUpperCase()} ${SLOT_NAMES[item.slot].toUpperCase()}`, { scale: 1.5, color: '#b8c0d0' }),
       item.armor ? ptext(`ARMOR +${item.armor}`, { scale: 1.5 }) : null,
       item.kind ? ptext(`POWER ${Math.round(item.power * 10)}`, { scale: 1.5 }) : null,
+      ...bonusLines(item),
       item.classes ? ptext(`${item.classes.map((c) => CLASSES[c].name).join(' / ').toUpperCase()} ONLY`, { scale: 1.5, color: usable ? '#9fe08a' : '#ff6a5a' }) : null,
       ptext(action, { scale: 1.5, color: '#7fe8f0' }));
   }

@@ -67,6 +67,13 @@ export function addArmorParts(model, gear) {
   const chest = gear.chest && MATERIALS[gear.chest.material];
   if (chest?.style === 'robe') attach(model.parts.pelvis, robeSkirt(chest), [(PW + 1) / 2, 5, (PD - 1) / 2], [0, -PH * VOXEL, 0]);
   if (gear.back) addBack(model.sockets.socket_back, gear.back);
+  if (gear.neck) {
+    // The amulet's gem hangs on the upper chest, its chain over the shoulders.
+    const n = gear.neck;
+    const g = new VoxelGrid(8, 5, 2).box(0, 4, 0, 8, 1, 1, n.base).box(0, 3, 0, 1, 1, 1, n.base).box(7, 3, 0, 1, 1, 1, n.base);
+    g.box(1, 2, 0, 1, 1, 1, n.base).box(6, 2, 0, 1, 1, 1, n.base).box(2, 0, 0, 4, 3, 2, darker(n.base, 0.1)).box(3, 1, 1, 2, 1, 1, n.trim);
+    attach(sockets.socket_chest, g, [4, 0, 0], [0, 1 * VOXEL, 0.5 * VOXEL]);
+  }
 }
 
 // Goggles: a strap round the head and two round lenses over the eyes.

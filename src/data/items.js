@@ -10,10 +10,11 @@
 
 import { catalogueWeapons } from './weaponCatalog.js';
 
-export const SLOTS = ['head', 'face', 'chest', 'shoulders', 'hands', 'waist', 'legs', 'feet', 'back', 'mainHand', 'offHand'];
+export const SLOTS = ['head', 'face', 'chest', 'shoulders', 'hands', 'waist', 'legs', 'feet', 'back', 'mainHand', 'offHand', 'neck', 'ring1', 'ring2'];
 export const SLOT_NAMES = {
   head: 'Head', face: 'Face', chest: 'Chest', shoulders: 'Shoulders', hands: 'Hands', waist: 'Waist',
   legs: 'Legs', feet: 'Feet', back: 'Back', mainHand: 'Main hand', offHand: 'Off hand',
+  neck: 'Neck', ring: 'Ring', ring1: 'Ring', ring2: 'Ring',
 };
 
 export const RARITY = {
@@ -129,6 +130,20 @@ const FACE_WAIST_LIST = [
   { id: 'gold-sash', name: 'Golden Sash', slot: 'waist', model: 'sash', tier: 6, base: 0xffc83a, trim: 0x2448b8 },
 ];
 
+// ---- Jewellery: two rings and an amulet ---------------------------------------
+// Rings make your blows stronger, amulets make you tougher (bonus: fractions).
+// A ring can go on either ring finger (Inventory picks a free one).
+const JEWEL_METALS = [
+  { key: 'copper', name: 'Copper', tier: 1, base: 0xc87a3a, trim: 0x6ad0f0 },
+  { key: 'silver', name: 'Silver', tier: 3, base: 0xd8dde8, trim: 0x4fd84a },
+  { key: 'gold', name: 'Gold', tier: 5, base: 0xffc83a, trim: 0xff4a5a },
+  { key: 'sunstone', name: 'Sunstone', tier: 7, base: 0xfff0a0, trim: 0xb46cff },
+];
+const JEWEL_LIST = JEWEL_METALS.flatMap((j) => [
+  { id: `${j.key}-ring`, name: `${j.name} Ring`, slot: 'ring', jewel: 'ring', tier: j.tier, base: j.base, trim: j.trim, bonus: { damage: 0.03 * j.tier } },
+  { id: `${j.key}-amulet`, name: `${j.name} Amulet`, slot: 'neck', jewel: 'amulet', tier: j.tier, base: j.base, trim: j.trim, bonus: { health: 0.04 * j.tier } },
+]);
+
 // ---- The catalogue -------------------------------------------------------
 export const ITEMS = {};
 
@@ -148,6 +163,7 @@ for (const w of WEAPON_LIST) add(w);
 for (const w of catalogueWeapons()) add(w); // 17 kinds x 5 materials x 5 shapes (data/weaponCatalog.js)
 for (const b of BACK_LIST) add({ classes: null, ...b });
 for (const f of FACE_WAIST_LIST) add({ classes: null, ...f });
+for (const j of JEWEL_LIST) add({ classes: null, ...j });
 
 function add(item) {
   ITEMS[item.id] = { rarity: TIER_RARITY[item.tier], power: 1 + (item.tier - 1) * 0.3, ...item };
@@ -166,4 +182,13 @@ export function resolveEquipment(equipment = {}) {
 // Can this class use the item? (null classes = everyone)
 export function canUse(item, classId) {
   return !item.classes || item.classes.includes(classId);
+}
+
+// Which worn slot an item goes to: rings take a free ring finger (or the
+// first one), everything else its own slot.
+export function slotFor(item, equipment = {}) {
+  if (item.slot !== 'ring') return item.slot;
+  if (!equipment.ring1) return 'ring1';
+  if (!equipment.ring2) return 'ring2';
+  return 'ring1';
 }

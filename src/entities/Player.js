@@ -70,6 +70,8 @@ export class Player {
     // class's starter weapon and the travel kit (data/classes.js STARTER_KIT).
     const fresh = !Array.isArray(save.bag);
     this.equipment = fresh ? { ...STARTER_KIT[save.classId], ...(save.equipment ?? {}) } : { ...(save.equipment ?? {}) }; // { slot: itemId }
+    this.applyLevel(); // again, now that jewellery bonuses are known
+    this.health = Math.min(save.player?.health ?? this.maxHealth, this.maxHealth);
     this.bag = fresh ? [...STARTER_BAG] : [...save.bag]; // item ids in the bag (game/Inventory.js)
     // The glider wears TESSERA's own colours: golden yellow with royal blue stripes.
     this.glider = buildGlider({ cloth: 0xffc83a, trim: 0x2448b8 });
@@ -110,6 +112,10 @@ export class Player {
       if (id) this.equipment[slot] = id;
       else delete this.equipment[slot];
     }
+    // Jewellery may change max health: keep the same fraction of health.
+    const fraction = this.maxHealth ? this.health / this.maxHealth : 1;
+    this.applyLevel();
+    if (this.health !== undefined) this.health = Math.min(this.maxHealth, Math.max(1, Math.round(this.maxHealth * fraction)));
     this.buildModel();
     this.emit('equipment', this.equipment);
   }
@@ -120,8 +126,13 @@ export class Player {
     return Object.values(this.equipment ?? {}).reduce((sum, id) => sum + (ITEMS[id]?.armor ?? 0), 0);
   }
 
+  // Bonuses from jewellery (rings: damage, amulet: health), as fractions.
+  gearBonus(kind) {
+    return Object.values(this.equipment ?? {}).reduce((sum, id) => sum + (ITEMS[id]?.bonus?.[kind] ?? 0), 0);
+  }
+
   applyLevel() {
-    this.maxHealth = Math.round(this.classInfo.health * (1 + LEVEL.healthPerLevel * (this.level - 1)));
+    this.maxHealth = Math.round(this.classInfo.health * (1 + LEVEL.healthPerLevel * (this.level - 1)) * (1 + this.gearBonus('health')));
     this.levelPower = 1 + LEVEL.damagePerLevel * (this.level - 1);
   }
 

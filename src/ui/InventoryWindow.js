@@ -17,8 +17,8 @@ import { ITEMS, RARITY, SLOT_NAMES, canUse } from '../data/items.js';
 import { CLASSES } from '../data/classes.js';
 import { RARITY_STARS } from '../data/progression.js';
 
-const LEFT_SLOTS = ['mainHand', 'head', 'chest', 'legs', 'feet', 'face'];
-const RIGHT_SLOTS = ['offHand', 'shoulders', 'hands', 'waist', 'back'];
+const LEFT_SLOTS = ['mainHand', 'head', 'chest', 'legs', 'feet', 'face', 'ring1'];
+const RIGHT_SLOTS = ['offHand', 'shoulders', 'hands', 'waist', 'back', 'neck', 'ring2'];
 const TABS = ['EQUIPMENT', 'ITEMS'];
 
 export class InventoryWindow {
@@ -77,6 +77,7 @@ export class InventoryWindow {
         line('ARMOR', s.armor),
         line('POWER', s.power),
         line('CRIT', `${s.crit}%`),
+        s.damageBonus ? line('DAMAGE', `+${s.damageBonus}%`, '#ffd27a') : null,
         line(s.resource.split(' ')[0].toUpperCase(), s.resource.split(' ')[1], p.classInfo.resource.color)));
   }
 
@@ -141,6 +142,7 @@ export class InventoryWindow {
       ptext(`${rarity.name.toUpperCase()} ${SLOT_NAMES[item.slot].toUpperCase()}`, { scale: 1.5, color: '#b8c0d0' }),
       item.armor ? ptext(`ARMOR +${item.armor}`, { scale: 1.5 }) : null,
       item.kind ? ptext(`POWER ${Math.round(item.power * 10)}`, { scale: 1.5 }) : null,
+      ...bonusLines(item),
       item.kind === 'great' ? ptext('TWO-HANDED', { scale: 1.5, color: '#ffe27a' }) : null,
       item.classes ? ptext(`${item.classes.map((c) => CLASSES[c].name).join(' / ').toUpperCase()} ONLY`, { scale: 1.5, color: usable ? '#9fe08a' : '#ff6a5a' }) : null,
       ptext(h.worn ? 'CLICK TO TAKE OFF' : usable ? 'CLICK TO PUT ON' : 'YOU CANNOT USE THIS', { scale: 1.5, color: '#7fe8f0' }));
@@ -159,4 +161,13 @@ export class InventoryWindow {
     this.hover = null;
     this.render();
   }
+}
+
+// Jewellery bonuses, e.g. "DAMAGE +9%" (also used by the shop).
+export function bonusLines(item) {
+  const b = item.bonus ?? {};
+  return [
+    b.damage ? ptext(`DAMAGE +${Math.round(b.damage * 100)}%`, { scale: 1.5, color: '#ffd27a' }) : null,
+    b.health ? ptext(`HEALTH +${Math.round(b.health * 100)}%`, { scale: 1.5, color: '#ff8a7a' }) : null,
+  ];
 }
