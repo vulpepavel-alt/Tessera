@@ -15,6 +15,7 @@ import { ITEMS, RARITY, SLOT_NAMES, canUse } from '../data/items.js';
 import { RARITY_STARS } from '../data/progression.js';
 import { CLASSES } from '../data/classes.js';
 import { POTION, priceOf, sellPriceOf } from '../data/shop.js';
+import { PET } from '../entities/Pet.js';
 
 const TITLES = { weaponsmith: 'WEAPONSMITH', armorer: 'ARMORER', merchant: 'MERCHANT' };
 
@@ -65,7 +66,7 @@ export class ShopWindow {
       onclick: () => { this.tab = t; this.hover = null; this.render(); },
     }, ptext(t, { scale: 1.5 }))));
     const entries = this.tab === 'BUY'
-      ? this.stock.map((s) => ({ ...s, src: s, price: s.potion ? POTION.price * s.potion : priceOf(ITEMS[s.id]) }))
+      ? this.stock.map((s) => ({ ...s, src: s, price: s.potion ? POTION.price * s.potion : s.treat ? PET.treatPrice * s.treat : priceOf(ITEMS[s.id]) }))
       : this.inventory.bag.map((id, index) => ({ id, index, price: sellPriceOf(ITEMS[id]) }));
     const grid = entries.length
       ? el('div', { class: 'shop-grid' }, entries.map((e) => this.square(e)))
@@ -82,12 +83,12 @@ export class ShopWindow {
   square(entry) {
     const item = ITEMS[entry.id];
     const affordable = this.tab === 'SELL' || this.player.gold >= entry.price;
-    const picture = entry.potion ? iconCanvas('potion', 4.5) : el('img', { src: itemIcon(entry.id), alt: '' });
+    const picture = entry.potion ? iconCanvas('potion', 4.5) : entry.treat ? iconCanvas('treat', 4.5) : el('img', { src: itemIcon(entry.id), alt: '' });
     const unusable = item && !canUse(item, this.player.classId);
     return el('div', { class: 'shop-cell' },
       el('button', {
         class: `inv-sq${item ? ` r-${item.rarity}` : ' r-common'}${unusable ? ' unusable' : ''}${affordable ? '' : ' too-dear'}`,
-        'aria-label': entry.potion ? `${entry.potion} ${POTION.name}` : item.name,
+        'aria-label': entry.potion ? `${entry.potion} ${POTION.name}` : entry.treat ? 'Pet Treat' : item.name,
         onclick: () => (this.tab === 'BUY' ? this.buy(entry) : this.sell(entry)),
         onmouseenter: () => { this.hover = entry; this.renderTip(); },
         onmouseleave: () => { this.hover = null; this.renderTip(); },
@@ -101,6 +102,14 @@ export class ShopWindow {
     if (!h) return;
     const selling = this.tab === 'SELL';
     const action = selling ? `CLICK TO SELL FOR ${h.price} GOLD` : `CLICK TO BUY FOR ${h.price} GOLD`;
+    if (h.treat) {
+      replaceChildren(this.tip,
+        pparagraph('PET TREAT', { chars: 18, scale: 2, color: '#ffe27a' }),
+        pparagraph('Stand next to an animal of your level or lower and press T: it becomes your pet and fights beside you.', { chars: 26, scale: 1.5, color: '#d8dde8' }),
+        ptext(`YOU HAVE ${this.player.treats}`, { scale: 1.5, color: '#b8c0d0' }),
+        ptext(action, { scale: 1.5, color: '#7fe8f0' }));
+      return;
+    }
     if (h.potion) {
       replaceChildren(this.tip,
         pparagraph(`${h.potion} X ${POTION.name.toUpperCase()}`, { chars: 18, scale: 2, color: '#ff8a9a' }),
@@ -129,7 +138,11 @@ export class ShopWindow {
       this.onMessage('You do not have enough gold.');
       return;
     }
-    if (entry.potion) {
+    if (entry.treat) {
+      p.treats += entry.treat;
+      p.gold -= entry.price;
+      this.onMessage(`You buy a Pet Treat for ${entry.price} gold.`);
+    } else if (entry.potion) {
       if (p.potions + entry.potion > POTION.max) {
         this.onMessage(`You can carry at most ${POTION.max} potions.`);
         return;

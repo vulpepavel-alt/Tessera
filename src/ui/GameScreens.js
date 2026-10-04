@@ -23,6 +23,7 @@ export const CONTROLS = [
   ['B / I', 'Inventory'],
   ['Tab', 'Lock on to an enemy (again to switch / release)'],
   ['Q', 'Quick item: drink a health potion'],
+  ['T', 'Tame the animal next to you (needs a Pet Treat)'],
   ['E at a shopkeeper', 'Buy and sell (Weaponsmith, Armorer, Merchant)'],
   ['V', 'Show all health bars'],
   ['E', 'Talk to villagers'],

@@ -43,7 +43,8 @@ export class Player {
     this.level = save.level ?? 1;
     this.xp = save.xp ?? 0;
     this.gold = save.gold ?? 0;
-    this.potions = save.potions ?? 3; // health potions (key 3), a few to start with
+    this.potions = save.potions ?? 3; // health potions (key Q), a few to start with
+    this.treats = save.treats ?? 0;   // pet treats (key T tames an animal)
     this.potionCooldown = 0;
     this.applyLevel();
 

@@ -38,7 +38,8 @@ export class GameHud {
       el('div', { class: 'hud-who' },
         pixelLabel(player.name, { scale: 1.5 }),
         this.levelLabel = pixelLabel(`LVL ${player.level ?? 1} ${info.name}`, { scale: 1, color: '#7fe8f0' }),
-        this.miniHealth.root, this.xp.root));
+        this.miniHealth.root, this.xp.root,
+        this.petLabel = pixelLabel('', { scale: 1, color: '#ffd27a' })));
 
     // Top-right
     this.info = pixelLabel('', { scale: 1, color: '#ffffff' });
@@ -177,6 +178,11 @@ export class GameHud {
 
   showDeath(visible) {
     this.death.classList.toggle('hidden', !visible);
+  }
+
+  // The pet's name under your bars (empty: no pet).
+  setPet(name) {
+    this.petLabel.setText(name ? `PET: ${name}` : '');
   }
 
   toast(text) {

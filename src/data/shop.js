@@ -38,7 +38,7 @@ export function stockFor(role, classId, level, seedText) {
   const tiers = [tier, Math.min(7, tier + 1)];
   if (role === 'merchant') {
     const extras = Object.values(ITEMS).filter((it) => !it.classes && (it.tier ?? 1) <= tiers[1]);
-    return [{ potion: 1 }, { potion: 5 }, ...pick(extras, STOCK_SIZE - 2, rand).map((it) => ({ id: it.id }))];
+    return [{ potion: 1 }, { potion: 5 }, { treat: 1 }, ...pick(extras, STOCK_SIZE - 3, rand).map((it) => ({ id: it.id }))];
   }
   const weapon = role === 'weaponsmith';
   const pool = Object.values(ITEMS).filter((it) => it.classes && canUse(it, classId)

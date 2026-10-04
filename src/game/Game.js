@@ -16,6 +16,7 @@ import { Battle } from './Battle.js';
 import { GuildPanel } from '../ui/GuildPanel.js';
 import { InventoryWindow } from '../ui/InventoryWindow.js';
 import { ShopWindow } from '../ui/ShopWindow.js';
+import { Pet } from '../entities/Pet.js';
 import { stockFor, POTION } from '../data/shop.js';
 import { Inventory } from './Inventory.js';
 import { LootSystem } from './Loot.js';
@@ -83,6 +84,7 @@ export class Game {
     });
     this.hud.setSkills(this.player.spec);
     this.hud.setWeapon(this.player.equipment.mainHand);
+    if (save.pet?.type) this.setPet(save.pet.type, save.pet.name); // your tamed animal comes along
     this.ambient = new AmbientLife(engine.scene);
     this.villageLife = new VillageLife({
       scene: engine.scene, worldView: this.world, labels: this.battle.labels, chat: this.chat, hud: this.hud,
@@ -147,6 +149,10 @@ export class Game {
     // V: show the health bars of every nearby enemy (off by default, like the classic game).
     this.input.onPress('Tab', () => {
       if (this.state === 'playing') this.battle.toggleLock();
+    });
+    // T: tame the animal next to you with a Pet Treat.
+    this.input.onPress('KeyT', () => {
+      if (this.state === 'playing') this.tryTame();
     });
     this.input.onPress('KeyV', () => {
       if (this.state !== 'playing') return;
@@ -288,6 +294,7 @@ export class Game {
       else if (!this.battle.dead) this.player.update(gameDt, this.input, this.cameraRig.yaw);
       this.villageLife.update(gameDt, this.player, this.world.dayNight.isNight);
       this.loot.update(gameDt);
+      this.pet?.update(gameDt);
       this.player.potionCooldown = Math.max(0, this.player.potionCooldown - gameDt);
       if (this.loot.nearest) this.hud.setPrompt(`Pick up ${ITEMS[this.loot.nearest.id].name}`);
     }
@@ -333,6 +340,38 @@ export class Game {
     this.hud.root.classList.remove('inv-open');
     this.saveNow();
     this.input.lock(); // back to the game (this key press / click counts as the needed user action)
+  }
+
+  // A tamed animal (or none). Replacing a pet sends the old one home.
+  setPet(typeId, name) {
+    this.pet?.remove();
+    this.pet = typeId ? new Pet({
+      scene: this.engine.scene, world: this.world.collision, combat: this.battle.combat, player: this.player, typeId, name,
+    }) : null;
+    this.hud.setPet(this.pet?.name);
+  }
+
+  // T: the nearest animal within reach becomes your pet, if you have a treat
+  // and it isn't stronger than you. (People - goblins, bandits - can't be tamed.)
+  tryTame() {
+    const p = this.player;
+    const near = this.battle.combat.enemies
+      .filter((e) => e.alive && e.position.distanceTo(p.position) < 4)
+      .sort((a, b) => a.position.distanceTo(p.position) - b.position.distanceTo(p.position))[0];
+    if (!near) return this.hud.toast('No animal close enough to tame');
+    if (near.type.foe) return this.hud.toast(`A ${near.type.name} won't be tamed`);
+    if (p.treats <= 0) return this.hud.toast('You need a Pet Treat (the Merchant sells them)');
+    if (near.level > p.level + 1) return this.hud.toast(`Too wild to tame (level ${near.level})`);
+    p.treats--;
+    const old = this.pet;
+    near.alive = false; // leaves the fight (it's on your side now)
+    this.battle.spawner.despawn(near);
+    this.setPet(near.typeId, near.type.name);
+    this.pet.position.copy(near.position);
+    this.particles.burst('heal', near.position.clone().setY(near.position.y + 1));
+    Sfx.cast();
+    this.chat.add(null, `${near.type.name} is now your pet!${old ? ` ${old.name} goes back to the wild.` : ''}`);
+    this.saveNow();
   }
 
   // Talking to a Weaponsmith, Armorer or Merchant opens their shop. Each
@@ -446,6 +485,8 @@ export class Game {
       xp: this.player.xp,
       gold: this.player.gold,
       potions: this.player.potions,
+      treats: this.player.treats,
+      pet: this.pet ? { type: this.pet.typeId, name: this.pet.name } : null,
       equipment: this.player.equipment,
       bag: this.player.bag,
       explored: [...this.minimap.explored],
