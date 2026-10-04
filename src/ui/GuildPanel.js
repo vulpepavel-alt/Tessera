@@ -35,8 +35,7 @@ export class GuildPanel {
             el('div', {},
               el('strong', {}, `${key} · ${s.name}`),
               el('div', { class: 'spec-skill-desc' }, s.description),
-              el('div', { class: 'spec-skill-meta' }, slot === 'ult' ? 'Ultimate: charges as you deal damage'
-                : `${s.cost ? `${s.cost} ${player.classInfo.resource.name} · ` : ''}${s.cooldown}s cooldown`)));
+              el('div', { class: 'spec-skill-meta' }, `${s.stamina ? `${s.stamina} stamina · ` : ''}${s.cooldown}s cooldown`)));
         }),
         el('button', {
           class: `btn ${current ? '' : 'primary'}`, disabled: current,

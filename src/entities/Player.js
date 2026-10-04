@@ -30,7 +30,6 @@ export class Player {
     this.alive = true;
     // Chosen specialization (switched at the Guild Hall); the first one by default.
     this.spec = save.spec ?? this.classInfo.specs[0].id;
-    this.ultCharge = save.player?.ultCharge ?? 0;
     this.speedBonus = 1;
     this.stealthed = false;
     this.skillInvulnerable = false;
@@ -279,7 +278,6 @@ export class Player {
       facing: this.facing,
       health: this.health,
       resource: this.resource,
-      ultCharge: this.ultCharge,
     };
   }
 }

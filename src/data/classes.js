@@ -1,5 +1,7 @@
-// The four playable classes: names, descriptions, health and the class
-// resource (rage / energy / mana). The class sets abilities and progression,
+// The four playable classes: names, descriptions, health and MP (mana).
+// Like the classic game every class has one MP bar: warriors, rangers and
+// rogues fill it with normal hits, mages refill it on their own; the special
+// attack (right click) spends it. The class sets abilities and progression,
 // not looks: everyone starts in plain clothes with one starter weapon (STARTER_KIT).
 // (The internal ids - bulwark, windstrider, starweaver, shade - stay the same
 // so old saves keep working.) "look" colours are only used by the glider and
@@ -11,7 +13,7 @@ export const CLASSES = {
     role: 'Heavy melee',
     description: 'A wall of steel. Shrugs off blows, holds the line and hits back hard.',
     health: 140,
-    resource: { name: 'Rage', max: 100, color: '#e2553f', startsFull: false },
+    resource: { name: 'MP', max: 100, color: '#3a8cf0', startsFull: false },
     specs: [
       { id: 'ironwall', name: 'Ironwall', description: 'Defense and taunts. Keeps enemies on you, not your friends.' },
       { id: 'ravager', name: 'Ravager', description: 'Builds rage to unleash crushing damage.' },
@@ -24,7 +26,7 @@ export const CLASSES = {
     role: 'Ranged',
     description: 'A swift archer of the open plains. Strikes from afar and never stands still.',
     health: 100,
-    resource: { name: 'Energy', max: 100, color: '#f2c94c', startsFull: true },
+    resource: { name: 'MP', max: 100, color: '#3a8cf0', startsFull: false },
     specs: [
       { id: 'longshot', name: 'Longshot', description: 'Charged, precise shots that hit from great distance.' },
       { id: 'pathfinder', name: 'Pathfinder', description: 'Mobility and traps. Controls the battlefield.' },
@@ -37,7 +39,7 @@ export const CLASSES = {
     role: 'Magic',
     description: 'Shapes starlight into fire and water. Fragile, but devastating.',
     health: 90,
-    resource: { name: 'Mana', max: 120, color: '#4d8ff0', startsFull: true },
+    resource: { name: 'MP', max: 100, color: '#3a8cf0', startsFull: true },
     specs: [
       { id: 'emberheart', name: 'Emberheart', description: 'Fire magic. Burns everything in sight.' },
       { id: 'tidecaller', name: 'Tidecaller', description: 'Water magic. Heals and protects.' },
@@ -50,7 +52,7 @@ export const CLASSES = {
     role: 'Fast melee',
     description: 'A blur of blades from the shadows. Hits fast, hits first, then vanishes.',
     health: 105,
-    resource: { name: 'Energy', max: 100, color: '#f2c94c', startsFull: true },
+    resource: { name: 'MP', max: 100, color: '#3a8cf0', startsFull: false },
     specs: [
       { id: 'nightblade', name: 'Nightblade', description: 'Critical hits and deadly bursts of damage.' },
       { id: 'mistdancer', name: 'Mistdancer', description: 'Evasion and stealth. Untouchable.' },

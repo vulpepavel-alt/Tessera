@@ -43,7 +43,7 @@ export class GameHud {
 
     // Bottom: bars, hotbar, prompt
     this.health = bar('#e84a3a', 'HP');
-    this.resource = bar(info.resource.color, info.resource.name === 'Mana' ? 'MP' : info.resource.name.toUpperCase());
+    this.resource = bar(info.resource.color, 'MP');
     this.stamina = el('div', { class: 'hud-stamina' }, el('div'));
     this.slots = {
       m1: slot('M1', 'fist'),
@@ -116,13 +116,14 @@ export class GameHud {
   }
 
   // Called every frame; only touches the page when a number changed.
-  // cooldowns: { heavy: 0..1, roll: 0..1, heavyReady, skills: SkillSystem.hotbarState() }
+  // cooldowns: { special, specialReady, chargedMp, roll: 0..1, skills: SkillSystem.hotbarState() }
   update(cooldowns = {}) {
     const p = this.player;
     const hp = `${Math.ceil(p.health)}/${p.maxHealth}`;
     this.health.set(p.health / p.maxHealth, hp);
     this.miniHealth.set(p.health / p.maxHealth, hp);
     this.resource.set(p.resource / p.resourceMax, `${Math.floor(p.resource)}/${p.resourceMax}`);
+    this.resource.setCharge(p.resource / p.resourceMax, (cooldowns.chargedMp ?? 0) / p.resourceMax);
     this.xp.set(0, '0/50');
     const st = Math.round((p.stamina / PLAYER.staminaMax) * 100);
     if (this.last.stamina !== st) {
@@ -130,14 +131,13 @@ export class GameHud {
       this.stamina.firstChild.style.transform = `scaleX(${st / 100})`;
       this.stamina.classList.toggle('full', st >= 100); // hidden while full, like the classic HUD
     }
-    this.slots.m2.cooldown(cooldowns.heavy ?? 0, cooldowns.heavyReady !== false);
+    this.slots.m2.cooldown(0, cooldowns.specialReady !== false);
     this.slots.q.cooldown(cooldowns.roll ?? 0, p.stamina >= PLAYER.rollCost);
     const sk = cooldowns.skills;
     if (sk) {
       this.slots.s1.cooldown(sk.s1.cooldown, sk.s1.usable);
       this.slots.s2.cooldown(sk.s2.cooldown, sk.s2.usable);
-      this.slots.r.cooldown(1 - sk.ult.charge, true);
-      this.slots.r.root.classList.toggle('ready', sk.ult.charge >= 1);
+      this.slots.r.cooldown(sk.ult.cooldown, sk.ult.usable);
       const text = sk.combo >= 2 ? `${sk.combo} HITS` : '';
       if (this.last.combo !== text) {
         this.last.combo = text;
@@ -171,9 +171,10 @@ export class GameHud {
 // A main bar: a small label above, the value written inside.
 function bar(color, name) {
   const fill = el('div', { class: 'bar-fill', style: { background: color } });
+  const charge = el('div', { class: 'bar-charge' }); // MP committed to a special attack (pink)
   const text = pixelLabel('', { scale: 1 });
   const root = el('div', { class: 'hud-bar' },
-    el('div', { class: 'bar' }, fill, el('div', { class: 'bar-label' }, text)));
+    el('div', { class: 'bar' }, fill, charge, el('div', { class: 'bar-label' }, text)));
   root.title = name;
   let last = '';
   return {
@@ -184,6 +185,14 @@ function bar(color, name) {
       last = key;
       fill.style.transform = `scaleX(${Math.max(0, Math.min(1, ratio))})`;
       text.setText(`${name} ${value}`);
+    },
+    // Paint the last `part` (0..1 of the bar) of the fill pink, ending at `end`.
+    setCharge(end, part) {
+      charge.style.display = part > 0 ? '' : 'none';
+      if (part > 0) {
+        charge.style.left = `${(end - part) * 100}%`;
+        charge.style.width = `${part * 100}%`;
+      }
     },
   };
 }

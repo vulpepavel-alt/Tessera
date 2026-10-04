@@ -46,7 +46,7 @@ export class CombatSystem {
 
   // A melee blow: hits every opposing target in front of `attacker` within
   // `range` and inside an `arc` (degrees) around `facing` (radians).
-  melee({ attacker, facing, range, arc, damage, knockback, critChance = 0, heavy = false, finisher = false }) {
+  melee({ attacker, facing, range, arc, damage, knockback, critChance = 0, heavy = false, finisher = false, basic = false, effects = null }) {
     const half = THREE.MathUtils.degToRad(arc) / 2;
     const hits = [];
     for (const target of this.targetsOf(attacker.team)) {
@@ -59,7 +59,10 @@ export class CombatSystem {
       let angle = Math.atan2(dx, dz) - facing;
       angle = Math.atan2(Math.sin(angle), Math.cos(angle));
       if (Math.abs(angle) > half && reach > 0.6) continue; // very close targets always get hit
-      this.hit(target, { attacker, damage, knockback, critChance, heavy, finisher, from: attacker.position });
+      // The number pops up where the blade meets the target (its side facing you).
+      const at = new THREE.Vector3(-dx, 0, -dz).normalize().multiplyScalar(target.halfWidth)
+        .add(target.position).setY(target.position.y + target.height * 0.65);
+      this.hit(target, { attacker, damage, knockback, critChance, heavy, finisher, basic, effects, at, from: attacker.position });
       hits.push(target);
     }
     return hits;
@@ -71,9 +74,10 @@ export class CombatSystem {
 
   // Apply one hit. Returns the damage dealt (0 if dodged).
   // effects: { stun: seconds, slow: { factor, duration }, poison: { dps, duration } }
-  hit(target, { attacker, damage, knockback = 0, critChance = 0, heavy = false, finisher = false, from, effects = null }) {
+  // at: where the blow landed (damage numbers appear there); defaults to above the target.
+  hit(target, { attacker, damage, knockback = 0, critChance = 0, heavy = false, finisher = false, basic = false, from, at = null, effects = null }) {
     if (!target.alive) return 0;
-    const top = tmp.copy(target.position).setY(target.position.y + target.height + 0.2);
+    const top = at ? tmp.copy(at) : tmp.copy(target.position).setY(target.position.y + target.height * 0.8);
     if (target.invincible) {
       this.labels.number(top, target.team === 'player' ? 'Dodged!' : 'Immune', 'info');
       return 0;
@@ -95,7 +99,7 @@ export class CombatSystem {
     const style = target.team === 'player' ? 'player' : crit ? 'crit' : 'damage';
     this.labels.number(top, crit ? `${amount}!` : String(amount), style);
     if (attacker?.team === 'player') this.hitStop = Math.max(this.hitStop, heavy ? COMBAT.heavyHitStop : finisher ? COMBAT.finisherHitStop : COMBAT.hitStop);
-    this.emit('hit', { target, attacker, amount, crit, heavy, finisher });
+    this.emit('hit', { target, attacker, amount, crit, heavy, finisher, basic });
     if (target.health <= 0) {
       target.alive = target.team === 'player'; // the player is handled by the Game (respawn)
       this.emit('killed', { target, attacker });
@@ -119,7 +123,6 @@ export class CombatSystem {
   // Area damage around a point (exploding orbs).
   explode(projectile) {
     const r = projectile.explodeRadius;
-    this.labels.number(projectile.position.clone(), 'Boom!', 'info');
     for (const target of this.targetsOf(projectile.team)) {
       if (!target.alive) continue;
       const d = tmp.copy(target.position).setY(target.position.y + target.height / 2).distanceTo(projectile.position);
@@ -133,7 +136,8 @@ export class CombatSystem {
     for (const p of this.projectiles) {
       p.update(dt, this.world, this.targetsOf(p.team),
         (proj, target) => this.hit(target, { attacker: proj.owner, damage: proj.damage, knockback: proj.knockback,
-          critChance: proj.critChance, heavy: proj.heavy, finisher: proj.finisher, from: proj.position.clone().sub(proj.velocity), effects: proj.effects }),
+          critChance: proj.critChance, heavy: proj.heavy, finisher: proj.finisher, basic: proj.basic, at: proj.position.clone(),
+          from: proj.position.clone().sub(proj.velocity), effects: proj.effects }),
         (proj) => this.explode(proj));
     }
     // Voxel trails make the path of arrows and spells easy to read.

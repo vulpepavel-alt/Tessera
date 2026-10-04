@@ -1,9 +1,10 @@
-// The player's skills (1, 2) and ultimate (R) for the chosen specialization,
+// The player's skills (1, 2: cost stamina) and specialization skill (R: long
+// cooldown) for the chosen specialization,
 // plus the combo counter, buffs (stronger, tougher, faster...), traps and
 // effects that last a while (arrow rain, flurries).
 
 import * as THREE from 'three';
-import { SPEC_SKILLS, ULTIMATE, COMBO } from '../data/skills.js';
+import { SPEC_SKILLS, COMBO } from '../data/skills.js';
 import { CLASS_COMBAT } from '../data/combat.js';
 import { EFFECTS } from './skillEffects.js';
 import { isSolidBlock } from '../entities/physics.js';
@@ -11,7 +12,7 @@ import { isSolidBlock } from '../entities/physics.js';
 export class SkillSystem {
   constructor({ player, combat, playerCombat, particles, labels, camera, cameraRig, world }) {
     Object.assign(this, { player, combat, playerCombat, particles, labels, camera, cameraRig, world });
-    this.cooldowns = { s1: 0, s2: 0 };
+    this.cooldowns = { s1: 0, s2: 0, ult: 0 };
     this.buffs = [];       // { stat, value, time }
     this.traps = [];
     this.repeating = [];   // timed actions (rain, flurry, meteor)
@@ -19,7 +20,6 @@ export class SkillSystem {
     this.combo = 0;
     this.comboTimer = 0;
     this.lastAimYaw = 0;
-    player.ultCharge ??= 0;
     this.installModifiers();
   }
 
@@ -54,7 +54,6 @@ export class SkillSystem {
   onHitDealt(amount) {
     this.combo++;
     this.comboTimer = COMBO.window;
-    this.player.ultCharge = Math.min(ULTIMATE.chargeNeeded, this.player.ultCharge + amount * ULTIMATE.chargePerDamage);
     const steal = this.buffValue('lifesteal', 0, 'max');
     if (steal > 0) this.player.health = Math.min(this.player.maxHealth, this.player.health + amount * steal);
   }
@@ -111,9 +110,8 @@ export class SkillSystem {
   // Can this slot be used right now? Returns a reason string if not.
   blocked(slot) {
     const s = this.skill(slot);
-    if (slot === 'ult') return this.player.ultCharge < ULTIMATE.chargeNeeded ? 'Ultimate not charged yet' : null;
     if (this.cooldowns[slot] > 0) return 'Not ready yet';
-    if (this.player.resource < s.cost) return `Not enough ${this.player.classInfo.resource.name.toLowerCase()}`;
+    if (this.player.stamina < (s.stamina ?? 0)) return 'Not enough stamina';
     return null;
   }
 
@@ -124,11 +122,8 @@ export class SkillSystem {
       return;
     }
     const s = this.skill(slot);
-    if (slot === 'ult') this.player.ultCharge = 0;
-    else {
-      this.player.resource -= s.cost;
-      this.cooldowns[slot] = s.cooldown;
-    }
+    if (s.stamina) this.player.drainStamina(s.stamina);
+    this.cooldowns[slot] = s.cooldown;
     const ctx = this.context();
     for (const e of s.effects) EFFECTS[e.kind](e, ctx);
     this.player.attackPose = null;
@@ -260,16 +255,13 @@ export class SkillSystem {
     this.cameraRig.shake = Math.max(this.cameraRig.shake, amount);
   }
 
-  // Hotbar info: 0..1 cooldown fractions, usable flags, ultimate charge.
+  // Hotbar info: 0..1 cooldown fractions and usable flags (enough stamina).
   hotbarState() {
-    const s1 = this.skill('s1');
-    const s2 = this.skill('s2');
-    return {
-      s1: { cooldown: s1.cooldown ? this.cooldowns.s1 / s1.cooldown : 0, usable: this.player.resource >= s1.cost },
-      s2: { cooldown: s2.cooldown ? this.cooldowns.s2 / s2.cooldown : 0, usable: this.player.resource >= s2.cost },
-      ult: { charge: this.player.ultCharge / ULTIMATE.chargeNeeded },
-      combo: this.combo,
+    const state = (slot) => {
+      const s = this.skill(slot);
+      return { cooldown: s.cooldown ? this.cooldowns[slot] / s.cooldown : 0, usable: this.player.stamina >= (s.stamina ?? 0) };
     };
+    return { s1: state('s1'), s2: state('s2'), ult: state('ult'), combo: this.combo };
   }
 }
 

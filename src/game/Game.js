@@ -24,6 +24,7 @@ import { buildCharacter } from '../models/characterModel.js';
 import { buildVillager } from '../models/villagerModel.js';
 import { buildCreature } from '../models/creatureModels.js';
 import { PLAYER } from '../data/player.js';
+import { SPECIAL } from '../data/combat.js';
 import { Particles } from '../effects/Particles.js';
 import { Sfx } from '../audio/Sfx.js';
 import { AmbientLife } from '../effects/AmbientLife.js';
@@ -293,11 +294,11 @@ export class Game {
   // How far along each hotbar cooldown is (1 = just used, 0 = ready).
   cooldowns() {
     const pc = this.battle.playerCombat;
-    const heavy = pc.attacks.heavy;
     const roll = this.player.roll;
     return {
-      heavy: heavy.cooldown ? pc.heavyCooldown / heavy.cooldown : 0,
-      heavyReady: this.player.resource >= heavy.cost,
+      special: 0,
+      specialReady: this.player.resource >= SPECIAL.minMp,
+      chargedMp: pc.chargedMp,
       roll: roll.time >= 0 ? 1 : roll.cooldown / PLAYER.rollCooldown,
       skills: this.battle.skills.hotbarState(),
     };

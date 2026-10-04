@@ -29,9 +29,9 @@ export class Battle {
   }
 
   bindEvents() {
-    this.combat.on('hit', ({ target, attacker, amount, crit }) => {
+    this.combat.on('hit', ({ target, attacker, amount, crit, basic }) => {
       if (attacker === this.player) {
-        this.playerCombat.onHitDealt();
+        this.playerCombat.onHitDealt(basic);
         this.skills.onHitDealt(amount);
         if (crit) this.cameraRig.shake = Math.max(this.cameraRig.shake, 0.6);
       }
@@ -66,7 +66,7 @@ export class Battle {
     this.cameraRig.inCombat = this.combat.enemies.some((e) => e.alive && e.isAngry && e.position.distanceTo(p.position) < 18);
     // Weapons in hand while fighting; back on the back / hip a few seconds after.
     const pc = this.playerCombat;
-    p.setWeaponsDrawn(Boolean(pc.current || pc.skillPose || pc.sinceAttack < 4 || pc.sinceCombat < 4));
+    p.setWeaponsDrawn(Boolean(pc.current || pc.charge || pc.skillPose || pc.sinceAttack < 4 || pc.sinceCombat < 4));
 
     this.combat.update(dt);
     this.spawner.update(dt, this.player, isNight);
