@@ -16,8 +16,8 @@ const VIEW = 220;             // blocks across the visible square
 const REVEAL_RADIUS = 3;      // chunks around you that count as "explored"
 const REDRAW_EVERY = 1 / 12;  // seconds between redraws
 const FLOOR = WORLD.seaLevel - 8; // columns start here (keeps them short)
-const WIDTH = 240;
-const HEIGHT = 190;
+const WIDTH = 214;
+const HEIGHT = 120;
 
 export class Minimap {
   constructor(chunks, explored = []) {
@@ -33,7 +33,8 @@ export class Minimap {
     const sun = new THREE.DirectionalLight(0xffffff, 1.4);
     sun.position.set(-1, 3, -2);
     this.scene.add(sun);
-    this.camera = new THREE.OrthographicCamera(-VIEW * 0.62, VIEW * 0.62, VIEW * 0.5, -VIEW * 0.5, 1, 1000);
+    // Wide and short (214 x 120), like the classic minimap.
+    this.camera = new THREE.OrthographicCamera(-VIEW * 0.62, VIEW * 0.62, VIEW * 0.35, -VIEW * 0.35, 1, 1000);
 
     // Only the square around you is drawn (the sides are cut cleanly).
     this.clip = [0, 1, 2, 3].map(() => new THREE.Plane());

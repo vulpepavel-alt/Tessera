@@ -22,10 +22,10 @@ const TOAST_SECONDS = 3.5;
 
 export class GameHud {
   constructor(player, minimap, portraitUrl) {
-    // Bigger HUD on bigger screens (720 px tall -> 1.15x, capped at 1.55x):
-    // readable, but the world stays the star.
+    // Sizes in hud.css are measured from a 1600 x 848 alpha screenshot; the
+    // whole HUD scales with the window height so it keeps those proportions.
     const fit = () => document.documentElement.style.setProperty('--hud-scale',
-      String(Math.min(1.55, Math.max(1.05, (window.innerHeight / 720) * 1.15)).toFixed(2)));
+      String(Math.min(2, Math.max(0.75, window.innerHeight / 848)).toFixed(3)));
     fit();
     window.addEventListener('resize', fit);
     this.player = player;
@@ -35,13 +35,13 @@ export class GameHud {
     this.xp = bar('cw-xp', 'XP');
     this.miniHealth = bar('cw-hp', 'HP');
     this.topLeft = el('div', { class: 'hud-topleft' },
-      this.levelLabel = pixelLabel(`LVL ${player.level ?? 1}`, { scale: 3, color: '#d9ccff' }),
+      this.levelLabel = pixelLabel(`LVL ${player.level ?? 1}`, { scale: 2, color: '#d9ccff' }),
       this.xp.root, this.miniHealth.root,
       this.petLabel = pixelLabel('', { scale: 1, color: '#ffd27a' }));
 
     // Top-right: the time line, the place you are in, the minimap.
-    this.info = pixelLabel('', { scale: 1.5, color: '#ffffff' });
-    this.placeLabel = pixelLabel('', { scale: 2.5, color: '#ffffff' });
+    this.info = pixelLabel('', { scale: 1.3, color: '#ffffff' });
+    this.placeLabel = pixelLabel('', { scale: 2.1, color: '#ffffff' });
     const topRight = el('div', { class: 'hud-topright' },
       el('div', { class: 'hud-inforow' }, this.info),
       el('div', { class: 'hud-names' }, this.placeLabel),
@@ -81,8 +81,8 @@ export class GameHud {
     this.bossFill = el('div', { class: 'boss-fill' });
     this.bossBar = el('div', { class: 'hud-boss hidden' }, this.bossName, el('div', { class: 'boss-track' }, this.bossFill));
     // Bottom-right: what you are looking at.
-    this.targetTitle = pixelLabel('', { scale: 1.5, color: '#ffffff' });
-    this.targetLine = pixelLabel('', { scale: 1.5, color: '#7ce05a' });
+    this.targetTitle = pixelLabel('', { scale: 1.3, color: '#ffffff' });
+    this.targetLine = pixelLabel('', { scale: 1.3, color: '#7ce05a' });
     this.targetIcon = el('img', { class: 'cw-target-icon', alt: '' });
     this.target = el('div', { class: 'cw-target hidden' }, el('div', { class: 'cw-target-text' }, this.targetTitle, this.targetLine), this.targetIcon);
     this.root = el('div', { class: 'hud' }, this.vignette, this.death, this.topLeft, topRight, this.bossBar, this.toasts, this.levelBanner, bottom, this.target);
@@ -132,7 +132,7 @@ export class GameHud {
     this.target.classList.toggle('hidden', !t);
     if (!t) return;
     this.targetTitle.setText(t.title);
-    this.targetLine.setText(t.line, { scale: 1.5, color: t.lineColor ?? '#7ce05a' });
+    this.targetLine.setText(t.line, { scale: 1.3, color: t.lineColor ?? '#7ce05a' });
     this.targetIcon.style.display = t.icon ? '' : 'none';
     if (t.icon) this.targetIcon.src = t.icon;
   }

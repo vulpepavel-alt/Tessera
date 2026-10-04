@@ -35,7 +35,8 @@ import { xpFor } from '../data/progression.js';
 import { VillageLife } from './VillageLife.js';
 import { Minimap } from '../ui/Minimap.js';
 import { ChatLog } from '../ui/ChatLog.js';
-import { renderPortrait } from '../ui/portrait.js';
+import { renderPortrait, renderPreview } from '../ui/portrait.js';
+import { buildFoe } from '../models/foeModels.js';
 import { buildCharacter } from '../models/characterModel.js';
 import { buildVillager } from '../models/villagerModel.js';
 import { buildCreature } from '../models/creatureModels.js';
@@ -639,7 +640,7 @@ export class Game {
   // feet, else the villager you face.
   targetInfo() {
     const e = this.battle.labels.focus;
-    if (e?.alive) return { title: `LVL ${e.level} ${e.name}`.toUpperCase(), line: `HP ${Math.ceil(e.health)}/${e.maxHealth}`, lineColor: '#7ce05a' };
+    if (e?.alive) return { title: `LVL ${e.level} ${e.name}`.toUpperCase(), line: `HP ${Math.ceil(e.health)}/${e.maxHealth}`, lineColor: '#7ce05a', icon: this.previewOf(e) };
     const d = this.loot.nearest;
     if (d) {
       const item = ITEMS[d.id];
@@ -649,6 +650,18 @@ export class Game {
     const v = this.villageLife.talkTarget;
     if (v) return { title: v.name.toUpperCase(), line: (v.title ?? 'Villager').toUpperCase(), lineColor: '#ffd27a' };
     return null;
+  }
+
+  // A 3D picture of a monster kind for the info panel (made once per kind).
+  previewOf(enemy) {
+    this.previews ??= new Map();
+    const key = enemy.typeId;
+    if (!this.previews.has(key)) {
+      const type = enemy.type;
+      const model = type.foe ? buildFoe(type.foe) : buildCreature(type.model);
+      this.previews.set(key, renderPreview(model.root));
+    }
+    return this.previews.get(key);
   }
 
   // The music and nature sounds follow the time of day, the land, and
