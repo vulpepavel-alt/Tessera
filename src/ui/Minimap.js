@@ -156,10 +156,13 @@ function createMarkers(scene) {
   house.add(walls, roof);
   // Boss lairs: a big dark-red crystal standing over the spot.
   const lair = new THREE.Mesh(new THREE.OctahedronGeometry(5), new THREE.MeshLambertMaterial({ color: 0xb01a3a, emissive: 0x400010 }));
+  // Dungeon entrances: a squat stone block (green once cleared today).
+  const crypt = new THREE.Mesh(new THREE.BoxGeometry(7, 4, 7), new THREE.MeshLambertMaterial({ color: 0x8a92a8 }));
+  const cryptDone = new THREE.MeshLambertMaterial({ color: 0x6ad05a });
   const enemyGeometry = new THREE.BoxGeometry(3, 3, 3);
   const enemyMaterial = new THREE.MeshBasicMaterial({ color: 0xff3b30 });
   scene.add(you);
-  return { you, house, houses: [], lair, lairs: [], enemyGeometry, enemyMaterial, enemies: [], scene };
+  return { you, house, houses: [], lair, lairs: [], crypt, cryptDone, crypts: [], enemyGeometry, enemyMaterial, enemies: [], scene };
 }
 
 function placeMarkers(mk, p, facing, markers, clip) {
@@ -188,6 +191,19 @@ function placeMarkers(mk, p, facing, markers, clip) {
   mk.lairs.forEach((l, i) => {
     l.visible = i < lairs.length;
     if (l.visible) l.position.set(lairs[i].x, lairs[i].y + 10, lairs[i].z);
+  });
+
+  const crypts = (markers.dungeons ?? []).filter(inside);
+  while (mk.crypts.length < crypts.length) {
+    const c = mk.crypt.clone();
+    mk.scene.add(c);
+    mk.crypts.push(c);
+  }
+  mk.crypts.forEach((c, i) => {
+    c.visible = i < crypts.length;
+    if (!c.visible) return;
+    c.position.set(crypts[i].x, crypts[i].y + 6, crypts[i].z);
+    c.material = crypts[i].cleared ? mk.cryptDone : mk.crypt.material;
   });
 
   const enemies = markers.enemies.filter(inside);

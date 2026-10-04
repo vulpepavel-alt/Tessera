@@ -22,6 +22,23 @@ export const FOES = {
       { mainHand: 'wood-mace-1', chest: 'cloth-chest', legs: 'cloth-legs' },
     ],
   },
+  // Dungeon dwellers: the restless dead in old armour.
+  cryptGuard: {
+    race: 'undead',
+    hair: ['bald', 'cropped_block', 'swept_back'],
+    hairColor: ['silver', 'ash_blond', 'black'],
+    gear: [
+      { mainHand: 'iron-sword-1', chest: 'chain-chest', head: 'chain-head' },
+      { mainHand: 'iron-axe-1', chest: 'chain-chest', legs: 'chain-legs' },
+      { mainHand: 'iron-sword-2', offHand: 'wood-shield', chest: 'chain-chest' },
+    ],
+  },
+  cryptWarden: {
+    race: 'undead',
+    hair: ['bald'],
+    hairColor: ['silver'],
+    gear: [{ mainHand: 'iron-greatsword-1', chest: 'iron-chest', head: 'iron-head', shoulders: 'iron-shoulders', legs: 'iron-legs' }],
+  },
   banditThug: {
     race: 'human',
     hair: ['cropped_block', 'swept_back', 'short_spikes', 'low_ponytail'],

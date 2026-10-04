@@ -6,6 +6,7 @@
 //   - hills and ridged mountain ranges, shaped by the local biome,
 //   - rivers: winding lines carved down to water level.
 
+import { DungeonLayout } from './Dungeons.js';
 import { WORLD } from '../data/world.js';
 import { BLOCK } from '../data/blocks.js';
 import { RegionLayout } from './RegionLayout.js';
@@ -22,6 +23,7 @@ export class WorldGenerator {
     this.noise = Object.fromEntries(names.map((n) => [n, makeNoise2D(seed, n)]));
     this.cache = new Map();
     this.villages = new VillageLayout(seed, this);
+    this.dungeons = new DungeonLayout(seed, this);
   }
 
   // Everything about one column, including villages (which flatten the land

@@ -6,6 +6,7 @@ import { ChunkVolume } from './ChunkVolume.js';
 import { FLORA_BUILDERS } from './Decorations.js';
 import { waterBlockAt } from './WorldGenerator.js';
 import { stampVillage } from './VillageBuilder.js';
+import { stampDungeon, chunkTouches, inDungeonEntrance } from './Dungeons.js';
 import { VILLAGE } from '../data/villages.js';
 import { hash3, mulberry32 } from './random.js';
 
@@ -36,12 +37,17 @@ export function generateChunk(world, cx, cz) {
     }
   }
 
+  // Pass 2b: dungeons (crypts under the land) that reach into this chunk.
+  const dungeons = (world.dungeons?.dungeonsNear(x0 + S / 2, z0 + S / 2) ?? []).filter((d) => chunkTouches(d, x0, z0, S));
+  for (const d of dungeons) stampDungeon(volume, d);
+
   // Hand-built structures (only the benchmark world has these).
   world.stampStructures?.(volume);
 
   // Pass 3: plants (not inside villages).
   for (const { x, z, col } of columns) {
     if (col.village) continue;
+    if (dungeons.some((d) => inDungeonEntrance(d, x, z))) continue; // keep the dungeon entrance clear
     if (world.fixedFlora?.(volume, x, z, col, columnRng(x, z, world.salt))) continue; // benchmark: hand-placed
     placeFlora(volume, x, z, col, world.salt, world.groveAt(x, z));
   }

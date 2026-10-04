@@ -150,6 +150,16 @@ Object.assign(ENEMIES, {
   stormColossus: boss('Storm Colossus', 'stormspirePeaks', 'rockling', 2.6, { halfWidth: 0.6, height: 1.1, health: 360, damage: 17, run: 4.5, attack: QUAKE }),
 });
 
+// Dungeon dwellers (game/Dungeons.js places them; they never roam outside).
+const CLEAVE = { kind: 'slash', range: 3.6, windup: 0.85, duration: 0.4, speed: 9, cooldown: 1.8, knockback: 12, recover: 0.9 };
+Object.assign(ENEMIES, {
+  cryptGuard: { ...foe('Crypt Guard', [], 'cryptGuard', { health: 34, damage: 9, xp: 18 }), retreatAt: 0, leashRange: 22 },
+  cryptWarden: {
+    ...foe('Crypt Warden', [], 'cryptWarden', { health: 190, damage: 13, xp: 80 }),
+    miniBoss: true, scale: 1.5, halfWidth: 0.6, height: 3.0, retreatAt: 0, leashRange: 18, runSpeed: 5.5, attack: CLEAVE,
+  },
+});
+
 export const BOSS_FOR_BIOME = Object.fromEntries(Object.entries(ENEMIES).filter(([, t]) => t.boss).map(([id, t]) => [t.lairBiome, id]));
 
 export const SPAWNING = {
