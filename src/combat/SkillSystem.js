@@ -145,9 +145,11 @@ export class SkillSystem {
     };
   }
 
-  // The living enemy closest to the crosshair (within 25 blocks), for skills
-  // that need a target (e.g. appearing behind it). There is no lock-on.
+  // The enemy locked on with Tab, or else the living enemy closest to the
+  // crosshair (within 25 blocks), for skills that need a target.
   aimTarget() {
+    const locked = this.playerCombat.lockTarget;
+    if (locked?.alive) return locked;
     const ray = new THREE.Raycaster();
     ray.setFromCamera(new THREE.Vector2(0, 0.16), this.camera);
     let best = null;
@@ -170,6 +172,8 @@ export class SkillSystem {
 
   // Where on the ground the skill lands: where the crosshair meets the ground.
   aimPoint() {
+    const locked = this.playerCombat.lockTarget;
+    if (locked?.alive) return locked.position.clone();
     const ray = new THREE.Raycaster();
     ray.setFromCamera(new THREE.Vector2(0, 0.16), this.camera);
     const p = new THREE.Vector3();

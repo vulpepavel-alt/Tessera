@@ -108,3 +108,29 @@
 .combo-counter.show {
   opacity: 1;
 }
+
+/* Tab lock-on: four chunky corner brackets that slowly pulse. */
+.lock-marker {
+  width: 44px;
+  height: 44px;
+  --c: #ffe27a;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 12px 4px,
+    linear-gradient(var(--c), var(--c)) top left / 4px 12px,
+    linear-gradient(var(--c), var(--c)) top right / 12px 4px,
+    linear-gradient(var(--c), var(--c)) top right / 4px 12px,
+    linear-gradient(var(--c), var(--c)) bottom left / 12px 4px,
+    linear-gradient(var(--c), var(--c)) bottom left / 4px 12px,
+    linear-gradient(var(--c), var(--c)) bottom right / 12px 4px,
+    linear-gradient(var(--c), var(--c)) bottom right / 4px 12px;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000);
+  animation: lock-pulse 0.9s ease-in-out infinite alternate;
+}
+.lock-marker.hidden {
+  display: none;
+}
+@keyframes lock-pulse {
+  from { scale: 1; }
+  to { scale: 0.82; }
+}

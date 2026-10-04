@@ -3,6 +3,7 @@
 // Opens the main menu, or (when the address ends in "?slot=1", "?slot=2" or
 // "?slot=3") loads that save slot straight into the world.
 
+import './ui/styles/cursor.css';
 import { Engine } from './core/Engine.js';
 import { SaveManager } from './save/SaveManager.js';
 import { Game } from './game/Game.js';

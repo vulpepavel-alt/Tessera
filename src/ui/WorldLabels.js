@@ -28,12 +28,14 @@ export class WorldLabels {
     this.camera = camera;
     this.root = el('div', { class: 'world-labels' });
     this.crosshair = el('div', { class: 'crosshair' });
-    this.root.append(this.crosshair);
+    this.marker = el('div', { class: 'lock-marker hidden' });
+    this.root.append(this.crosshair, this.marker);
     document.body.appendChild(this.root);
     this.numbers = [];
     this.bars = new Map(); // enemy -> { root, fill }
     this.bubbles = new Map(); // speaker -> { node, time }
     this.tags = new Map();    // villager -> name tag node
+    this.lockTarget = null;   // the enemy locked on with Tab
     this.focus = null;        // the enemy under the crosshair (set by the battle)
     this.showAll = false;     // V: show every nearby angry enemy's bar
   }
@@ -122,13 +124,18 @@ export class WorldLabels {
     // Health bars: the enemy under the crosshair and ones you just hit (V: all angry ones).
     for (const [enemy, bar] of this.bars) {
       const near = this.camera.position.distanceTo(enemy.position) < BAR_RANGE;
-      const relevant = enemy === this.focus || enemy.sinceHurt < HURT_SHOW || (this.showAll && (enemy.isAngry || enemy.health < enemy.maxHealth));
+      const relevant = enemy === this.focus || enemy === this.lockTarget || enemy.sinceHurt < HURT_SHOW || (this.showAll && (enemy.isAngry || enemy.health < enemy.maxHealth));
       const show = near && enemy.alive && relevant;
       bar.root.style.display = show ? '' : 'none';
       if (!show) continue;
       bar.fill.style.transform = `scaleX(${Math.max(0, enemy.health / enemy.maxHealth)})`;
       this.place(bar.root, tmp.copy(enemy.position).setY(enemy.position.y + enemy.height + 0.6));
     }
+
+    // Lock-on marker: four corner brackets around the locked enemy.
+    const t = this.lockTarget?.alive ? this.lockTarget : null;
+    this.marker.classList.toggle('hidden', !t);
+    if (t) this.place(this.marker, tmp.copy(t.position).setY(t.position.y + t.height * 0.5));
   }
 
   // Move a label to where a 3D point appears on screen (hidden if behind the camera).

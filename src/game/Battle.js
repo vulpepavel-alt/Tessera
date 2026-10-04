@@ -1,9 +1,10 @@
 // Everything about fighting during a play session, gathered in one place:
-// the combat referee, the player's attacks, enemy spawning,
+// the combat referee, the player's attacks, Tab lock-on, enemy spawning,
 // floating labels, hit-stop, and what happens when you fall in battle.
 
 import { CombatSystem } from '../combat/CombatSystem.js';
 import { PlayerCombat } from '../combat/PlayerCombat.js';
+import { TargetLock } from '../combat/TargetLock.js';
 import { EnemySpawner } from '../entities/EnemySpawner.js';
 import { WorldLabels } from '../ui/WorldLabels.js';
 import { COMBAT } from '../data/combat.js';
@@ -19,6 +20,7 @@ export class Battle {
     this.combat = new CombatSystem(engine.scene, worldView.collision, this.labels);
     this.combat.player = player;
     this.playerCombat = new PlayerCombat(player, this.combat, engine.camera);
+    this.lock = new TargetLock(engine.camera);
     this.spawner = new EnemySpawner(engine.scene, worldView, this.combat, this.labels);
     this.skills = new SkillSystem({
       player, combat: this.combat, playerCombat: this.playerCombat, particles, labels: this.labels,
@@ -47,6 +49,12 @@ export class Battle {
     return this.deathTimer >= 0;
   }
 
+  // Tab pressed: lock on, switch target or release.
+  toggleLock() {
+    const t = this.lock.toggle(this.player, this.combat.enemies);
+    if (!t) this.hud.toast?.('No target in range');
+  }
+
   // dt: game time (0 while paused). Returns how much time the world should
   // advance this frame (0 during hit-stop).
   update(dt, input, isNight, playing) {
@@ -59,6 +67,10 @@ export class Battle {
     if (!this.dead) this.playerCombat.update(dt, input);
     const p = this.player;
     this.skills.update(dt, input, !this.dead && p.mode === 'walk' && p.roll.time < 0);
+    this.lock.update(this.player);
+    this.playerCombat.lockTarget = this.lock.target;
+    this.cameraRig.lockTarget = this.lock.target;
+    this.labels.lockTarget = this.lock.target;
     // The camera widens while angry enemies are near.
     this.cameraRig.inCombat = this.combat.enemies.some((e) => e.alive && e.isAngry && e.position.distanceTo(p.position) < 18);
     // Weapons in hand while fighting; back on the back / hip a few seconds after.
@@ -77,6 +89,7 @@ export class Battle {
     const p = this.player;
     if (!this.dead && p.health <= 0) {
       this.deathTimer = 0;
+      this.lock.target = null;
       this.skills.combo = 0;
       this.hud.showDeath(true);
       p.model.root.rotation.z = Math.PI / 2; // fall over

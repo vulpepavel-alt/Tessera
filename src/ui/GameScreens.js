@@ -21,6 +21,7 @@ export const CONTROLS = [
   ['Ctrl', 'Hold to climb walls'],
   ['G', 'Glider (in the air) / boat (at the water)'],
   ['B / I', 'Inventory'],
+  ['Tab', 'Lock on to an enemy (again to switch / release)'],
   ['V', 'Show all health bars'],
   ['E', 'Talk to villagers'],
   ['C', 'Dive (while swimming)'],

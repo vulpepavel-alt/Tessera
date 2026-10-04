@@ -45,7 +45,7 @@ export const ATMOSPHERE = {
 };
 
 export const CAMERA = {
-  fov: 58,                 // field of view in degrees
+  fov: 66,                 // field of view in degrees (wide: the land feels open)
   flySpeed: 24,            // debug fly mode (F4) speed, voxels per second
   fastMultiplier: 4,       // speed multiplier while holding Shift in fly mode
   mouseSensitivity: 0.0022,

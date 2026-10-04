@@ -7,7 +7,7 @@
 //                knock-down. Rogues strike at once with all their MP.
 // Melee classes fill MP with normal hits; mages refill it all the time.
 // You keep moving while you attack; a dodge roll cancels any attack.
-// Ranged attacks fly toward the crosshair (there is no target lock).
+// Ranged attacks fly toward the crosshair, or at the enemy locked with Tab.
 
 import * as THREE from 'three';
 import { COMBAT, SPECIAL, CLASS_COMBAT, WEAPON_COMBAT } from '../data/combat.js';
@@ -32,6 +32,7 @@ export class PlayerCombat {
     this.sinceAttack = 99;
     this.haste = 1;           // attack speed multiplier (skills can raise it)
     this.skillPose = null;    // a short arm pose after using a skill
+    this.lockTarget = null;   // the enemy locked on with Tab (or null)
   }
 
   // The attacks come from the weapon in the main hand (bare fists when there
@@ -207,14 +208,18 @@ export class PlayerCombat {
     p.emit('attack', { heavy: c.special, kind: a.kind });
   }
 
-  // Which way to face: where the camera looks (there is no target lock: you aim).
+  // Which way to face: toward the locked enemy, or where the camera looks.
   aimYaw() {
+    const t = this.lockTarget;
+    if (t?.alive) return Math.atan2(t.position.x - this.player.position.x, t.position.z - this.player.position.z);
     const dir = this.camera.getWorldDirection(new THREE.Vector3());
     return Math.atan2(dir.x, dir.z);
   }
 
-  // A 3D direction from `origin` toward the crosshair.
+  // A 3D direction from `origin` toward the locked enemy or the crosshair.
   aimDirection(origin) {
+    const t = this.lockTarget;
+    if (t?.alive) return t.position.clone().setY(t.position.y + t.height * 0.5).sub(origin);
     raycaster.setFromCamera(AIM_NDC, this.camera);
     const aimPoint = raycaster.ray.at(this.camera.position.distanceTo(origin) + 30, new THREE.Vector3());
     return aimPoint.sub(origin);

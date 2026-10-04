@@ -25,6 +25,7 @@ export const COMBAT = {
   hitStop: 0.045,           // tiny freeze when you land a hit (makes it feel punchy)
   heavyHitStop: 0.1,
   finisherHitStop: 0.08,
+  lockRange: 28,            // Tab lock-on reach
   outOfCombatTime: 5,       // seconds without fighting before health regenerates
   healthRegen: 0.04,        // fraction of max health per second, out of combat
   deathRespawnDelay: 3,     // seconds

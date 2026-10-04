@@ -27,7 +27,7 @@ export const BODY = {
   torso: { size: [14, 9, 11], pivot: [0, 19, 0] },        // top-centre (shoulder line)
   pelvis: { size: [14, 2, 11], pivot: [0, 10, 0] },       // top-centre
   arm: { size: [0, 0, 0], pivot: [8, 18, 0] },            // shoulder joint only (no visible arm)
-  hand: { size: [6, 6, 7], pivot: [9, 17, 3] },           // top of the hand; beside the chest, sticking out in front
+  hand: { size: [6, 6, 7], pivot: [11, 17, 3] },          // top of the hand; floating just beside the chest (never inside it)
   leg: { size: [6, 5, 7], pivot: [4, 8, 0] },             // hip (top of the leg, under the pelvis)
   foot: { size: [6, 3, 8], pivot: [4, 3, 1] },            // ankle; z = how far the boot reaches forward of it
   bodyCenter: 14,                                         // where the body tilts and rolls

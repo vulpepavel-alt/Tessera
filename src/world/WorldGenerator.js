@@ -20,6 +20,7 @@ export class WorldGenerator {
     const names = ['continent', 'hills', 'mountains', 'mountainZones', 'dunes', 'river',
       'riverWobble', 'surface', 'valleys', 'rolling', 'terrace', 'micro', 'groves'];
     this.noise = Object.fromEntries(names.map((n) => [n, makeNoise2D(seed, n)]));
+    this.cache = new Map();
     this.villages = new VillageLayout(seed, this);
   }
 
@@ -43,8 +44,35 @@ export class WorldGenerator {
     };
   }
 
-  // The land as nature made it, before villages.
+  // The land as nature made it, before villages. Lone cubes are tidied away:
+  // a column sticking up above 3-4 of its neighbours is trimmed to them, and a
+  // one-cube hole is filled, so nothing looks like it floats on the plain.
   rawColumn(x, z) {
+    const col = this.naturalColumn(x, z);
+    const t = col.top;
+    const nb = [this.naturalColumn(x + 1, z).top, this.naturalColumn(x - 1, z).top,
+      this.naturalColumn(x, z + 1).top, this.naturalColumn(x, z - 1).top];
+    const lower = nb.filter((v) => v < t);
+    let top = t;
+    if (lower.length >= 3 && col.mountain <= 6) top = Math.max(...lower);
+    else if (nb.every((v) => v > t)) top = Math.min(...nb);
+    if (top === t) return col;
+    return { ...col, top, waterTop: top < WORLD.seaLevel ? WORLD.seaLevel : -1 };
+  }
+
+  // Cached: every column is asked for by its four neighbours too.
+  naturalColumn(x, z) {
+    const key = x * 100003 + z;
+    let col = this.cache.get(key);
+    if (!col) {
+      if (this.cache.size > 150000) this.cache.clear();
+      col = this.shapeColumn(x, z);
+      this.cache.set(key, col);
+    }
+    return col;
+  }
+
+  shapeColumn(x, z) {
     const { biome, terrain, site } = this.regions.sample(x, z);
     const n = this.noise;
 
@@ -67,14 +95,15 @@ export class WorldGenerator {
     // time (smooth contours, long flat stretches); mountains get taller steps,
     // which turn into cliff bands. The steps' outlines wander a little.
     const step = mountain > 6 ? 4 : 1;
-    const phase = fbm2(n.terrace, x, z, 2, 0.04) * 0.8;
+    const phase = fbm2(n.terrace, x, z, 2, 0.012) * 0.8; // slow wander: long, clean step edges
     const t = raw / step + phase;
     const tread = Math.floor(t);
     raw = (tread + smoothstep(0.4, 0.6, t - tread)) * step; // flat treads, steep risers
 
-    // MICRO: an occasional one-cube bump, so wide plains are not perfectly flat.
-    const micro = fbm2(n.micro, x, z, 2, 0.13);
-    if (micro > 0.62) raw += 1;
+    // MICRO: now and then a broad, low rise (never a lone cube), so wide plains
+    // are not perfectly flat without looking cluttered.
+    const micro = fbm2(n.micro, x, z, 1, 0.035);
+    if (micro > 0.55) raw += 1;
 
     // Rivers: near the river line the ground is pulled down below the water.
     const riverLine = Math.abs(n.river(x * WORLD.riverFrequency, z * WORLD.riverFrequency)

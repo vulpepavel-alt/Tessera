@@ -131,6 +131,9 @@ export class Game {
       });
     }
     // V: show the health bars of every nearby enemy (off by default, like the classic game).
+    this.input.onPress('Tab', () => {
+      if (this.state === 'playing') this.battle.toggleLock();
+    });
     this.input.onPress('KeyV', () => {
       if (this.state !== 'playing') return;
       this.battle.labels.showAll = !this.battle.labels.showAll;

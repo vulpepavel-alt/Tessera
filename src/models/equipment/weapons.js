@@ -37,6 +37,10 @@ const SHEATH = {
 
 const WORN_ON_FIST = new Set(['fist', 'bracelet']);
 
+// Weapons are drawn bigger than life, the classic way: a sword reaches the
+// hero's head, a greatsword towers over it. (Fist weapons stay fist-sized.)
+const HELD_SIZE = 1.3;
+
 // Builds the held items and puts them in the hands (drawn). Returns the
 // records placeHeld() uses to move them between hands and sheaths.
 export function buildHeld(gear, model) {
@@ -87,7 +91,7 @@ export function placeHeld(model, drawn) {
       h.holder.position.set(0, 0.5 * VOXEL, -(h.side === 'main' ? 1.5 : 3) * VOXEL);
       h.holder.rotation.z = shield ? 0 : h.side === 'main' ? 0.7 : -0.7;
       h.inner.rotation.y = shield ? -Math.PI / 2 : Math.PI / 2; // shields face outwards
-      h.inner.position.y = -h.centre * VOXEL;
+      h.inner.position.y = -h.centre * VOXEL * h.inner.scale.y;
     } else {
       // At the belt, pointing down and back, so it never reaches the ground.
       const s = h.side === 'main' ? -1 : 1;
@@ -103,6 +107,7 @@ function holdable(item, hand, side) {
   const pivot = [grid.sizeX / 2, grid.grip ?? 2, grid.gripZ ?? grid.sizeZ / 2];
   const holder = new Object3D();
   const inner = attach(holder, grid, pivot, [0, 0, 0]);
+  if (!WORN_ON_FIST.has(item.model)) inner.scale.setScalar(HELD_SIZE);
   return {
     item, hand, side, holder, inner,
     hold: HOLD[item.model] ?? { tilt: 0.3 },

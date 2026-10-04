@@ -20,7 +20,7 @@ const ORBIT_HEIGHT = 30;   // camera height above the ground (above the tallest 
 const ORBIT_SPEED = 0.025; // radians per second
 const STAGE_VIEW = new THREE.Vector3(0, 1.9, 4.3);  // camera offset in front of the pedestal (whole body)
 const FACE_VIEW = new THREE.Vector3(0, 2.45, 1.9); // camera offset when zoomed in on the face
-const PEDESTAL = { width: 6.4, height: 0.7, depth: 4.4 }; // a wide, low slab
+const PEDESTAL = { width: 6.4, height: 1.0, depth: 4.4 }; // a wide, low slab (tall enough to cover grass tufts)
 
 export class MenuScene {
   constructor(engine) {
@@ -48,17 +48,22 @@ export class MenuScene {
   // turned so the countryside is in the background.
   buildStage(spawn) {
     const gen = this.world.generator;
+    // Best: wide flat ground out to where the camera stands; else any small
+    // flat spot (still outside the village, whose houses would block the view).
     let spot = null;
-    for (let r = 62; r < 160 && !spot; r += 4) {
-      for (let k = 0; k < 16 && !spot; k++) {
-        const a = (k / 16) * Math.PI * 2 + 0.3;
-        const x = Math.round(spawn.x + Math.cos(a) * r);
-        const z = Math.round(spawn.z + Math.sin(a) * r);
-        if (flatTop(gen, x, z) !== null && gen.isGoodSpawn(x, z) && !gen.column(x, z).village) spot = { x, z };
+    for (const reach of [6, 4, 2]) {
+      for (let r = 62; r < 220 && !spot; r += 4) {
+        for (let k = 0; k < 24 && !spot; k++) {
+          const a = (k / 24) * Math.PI * 2 + 0.3;
+          const x = Math.round(spawn.x + Math.cos(a) * r);
+          const z = Math.round(spawn.z + Math.sin(a) * r);
+          if (flatTop(gen, x, z, reach) !== null && gen.isGoodSpawn(x, z) && !gen.column(x, z).village) spot = { x, z, reach };
+        }
       }
+      if (spot) break;
     }
-    spot ??= { x: Math.round(spawn.x), z: Math.round(spawn.z) };
-    const ground = (flatTop(gen, spot.x, spot.z) ?? gen.column(spot.x, spot.z).top) + 1;
+    spot ??= { x: Math.round(spawn.x), z: Math.round(spawn.z), reach: 2 };
+    const ground = (flatTop(gen, spot.x, spot.z, spot.reach) ?? gen.column(spot.x, spot.z).top) + 1;
     this.stagePos = new THREE.Vector3(spot.x + 0.5, ground, spot.z + 0.5);
     // Face the village, so the camera (in front of the hero) looks out over
     // the open countryside and its trees, like the classic creator screen.
@@ -209,11 +214,11 @@ export class MenuScene {
 // The highest ground under the pedestal, or null when the ground there is
 // too bumpy (more than one block of difference). The check reaches out to
 // where the camera stands, so no hill blocks the view of the hero.
-function flatTop(gen, x, z) {
+function flatTop(gen, x, z, reach = 6) {
   let min = Infinity;
   let max = -Infinity;
-  for (let dz = -6; dz <= 6; dz++) {
-    for (let dx = -6; dx <= 6; dx++) {
+  for (let dz = -reach; dz <= reach; dz++) {
+    for (let dx = -reach; dx <= reach; dx++) {
       const top = gen.column(x + dx, z + dz).top;
       min = Math.min(min, top);
       max = Math.max(max, top);
