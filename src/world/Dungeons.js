@@ -121,9 +121,20 @@ export class DungeonLayout {
   }
 }
 
+// Each land builds its crypts from its own stone: wall, floor, lamp.
+const CRYPT_STYLES = {
+  amberMeadows: { wall: BLOCK.STONE_BRICK, floor: BLOCK.COBBLE, lamp: BLOCK.LAMP },
+  crystalfrostForest: { wall: BLOCK.STONE_BRICK, floor: BLOCK.ICE, lamp: BLOCK.FROST_CRYSTAL },
+  copperDunes: { wall: BLOCK.SANDSTONE, floor: BLOCK.ADOBE, lamp: BLOCK.LAMP },
+  lanternMarsh: { wall: BLOCK.DARK_PLANKS, floor: BLOCK.MUD, lamp: BLOCK.LANTERN_CAP },
+  stormspirePeaks: { wall: BLOCK.DARK_ROCK, floor: BLOCK.COBBLE, lamp: BLOCK.STORM_CRYSTAL },
+};
+
 // Build the parts of a dungeon that fall inside this chunk.
 export function stampDungeon(volume, d) {
-  const set = (u, s, y, block) => volume.set(d.x + d.dx * u + d.px * s, y, d.z + d.dz * u + d.pz * s, block);
+  const style = CRYPT_STYLES[d.biomeId] ?? CRYPT_STYLES.amberMeadows;
+  const swap = { [BLOCK.STONE_BRICK]: style.wall, [BLOCK.COBBLE]: style.floor, [BLOCK.LAMP]: style.lamp };
+  const set = (u, s, y, block) => volume.set(d.x + d.dx * u + d.px * s, y, d.z + d.dz * u + d.pz * s, swap[block] ?? block);
 
   // Pieces: a shell of stone brick, then hollowed out, then lamps.
   for (const p of d.pieces) {
