@@ -66,8 +66,9 @@ export class GameHud {
 
     this.toasts = el('div', { class: 'hud-toasts' });
     this.vignette = el('div', { class: 'hud-vignette' });
-    this.death = el('div', { class: 'hud-death hidden' }, el('div', {}, 'You have fallen…'),
-      el('small', {}, 'Waking up at the last safe spot'));
+    this.death = el('div', { class: 'hud-death hidden' },
+      pixelLabel('YOU HAVE FALLEN', { scale: 4, color: '#ffffff' }),
+      pixelLabel('WAKING UP AT THE LAST SAFE SPOT', { scale: 1.5, color: '#e8d0d0' }));
 
     this.root = el('div', { class: 'hud' }, this.vignette, this.death, this.topLeft, topRight, this.toasts, bottom);
     document.body.appendChild(this.root);
@@ -173,9 +174,10 @@ function bar(color, name) {
   const fill = el('div', { class: 'bar-fill', style: { background: color } });
   const charge = el('div', { class: 'bar-charge' }); // MP committed to a special attack (pink)
   const text = pixelLabel('', { scale: 1 });
+  // Like the classic HUD: a tiny name above the bar, the numbers inside it.
   const root = el('div', { class: 'hud-bar' },
+    pixelLabel(name, { scale: 1, color: '#ffffff' }),
     el('div', { class: 'bar' }, fill, charge, el('div', { class: 'bar-label' }, text)));
-  root.title = name;
   let last = '';
   return {
     root,
@@ -184,7 +186,7 @@ function bar(color, name) {
       if (key === last) return;
       last = key;
       fill.style.transform = `scaleX(${Math.max(0, Math.min(1, ratio))})`;
-      text.setText(`${name} ${value}`);
+      text.setText(value);
     },
     // Paint the last `part` (0..1 of the bar) of the fill pink, ending at `end`.
     setCharge(end, part) {

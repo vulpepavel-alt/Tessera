@@ -6,11 +6,6 @@
 import * as THREE from 'three';
 import { CAMERA } from '../data/world.js';
 import { isSolidBlock } from '../entities/physics.js';
-import { BLOCK_INFO } from '../data/blocks.js';
-
-// The camera passes through leaves and needles (only ground, rock, wood and
-// walls push it in), so forests never squeeze the view against the hero.
-const FOLIAGE = new Set(BLOCK_INFO.map((b, id) => (/Leaves|Needles|Blossom/.test(b?.name ?? '') ? id : -1)).filter((id) => id >= 0));
 
 const MIN_PITCH = -0.6;  // looking up from below
 const MAX_PITCH = 1.35;  // looking down from above
@@ -77,8 +72,7 @@ export class ThirdPersonCamera {
     const p = new THREE.Vector3();
     for (let d = step; d <= wanted; d += step) {
       p.copy(this.target).addScaledVector(this.offset, d);
-      const block = this.world.getBlock(p.x, p.y, p.z);
-      if (isSolidBlock(block) && !FOLIAGE.has(block)) return Math.max(0.6, d - WALL_GAP);
+      if (isSolidBlock(this.world.getBlock(p.x, p.y, p.z))) return Math.max(0.6, d - WALL_GAP);
     }
     return wanted;
   }

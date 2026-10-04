@@ -169,10 +169,12 @@ export class Game {
     // Trails behind arrows and spells.
     this.battle.combat.onTrail = (p) => this.particles.burst(p.model === 'arrow' ? 'trailArrow' : p.model === 'orb' ? 'trailOrb' : 'trailBolt', p.position);
     this.battle.combat.on('killed', ({ target }) => {
-      if (target !== this.player) this.particles.burst('poof', target.position.clone().setY(target.position.y + 0.5));
+      if (target === this.player) return;
+      this.particles.burst('poof', target.position.clone().setY(target.position.y + 0.5));
+      this.chat.add(null, `${target.name} defeated.`); // quietly, in the message log
     });
     this.player.on('fell', ({ lost }) => {
-      this.hud.toast(`The clouds carry you back to safe ground (-${lost} health)`);
+      this.chat.add(null, `You were brought back to safe ground (-${lost} health).`);
     });
     settings.subscribe((name, value) => {
       if (name === 'mouseSensitivity') this.cameraRig.sensitivity = value;
@@ -251,8 +253,7 @@ export class Game {
 
     this.autosaveTimer += dt;
     if (playing && this.slot && this.autosaveTimer >= AUTOSAVE_SECONDS) {
-      this.saveNow();
-      this.hud.toast('Game saved');
+      this.saveNow(); // quietly: no popup every minute
     }
   }
 

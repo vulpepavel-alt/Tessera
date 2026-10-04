@@ -1,4 +1,5 @@
-// The small conversation log in the bottom-right corner. Keeps the last few
+// The small message log in the bottom-left corner: what villagers say, and
+// events like defeated monsters and items received (like the classic game). Keeps the last few
 // lines; older lines fade out after a while.
 
 import { el } from './dom.js';

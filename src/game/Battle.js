@@ -41,9 +41,6 @@ export class Battle {
         this.hud.flashDamage();
       }
     });
-    this.combat.on('killed', ({ target }) => {
-      if (target !== this.player) this.hud.toast(`${target.name} defeated`);
-    });
   }
 
   get dead() {
