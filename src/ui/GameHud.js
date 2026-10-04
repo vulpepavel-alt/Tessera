@@ -81,7 +81,11 @@ export class GameHud {
       pixelLabel('YOU HAVE FALLEN', { scale: 4, color: '#ffffff' }),
       pixelLabel('WAKING UP AT THE LAST SAFE SPOT', { scale: 1.5, color: '#e8d0d0' }));
 
-    this.root = el('div', { class: 'hud' }, this.vignette, this.death, this.topLeft, topRight, this.toasts, this.levelBanner, bottom);
+    // A boss fight: its name and a long health bar across the top.
+    this.bossName = pixelLabel('', { scale: 2, color: '#ff8a7a' });
+    this.bossFill = el('div', { class: 'boss-fill' });
+    this.bossBar = el('div', { class: 'hud-boss hidden' }, this.bossName, el('div', { class: 'boss-track' }, this.bossFill));
+    this.root = el('div', { class: 'hud' }, this.vignette, this.death, this.topLeft, topRight, this.bossBar, this.toasts, this.levelBanner, bottom);
     document.body.appendChild(this.root);
     this.last = {};
   }
@@ -178,6 +182,21 @@ export class GameHud {
 
   showDeath(visible) {
     this.death.classList.toggle('hidden', !visible);
+  }
+
+  // The boss you are fighting (or null): name and health across the top.
+  setBoss(boss) {
+    this.bossBar.classList.toggle('hidden', !boss);
+    if (!boss) {
+      this.bossKey = null;
+      return;
+    }
+    const key = `${boss.level}|${boss.name}`;
+    if (key !== this.bossKey) {
+      this.bossKey = key;
+      this.bossName.setText(`LV ${boss.level} ${boss.name}`.toUpperCase());
+    }
+    this.bossFill.style.transform = `scaleX(${Math.max(0, boss.health / boss.maxHealth)})`;
   }
 
   // The pet's name under your bars (empty: no pet).

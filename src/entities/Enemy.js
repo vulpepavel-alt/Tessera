@@ -65,6 +65,7 @@ export class Enemy {
     this.stars = null;
 
     this.model = type.foe ? buildFoe(type.foe) : buildCreature(type.model);
+    if (type.scale) this.model.root.scale.setScalar(type.scale); // bosses: giant versions
     scene.add(this.model.root);
     this.syncModel(0);
   }

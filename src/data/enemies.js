@@ -125,6 +125,33 @@ Object.assign(ENEMIES, {
   banditThug: foe('Bandit', ['copperDunes', 'crystalfrostForest', 'stormspirePeaks'], 'banditThug', { health: 38, damage: 9, xp: 20 }),
 });
 
+// Bosses: one giant beast per area, waiting in its lair (game/Bosses.js).
+// A boss is a scaled-up animal at the area's top level, very tough, with a
+// slow, heavy attack that sends you flying. Beaten bosses return the next day.
+const SLAM = { kind: 'charge', range: 5, windup: 1.0, duration: 0.5, speed: 13, cooldown: 2.2, knockback: 16, recover: 1.1 };
+const POUNCE = { kind: 'lunge', range: 4.5, windup: 0.8, duration: 0.35, speed: 15, cooldown: 1.8, knockback: 13, recover: 0.9 };
+const QUAKE = { kind: 'hop', range: 5, windup: 1.0, duration: 0.7, speed: 8, hop: 11, cooldown: 2.4, knockback: 15, recover: 1.2 };
+
+function boss(name, biome, model, scale, { halfWidth, height, health, damage, run, attack }) {
+  return {
+    name, biomes: [], lairBiome: biome, boss: true, model, scale,
+    halfWidth: halfWidth * scale, height: height * scale,
+    health, healthPerLevel: Math.round(health * 0.25), damage, damagePerLevel: damage * 0.2,
+    walkSpeed: 2, runSpeed: run, aggroRange: 18, leashRange: 28, retreatAt: 0, retreatTime: 0,
+    attack, xp: 120,
+  };
+}
+
+Object.assign(ENEMIES, {
+  thornbackMatriarch: boss('Thornback Matriarch', 'amberMeadows', 'bramblehog', 2.4, { halfWidth: 0.6, height: 1.5, health: 260, damage: 14, run: 7, attack: SLAM }),
+  frostfangAlpha: boss('Frostfang Alpha', 'crystalfrostForest', 'frostWolf', 2.3, { halfWidth: 0.45, height: 1.4, health: 230, damage: 13, run: 9, attack: POUNCE }),
+  duneTyrant: boss('Dune Tyrant', 'copperDunes', 'sandScorpion', 2.4, { halfWidth: 0.6, height: 1.0, health: 280, damage: 15, run: 7, attack: POUNCE }),
+  mireAncient: boss('Mire Ancient', 'lanternMarsh', 'mireSnapper', 2.4, { halfWidth: 0.65, height: 1.0, health: 320, damage: 15, run: 5.5, attack: SLAM }),
+  stormColossus: boss('Storm Colossus', 'stormspirePeaks', 'rockling', 2.6, { halfWidth: 0.6, height: 1.1, health: 360, damage: 17, run: 4.5, attack: QUAKE }),
+});
+
+export const BOSS_FOR_BIOME = Object.fromEntries(Object.entries(ENEMIES).filter(([, t]) => t.boss).map(([id, t]) => [t.lairBiome, id]));
+
 export const SPAWNING = {
   maxDay: 6,          // enemies alive around you by day
   maxNight: 10,       // ... and at night

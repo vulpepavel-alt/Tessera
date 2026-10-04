@@ -17,6 +17,7 @@ import { GuildPanel } from '../ui/GuildPanel.js';
 import { InventoryWindow } from '../ui/InventoryWindow.js';
 import { ShopWindow } from '../ui/ShopWindow.js';
 import { Pet } from '../entities/Pet.js';
+import { Bosses } from './Bosses.js';
 import { stockFor, POTION } from '../data/shop.js';
 import { Inventory } from './Inventory.js';
 import { LootSystem } from './Loot.js';
@@ -115,6 +116,11 @@ export class Game {
       scene: engine.scene, player: this.player, inventory: this.inventory,
       onMessage: (text) => this.chat.add(null, text),
       onGold: (amount) => { this.player.gold += amount; },
+    });
+    this.bosses = new Bosses({
+      scene: engine.scene, world: this.world, battle: this.battle, loot: this.loot, player: this.player,
+      onMessage: (text) => { this.chat.add(null, text); this.hud.toast(text); },
+      defeated: save.bossesDefeated ?? {},
     });
     this.pause = new PauseMenu({
       onResume: () => this.input.lock(),
@@ -229,6 +235,7 @@ export class Game {
       this.chat.add(null, `${target.name} defeated. You gain ${xp} XP.`);
       this.player.gainXp(xp);
       this.loot.dropFor(target);
+      this.bosses.onKilled(target);
       // Now and then a health potion (straight into your pouch).
       if (Math.random() < POTION.dropChance && this.player.potions < POTION.max) {
         this.player.potions++;
@@ -295,6 +302,7 @@ export class Game {
       this.villageLife.update(gameDt, this.player, this.world.dayNight.isNight);
       this.loot.update(gameDt);
       this.pet?.update(gameDt);
+      this.bosses.update(gameDt);
       this.player.potionCooldown = Math.max(0, this.player.potionCooldown - gameDt);
       if (this.loot.nearest) this.hud.setPrompt(`Pick up ${ITEMS[this.loot.nearest.id].name}`);
     }
@@ -315,7 +323,9 @@ export class Game {
     this.minimap.update(dt, focus, this.cameraRig.yaw, this.player.facing, {
       villages: this.world.generator.villages.villagesNear(focus.x, focus.z).map((v) => ({ x: v.center.x, y: v.baseY, z: v.center.z })),
       enemies: this.battle.combat.enemies.filter((e) => e.alive).map((e) => e.position),
+      lairs: this.bosses.markers(focus),
     });
+    this.hud.setBoss(this.bosses.current);
 
     this.autosaveTimer += dt;
     if (playing && this.slot && this.autosaveTimer >= AUTOSAVE_SECONDS) {
@@ -486,6 +496,7 @@ export class Game {
       gold: this.player.gold,
       potions: this.player.potions,
       treats: this.player.treats,
+      bossesDefeated: this.bosses.defeated,
       pet: this.pet ? { type: this.pet.typeId, name: this.pet.name } : null,
       equipment: this.player.equipment,
       bag: this.player.bag,

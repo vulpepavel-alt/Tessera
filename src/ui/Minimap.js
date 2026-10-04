@@ -154,10 +154,12 @@ function createMarkers(scene) {
   const roof = new THREE.Mesh(new THREE.ConeGeometry(5.5, 4, 4).rotateY(Math.PI / 4), new THREE.MeshLambertMaterial({ color: 0xdc4c36 }));
   roof.position.y = 4;
   house.add(walls, roof);
+  // Boss lairs: a big dark-red crystal standing over the spot.
+  const lair = new THREE.Mesh(new THREE.OctahedronGeometry(5), new THREE.MeshLambertMaterial({ color: 0xb01a3a, emissive: 0x400010 }));
   const enemyGeometry = new THREE.BoxGeometry(3, 3, 3);
   const enemyMaterial = new THREE.MeshBasicMaterial({ color: 0xff3b30 });
   scene.add(you);
-  return { you, house, houses: [], enemyGeometry, enemyMaterial, enemies: [], scene };
+  return { you, house, houses: [], lair, lairs: [], enemyGeometry, enemyMaterial, enemies: [], scene };
 }
 
 function placeMarkers(mk, p, facing, markers, clip) {
@@ -175,6 +177,17 @@ function placeMarkers(mk, p, facing, markers, clip) {
   mk.houses.forEach((h, i) => {
     h.visible = i < villages.length;
     if (h.visible) h.position.set(villages[i].x, villages[i].y + 8, villages[i].z);
+  });
+
+  const lairs = (markers.lairs ?? []).filter(inside);
+  while (mk.lairs.length < lairs.length) {
+    const l = mk.lair.clone();
+    mk.scene.add(l);
+    mk.lairs.push(l);
+  }
+  mk.lairs.forEach((l, i) => {
+    l.visible = i < lairs.length;
+    if (l.visible) l.position.set(lairs[i].x, lairs[i].y + 10, lairs[i].z);
   });
 
   const enemies = markers.enemies.filter(inside);
