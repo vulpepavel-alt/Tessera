@@ -140,6 +140,10 @@ export class Player {
 
   // XP from a defeated monster; levels go up on their own (full health on level up).
   gainXp(amount) {
+    if (this.level >= LEVEL.maxLevel) {
+      this.xp = 0; // the top: no more XP to collect
+      return;
+    }
     this.xp += amount;
     while (this.level < LEVEL.maxLevel && this.xp >= xpToNext(this.level)) {
       this.xp -= xpToNext(this.level);
@@ -148,6 +152,7 @@ export class Player {
       this.health = this.maxHealth;
       this.emit('levelup', this.level);
     }
+    if (this.level >= LEVEL.maxLevel) this.xp = 0;
   }
 
   // Key 3: drink a health potion. Returns a message when you can't.

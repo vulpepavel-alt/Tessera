@@ -13,7 +13,7 @@ import { el } from './dom.js';
 import { pixelLabel } from './pixelFont.js';
 import { iconCanvas, WEAPON_ICONS } from './icons.js';
 import { PLAYER } from '../data/player.js';
-import { xpToNext } from '../data/progression.js';
+import { xpToNext, LEVEL } from '../data/progression.js';
 import { SPEC_SKILLS } from '../data/skills.js';
 
 const TOAST_SECONDS = 3.5;
@@ -149,7 +149,8 @@ export class GameHud {
     this.resource.set(p.resource / p.resourceMax, `${Math.floor(p.resource)}/${p.resourceMax}`);
     this.resource.setCharge(p.resource / p.resourceMax, (cooldowns.chargedMp ?? 0) / p.resourceMax);
     const need = xpToNext(p.level);
-    this.xp.set(p.xp / need, `${Math.floor(p.xp)}/${need}`);
+    if (p.level >= LEVEL.maxLevel) this.xp.set(1, 'MAX');
+    else this.xp.set(p.xp / need, `${Math.floor(p.xp)}/${need}`);
     const st = Math.round((p.stamina / PLAYER.staminaMax) * 100);
     if (this.last.stamina !== st) {
       this.last.stamina = st;

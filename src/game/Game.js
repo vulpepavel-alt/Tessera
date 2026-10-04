@@ -76,6 +76,12 @@ export class Game {
     const p = save.player;
     const valid = p && Number.isFinite(p.y) && p.y >= 1;
     this.spawn = valid ? new THREE.Vector3(p.x, p.y, p.z) : vec(this.world.generator.findSpawn());
+    // A new adventure: face into the village square, camera behind you.
+    const startVillage = !valid && this.world.generator.villages.villageInCell(0, 0);
+    if (startVillage) {
+      this.player.facing = Math.atan2(startVillage.center.x - this.spawn.x, startVillage.center.z - this.spawn.z);
+      this.cameraRig.yaw = this.player.facing + Math.PI;
+    }
 
     this.minimap = new Minimap(this.world.chunks, save.explored ?? []);
     engine.onAfterRender((renderer) => this.minimap.draw(renderer));

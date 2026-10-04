@@ -108,7 +108,7 @@ export class Bosses {
 
   // Called when any monster dies: rewards for bosses.
   onKilled(enemy) {
-    if (!enemy.type.boss) return;
+    if (!enemy.type.boss || !enemy.lairId) return;
     this.defeated[enemy.lairId] = this.world.dayNight.day;
     this.active.delete(enemy.lairId);
     const gold = LAIR.goldBase + enemy.level * 6;

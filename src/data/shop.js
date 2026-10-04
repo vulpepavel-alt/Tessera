@@ -41,8 +41,11 @@ export function stockFor(role, classId, level, seedText) {
     return [{ potion: 1 }, { potion: 5 }, { treat: 1 }, ...pick(extras, STOCK_SIZE - 3, rand).map((it) => ({ id: it.id }))];
   }
   const weapon = role === 'weaponsmith';
-  const pool = Object.values(ITEMS).filter((it) => it.classes && canUse(it, classId)
-    && Boolean(it.kind) === weapon && tiers.includes(it.tier));
+  const fits = (it, low) => it.classes && canUse(it, classId) && Boolean(it.kind) === weapon && it.tier >= low && it.tier <= tiers[1];
+  // Few items at the very top tiers: reach further down until the shelf is full.
+  let low = tiers[0];
+  let pool = Object.values(ITEMS).filter((it) => fits(it, low));
+  while (pool.length < STOCK_SIZE && low > 1) pool = Object.values(ITEMS).filter((it) => fits(it, --low));
   return pick(pool, STOCK_SIZE, rand).map((it) => ({ id: it.id }));
 }
 

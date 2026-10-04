@@ -210,3 +210,24 @@ export function inDungeonEntrance(d, x, z) {
 export function chunkTouches(d, x0, z0, size) {
   return d.box.x1 >= x0 - 1 && d.box.x0 <= x0 + size && d.box.z1 >= z0 - 1 && d.box.z0 <= z0 + size;
 }
+
+// Crypt walls have one doorway between pieces, always on the crypt's middle
+// line. Monsters walk straight at you, so in a crypt they first step onto
+// that line, follow it, and only head straight for you once you are in the
+// same piece. Returns the point to walk toward (world x, z).
+export function cryptWaypoint(d, from, to) {
+  const local = (p) => {
+    const rx = p.x - d.x;
+    const rz = p.z - d.z;
+    return { u: rx * d.dx + rz * d.dz, s: rx * d.px + rz * d.pz };
+  };
+  const pieceOf = (u) => d.pieces.findIndex((p) => u >= p.u0 - 0.5 && u <= p.u1 + 0.5);
+  const a = local(from);
+  const b = local(to);
+  const pa = pieceOf(a.u);
+  const pb = pieceOf(b.u);
+  if (pa === pb || pa < 0) return to; // same room (or not inside): straight there
+  const world = (u, s) => ({ x: d.x + d.dx * u + d.px * s, z: d.z + d.dz * u + d.pz * s });
+  if (Math.abs(a.s) > 0.6) return world(a.u, 0);          // onto the middle line first
+  return world(a.u + Math.sign(b.u - a.u) * 3, 0);         // then along it, toward you
+}

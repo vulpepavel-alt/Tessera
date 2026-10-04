@@ -13,6 +13,7 @@ import { SkillSystem } from '../combat/SkillSystem.js';
 export class Battle {
   constructor({ engine, worldView, player, hud, cameraRig, particles }) {
     this.player = player;
+    this.worldView = worldView;
     this.hud = hud;
     this.cameraRig = cameraRig;
     this.labels = new WorldLabels(engine.camera);
@@ -86,6 +87,16 @@ export class Battle {
     return dt;
   }
 
+  respawnVillage(at) {
+    const villages = this.worldView.generator.villages.villagesNear(at.x, at.z);
+    let best = null;
+    for (const v of villages) {
+      const d = Math.hypot(v.center.x - at.x, v.center.z - at.z);
+      if (d < 400 && (!best || d < best.d)) best = { d, x: v.center.x + 0.5, y: v.baseY + 1.1, z: v.plaza.z1 + 0.5 };
+    }
+    return best;
+  }
+
   updateDeath(dt) {
     const p = this.player;
     if (!this.dead && p.health <= 0) {
@@ -103,7 +114,19 @@ export class Battle {
       p.health = p.maxHealth;
       p.model.root.rotation.z = 0;
       p.motor.mode = 'walk';
-      p.placeAt(p.safePoint.x, p.safePoint.y + 0.2, p.safePoint.z);
+      // The nearest village (at the edge of its square), like waking at an
+      // inn; with no village close by, the last safe spot - and any monster
+      // still angry around there is sent away.
+      const home = this.respawnVillage(p.position);
+      if (home) {
+        p.placeAt(home.x, home.y, home.z);
+      } else {
+        p.placeAt(p.safePoint.x, p.safePoint.y + 0.2, p.safePoint.z);
+        for (const e of this.combat.enemies) {
+          if (e.alive && !e.type.boss && e.position.distanceTo(p.position) < 25) this.spawner.despawn(e);
+        }
+      }
+      p.velocity.set(0, 0, 0);
       this.spawner.calmAll();
       this.hud.showDeath(false);
     }

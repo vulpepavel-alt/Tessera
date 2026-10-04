@@ -73,6 +73,7 @@ export class DungeonLife {
       const e = new Enemy(this.scene, this.world.collision, this.battle.combat, typeId, level,
         new THREE.Vector3(x + 0.5, d.floor + 0.05, z + 0.5), false);
       e.dungeonId = d.id;
+      e.crypt = d; // finds its way round by the doorways
       this.battle.combat.enemies.push(e);
       this.battle.labels.addBar(e);
       list.push(e);

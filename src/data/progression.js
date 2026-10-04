@@ -8,9 +8,10 @@ export function xpToNext(level) {
   return Math.round(30 * level ** 1.1);
 }
 
-// Armour softens every hit you take: 20 armour = 2/3 damage, 60 = less than half.
+// Armour softens every hit you take: 20 armour = 4/5 of the damage, 60 = 3/5.
+// (Gentle on purpose: monsters must stay dangerous at every level.)
 export function armorFactor(armor) {
-  return 100 / (100 + armor * 2.5);
+  return 100 / (100 + armor * 1.2);
 }
 
 export const LEVEL = {

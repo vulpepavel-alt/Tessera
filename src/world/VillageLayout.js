@@ -34,8 +34,13 @@ export class VillageLayout {
     const r = (n) => hash3(i, 300 + n, j, this.salt);
     if (!isStart && r(0) > VILLAGE.chance) return null;
 
-    // Try a few spots and keep the first one that suits a village.
-    for (let k = 0; k < 14; k++) {
+    // Try a few spots and keep the first one that suits a village. The start
+    // village looks much harder (a wide ring of spots) and, if nothing is
+    // perfect, takes the evenest dry spot it saw: a new game always begins
+    // in a village.
+    let best = null;
+    const tries = isStart ? 48 : 14;
+    for (let k = 0; k < tries; k++) {
       let x;
       let z;
       if (isStart) {
@@ -43,6 +48,8 @@ export class VillageLayout {
         const dist = VILLAGE.startOffset + Math.floor(k / 7) * 30;
         x = Math.round(Math.cos(angle) * dist);
         z = Math.round(Math.sin(angle) * dist);
+        const rough = this.roughness(x, z);
+        if (rough !== null && (!best || rough < best.rough)) best = { x, z, rough };
       } else {
         x = Math.round(i * CELL + (r(2 + k * 2) - 0.5) * CELL * 0.6);
         z = Math.round(j * CELL + (r(3 + k * 2) - 0.5) * CELL * 0.6);
@@ -52,7 +59,25 @@ export class VillageLayout {
       const { biomeId } = this.biomeAt(x, z);
       return planVillage(this.seed, `${i},${j}`, { x, z }, baseY, biomeId);
     }
+    if (best) {
+      const { biomeId } = this.biomeAt(best.x, best.z);
+      return planVillage(this.seed, `${i},${j}`, { x: best.x, z: best.z }, this.gen.rawColumn(best.x, best.z).top, biomeId);
+    }
     return null;
+  }
+
+  // How uneven the land is around a dry spot (biggest height difference on a
+  // ring), or null for water / mountains.
+  roughness(x, z) {
+    const centre = this.gen.rawColumn(x, z);
+    if (centre.waterTop >= 0 || centre.mountain > 3 || centre.top < WORLD.seaLevel + 1) return null;
+    let worst = 0;
+    const R = VILLAGE.radius;
+    for (let a = 0; a < 8; a++) {
+      const c = this.gen.rawColumn(x + Math.cos((a / 8) * Math.PI * 2) * R, z + Math.sin((a / 8) * Math.PI * 2) * R);
+      worst = Math.max(worst, Math.abs(c.top - centre.top));
+    }
+    return worst;
   }
 
   biomeAt(x, z) {

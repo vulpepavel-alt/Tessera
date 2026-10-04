@@ -85,7 +85,8 @@ export function planVillage(seed, id, centre, baseY, biomeId) {
   }
   const guards = rng() < 0.5 ? 1 : 2;
   for (let k = 0; k < guards; k++) {
-    plan.residents.push({ name: name(), role: 'guard', title: 'Guard', home: { x: cx + 0.5, z: cz + ph }, look: rng() });
+    // Guards keep watch at the square's south corners (not on the spot where new heroes arrive).
+    plan.residents.push({ name: name(), role: 'guard', title: 'Guard', home: { x: cx + (k === 0 ? -ph + 1.5 : ph - 0.5), z: cz + ph - 1 }, look: rng() });
   }
   return plan;
 }

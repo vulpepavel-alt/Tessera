@@ -128,15 +128,17 @@ Object.assign(ENEMIES, {
 // Bosses: one giant beast per area, waiting in its lair (game/Bosses.js).
 // A boss is a scaled-up animal at the area's top level, very tough, with a
 // slow, heavy attack that sends you flying. Beaten bosses return the next day.
-const SLAM = { kind: 'charge', range: 5, windup: 1.0, duration: 0.5, speed: 13, cooldown: 2.2, knockback: 16, recover: 1.1 };
-const POUNCE = { kind: 'lunge', range: 4.5, windup: 0.8, duration: 0.35, speed: 15, cooldown: 1.8, knockback: 13, recover: 0.9 };
-const QUAKE = { kind: 'hop', range: 5, windup: 1.0, duration: 0.7, speed: 8, hop: 11, cooldown: 2.4, knockback: 15, recover: 1.2 };
+const SLAM = { kind: 'charge', range: 5, windup: 1.0, duration: 0.5, speed: 13, cooldown: 1.5, knockback: 16, recover: 0.9 };
+const POUNCE = { kind: 'lunge', range: 4.5, windup: 0.8, duration: 0.35, speed: 15, cooldown: 1.2, knockback: 13, recover: 0.7 };
+const QUAKE = { kind: 'hop', range: 5, windup: 1.0, duration: 0.7, speed: 8, hop: 11, cooldown: 1.7, knockback: 15, recover: 1.0 };
 
 function boss(name, biome, model, scale, { halfWidth, height, health, damage, run, attack }) {
   return {
     name, biomes: [], lairBiome: biome, boss: true, model, scale,
     halfWidth: halfWidth * scale, height: height * scale,
-    health, healthPerLevel: Math.round(health * 0.25), damage, damagePerLevel: damage * 0.2,
+    // Bosses are long fights: 5x the health their numbers below suggest.
+    // ...and hit twice as hard: dodge the red warnings or go down fast.
+    health: health * 5, healthPerLevel: Math.round(health * 5 * 0.25), damage: damage * 2, damagePerLevel: damage * 2 * 0.2,
     walkSpeed: 2, runSpeed: run, aggroRange: 18, leashRange: 28, retreatAt: 0, retreatTime: 0,
     attack, xp: 120,
   };
@@ -155,7 +157,7 @@ const CLEAVE = { kind: 'slash', range: 3.6, windup: 0.85, duration: 0.4, speed: 
 Object.assign(ENEMIES, {
   cryptGuard: { ...foe('Crypt Guard', [], 'cryptGuard', { health: 34, damage: 9, xp: 18 }), retreatAt: 0, leashRange: 22 },
   cryptWarden: {
-    ...foe('Crypt Warden', [], 'cryptWarden', { health: 190, damage: 13, xp: 80 }),
+    ...foe('Crypt Warden', [], 'cryptWarden', { health: 760, damage: 13, xp: 80 }),
     miniBoss: true, scale: 1.5, halfWidth: 0.6, height: 3.0, retreatAt: 0, leashRange: 18, runSpeed: 5.5, attack: CLEAVE,
   },
 });
@@ -171,3 +173,12 @@ export const SPAWNING = {
   despawnDistance: 95,
   interval: 1.2,      // seconds between spawn attempts
 };
+
+// Growth per level for every normal monster (bosses keep their own): each
+// level adds 40% of the level-1 health and 32% of the level-1 damage, so
+// monsters of your level stay a real fight all the way to the top.
+for (const type of Object.values(ENEMIES)) {
+  if (type.boss) continue;
+  type.healthPerLevel = Math.round(type.health * 0.4);
+  type.damagePerLevel = type.damage * 0.32;
+}

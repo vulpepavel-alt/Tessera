@@ -16,6 +16,7 @@ import { COMBAT } from '../data/combat.js';
 import { ENEMIES } from '../data/enemies.js';
 import { buildCreature } from '../models/creatureModels.js';
 import { buildFoe } from '../models/foeModels.js';
+import { cryptWaypoint } from '../world/Dungeons.js';
 import { moveBody, isLiquidBlock } from './physics.js';
 
 const GRAVITY = 30;
@@ -206,6 +207,12 @@ export class Enemy {
           break;
         }
         wish = toPlayer.clone().normalize();
+        // In a crypt: go round by the doorways instead of into the walls.
+        if (this.crypt) {
+          const w = cryptWaypoint(this.crypt, this.position, player.position);
+          const to = new THREE.Vector3(w.x - this.position.x, 0, w.z - this.position.z);
+          if (to.lengthSq() > 0.01) wish = to.normalize();
+        }
         speed = this.type.runSpeed;
         if (dist < this.type.attack.range && this.attackCooldown === 0) this.setState('windup');
         break;
@@ -254,6 +261,11 @@ export class Enemy {
         if (d.length() < 2) this.setState('patrol');
         else {
           wish = d.normalize();
+          if (this.crypt) {
+            const w = cryptWaypoint(this.crypt, this.position, this.home);
+            const to = new THREE.Vector3(w.x - this.position.x, 0, w.z - this.position.z);
+            if (to.lengthSq() > 0.01) wish = to.normalize();
+          }
           speed = this.type.runSpeed * 0.8;
         }
         break;
