@@ -21,23 +21,25 @@ const XM = X0 + HW / 2; // the column just right of the head's middle
 const STYLES = {
   // The classic hero mop: tall chunky spikes, a heavy jagged fringe down to the eyes, sides to the cheeks.
   big_spikes: { cap: 2, fringe: [4, 5, 6, 5, 4, 6, 5, 6, 5, 4, 6, 5, 4, 3], side: [2, 2], back: [2, 3], top: 'bigSpikes', jagged: true },
-  cropped_block: { cap: 1, fringe: even(1), side: [10, 1], back: [7, 1] },
-  side_sweep: { cap: 2, fringe: [5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1], side: [9, 1], back: [6, 2] },
-  center_fringe: { cap: 1, fringe: [1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 2, 2, 1, 1], side: [9, 1], back: [6, 2] },
-  blunt_bob: { cap: 2, fringe: even(3), side: [3, 2], back: [3, 2] },
-  layered_bob: { cap: 2, fringe: [2, 3, 2, 3, 2, 3, 2, 2, 3, 2, 3, 2, 3, 2], side: [4, 2], back: [4, 2], layered: true },
-  short_spikes: { cap: 1, fringe: [2, 1, 3, 1, 2, 3, 1, 2, 3, 1, 2, 1, 3, 2], side: [10, 1], back: [7, 1], top: 'spikes' },
+  cropped_block: { cap: 2, fringe: even(2), side: [8, 2], back: [6, 2] },
+  side_sweep: { cap: 2, fringe: [6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1], side: [5, 2], back: [4, 3], jagged: true },
+  center_fringe: { cap: 2, fringe: [2, 2, 3, 3, 4, 5, 6, 6, 5, 4, 3, 3, 2, 2], side: [5, 2], back: [4, 3] },
+  blunt_bob: { cap: 2, fringe: even(4), side: [1, 2], back: [1, 3] },
+  layered_bob: { cap: 2, fringe: [3, 4, 3, 4, 3, 4, 3, 3, 4, 3, 4, 3, 4, 3], side: [2, 2], back: [2, 3], layered: true, jagged: true },
+  short_spikes: { cap: 2, fringe: [3, 2, 4, 2, 3, 4, 2, 3, 4, 2, 3, 2, 4, 3], side: [7, 2], back: [5, 2], top: 'spikes', jagged: true },
   tall_crest: { cap: 0, fringe: null, side: null, back: null, top: 'crest' },
-  low_ponytail: { cap: 1, fringe: [1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1], side: [9, 1], back: [5, 1], tail: { kind: 'pony', from: 6, length: 10 } },
-  high_ponytail: { cap: 2, fringe: [1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1], side: [10, 1], back: [7, 1], tail: { kind: 'pony', from: 13, length: 10 } },
-  twin_tails: { cap: 1, fringe: [2, 2, 2, 1, 1, 1, 0, 0, 1, 1, 1, 2, 2, 2], side: [10, 1], back: [7, 1], tail: { kind: 'twin', from: 11, length: 9 } },
-  short_braid: { cap: 1, fringe: [1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1], side: [9, 1], back: [6, 1], tail: { kind: 'braid', from: 7, length: 6 } },
-  long_braid: { cap: 1, fringe: [2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1], side: [8, 1], back: [5, 1], tail: { kind: 'braid', from: 7, length: 12 } },
-  rounded_curls: { cap: 2, fringe: [2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3], side: [6, 2], back: [5, 3], top: 'curls' },
-  side_shave: { cap: 1, fringe: [0, 0, 0, 0, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5], side: [6, 2], back: [7, 1], shave: true, top: 'sweep' },
-  swept_back: { cap: 2, fringe: null, side: [9, 1], back: [4, 3], top: 'swept' },
+  low_ponytail: { cap: 2, fringe: [2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2], side: [6, 2], back: [4, 2], tail: { kind: 'pony', from: 6, length: 12 } },
+  high_ponytail: { cap: 2, fringe: [2, 3, 2, 2, 3, 2, 2, 2, 3, 2, 2, 3, 2, 2], side: [7, 2], back: [6, 2], tail: { kind: 'pony', from: 15, length: 12 } },
+  twin_tails: { cap: 2, fringe: [3, 3, 3, 2, 2, 2, 1, 1, 2, 2, 2, 3, 3, 3], side: [7, 2], back: [6, 2], tail: { kind: 'twin', from: 13, length: 11 } },
+  short_braid: { cap: 2, fringe: [2, 3, 2, 2, 3, 2, 2, 2, 2, 3, 2, 2, 3, 2], side: [6, 2], back: [5, 2], tail: { kind: 'braid', from: 7, length: 8 } },
+  long_braid: { cap: 2, fringe: [3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2, 2, 3, 2], side: [5, 2], back: [4, 2], tail: { kind: 'braid', from: 7, length: 14 } },
+  rounded_curls: { cap: 2, fringe: [3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4], side: [3, 2], back: [3, 3], top: 'curls', jagged: true },
+  side_shave: { cap: 2, fringe: [0, 0, 0, 0, 1, 2, 3, 4, 4, 5, 5, 6, 6, 6], side: [5, 2], back: [6, 2], shave: true, top: 'sweep' },
+  swept_back: { cap: 2, fringe: null, side: [7, 2], back: [3, 3], top: 'swept' },
   bald: null,
 };
+
+export const HAIR_STYLE_IDS = Object.keys(STYLES);
 
 function even(n) {
   return new Array(14).fill(n);
@@ -181,10 +183,10 @@ function tails(t, r, hi, c, lo) {
   };
   if (t.kind === 'twin') {
     // At the back corners of the head, behind the ears.
-    return [-HW / 2, HW / 2].map((x) => ({ grid: piece(2), pivot: [1, length + 1, 1], at: [x, t.from, -(HD / 2 - 1)] }));
+    return [-(HW / 2 + 1), HW / 2 + 1].map((x) => ({ grid: piece(3), pivot: [1.5, length + 1, 1.5], at: [x, t.from, -(HD / 2 - 1)] }));
   }
-  const w = t.kind === 'braid' ? 2 : 3;
-  return [{ grid: piece(w), pivot: [w / 2, length + 1, w / 2], at: [0, t.from, -(Math.ceil(HD / 2) + 2)] }];
+  const w = t.kind === 'braid' ? 3 : 4; // chunky, so it reads from far away
+  return [{ grid: piece(w), pivot: [w / 2, length + 1, w / 2], at: [0, t.from, -(Math.ceil(HD / 2) + 3)] }];
 }
 
 function hash(x, y, z) {

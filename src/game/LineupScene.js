@@ -5,6 +5,7 @@
 // Rows: the base character from every side; each class growing from
 // "start" (nothing equipped) to "legendary"; villagers; creatures.
 
+import { HAIR_STYLE_IDS } from '../models/humanoid/hair.js';
 import * as THREE from 'three';
 import { buildCharacter } from '../models/characterModel.js';
 import { buildVillager } from '../models/villagerModel.js';
@@ -92,6 +93,10 @@ export class LineupScene {
       this.buildFaces();
       return;
     }
+    if (params.has('hair')) {
+      this.buildHair();
+      return;
+    }
     if (params.has('arsenal')) {
       this.buildArsenal();
       return;
@@ -168,6 +173,22 @@ export class LineupScene {
     });
     this.rows = 2;
     this.cols = 6;
+    this.finishSetup();
+  }
+
+  // ?lineup&hair : every haircut, from the front and from the 3/4 back.
+  buildHair() {
+    const styles = HAIR_STYLE_IDS.filter((id) => id !== 'bald');
+    const perRow = 8;
+    styles.forEach((hairStyle, i) => {
+      const r = Math.floor(i / perRow) * 2;
+      const c = i % perRow;
+      const look = { ...DEFAULT_APPEARANCE, hairStyle };
+      this.place(buildCharacter('bulwark', look).root, c, r, 0.3, hairStyle.replace(/_/g, ' ').toUpperCase());
+      this.place(buildCharacter('bulwark', look).root, c, r + 1, Math.PI - 0.6, '');
+    });
+    this.rows = Math.ceil(styles.length / perRow) * 2;
+    this.cols = perRow;
     this.finishSetup();
   }
 
