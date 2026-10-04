@@ -55,6 +55,7 @@ export class Music {
     this.natureBus.connect(this.ctx.destination);
     this.nextBeat = this.ctx.currentTime + 0.5;
     this.wind = this.makeWind();
+    this.rainSound = this.makeRain();
   }
 
   // Every frame: where you are, so the music and sounds can follow.
@@ -143,6 +144,28 @@ export class Music {
     src.connect(filter).connect(gain).connect(this.natureBus);
     src.start();
     return { filter, gain };
+  }
+
+  // Rain: soft hiss of filtered noise, as loud as the rain is heavy.
+  makeRain() {
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise;
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2600;
+    filter.Q.value = 0.4;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(filter).connect(gain).connect(this.natureBus);
+    src.start();
+    return gain;
+  }
+
+  setRain(amount) {
+    if (!this.started) return;
+    this.rainSound.gain.setTargetAtTime(amount * 0.07, this.ctx.currentTime, 0.6);
   }
 
   updateNature(dt, where) {

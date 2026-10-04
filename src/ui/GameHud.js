@@ -107,8 +107,8 @@ export class GameHud {
   }
 
   // "TIME 10:05  TEMP 18°C"
-  setInfo({ clock, temperature }) {
-    this.info.setText(`${clock}   TEMP ${temperature}°C`);
+  setInfo({ clock, temperature, weather }) {
+    this.info.setText(`${clock}   TEMP ${temperature}°C${weather ? `   ${weather}` : ''}`);
   }
 
   // LEVEL UP: the level label changes and big pixel text shows for a moment.

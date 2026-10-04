@@ -84,6 +84,14 @@ export class PostEffects {
     this.setSize(window.innerWidth, window.innerHeight, renderer.getPixelRatio());
   }
 
+  // Weather: 0 = normal colours, 1 = a grey, rainy look (less saturation,
+  // a little less contrast).
+  setOvercast(amount) {
+    const u = this.grade.uniforms;
+    u.saturation.value = POST.saturation * (1 - amount * 0.45);
+    u.contrast.value = POST.contrast * (1 - amount * 0.1);
+  }
+
   // The camera can be swapped (e.g. by a scene that uses its own).
   setCamera(camera) {
     if (camera === this.camera) return;

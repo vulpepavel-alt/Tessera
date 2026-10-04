@@ -21,6 +21,7 @@ import { Bosses } from './Bosses.js';
 import { DungeonLife } from './DungeonLife.js';
 import { WorldMap } from '../ui/WorldMap.js';
 import { Music } from '../audio/Music.js';
+import { Weather } from '../world/Weather.js';
 import { CHUNK, WORLD } from '../data/world.js';
 import { VILLAGE } from '../data/villages.js';
 import { DUNGEON } from '../world/Dungeons.js';
@@ -135,6 +136,7 @@ export class Game {
       defeated: save.bossesDefeated ?? {},
     });
     this.music = new Music();
+    this.weather = new Weather(engine.scene);
     this.worldMap = new WorldMap({
       generator: this.world.generator, explored: this.minimap.explored,
       onClose: () => this.closeWorldMap(), markers: () => this.mapMarkers,
@@ -564,7 +566,8 @@ export class Game {
     const biome = this.world.regionAt(focus.x, focus.z);
     // Colder at night and high up.
     const temperature = Math.round(biome.temperature - (time.isNight ? 7 : 0) - Math.max(0, focus.y - 32) * 0.3);
-    this.hud.setInfo({ clock: time.clockText, temperature, cameraYaw: this.cameraRig.yaw });
+    const wet = this.weather.amount > 0.3 ? (this.weather.current === 'snow' ? -4 : -2) : 0; // rain and snow cool the air
+    this.hud.setInfo({ clock: time.clockText, temperature: temperature + wet, weather: this.weather.label, cameraYaw: this.cameraRig.yaw });
     if (time.isNight !== this.wasNight) {
       this.wasNight = time.isNight;
       this.hud.toast(time.isNight ? 'Night falls. Monsters grow bolder…' : 'A new day dawns.');
@@ -633,6 +636,7 @@ export class Game {
     const land = gen.regions.sample(p.x, p.z).site.biomeId;
     const underground = p.y < gen.column(Math.floor(p.x), Math.floor(p.z)).top - 2;
     this.music.update(dt, { isNight: this.world.dayNight.isNight, land, underground, altitude: p.y, paused: this.state !== 'playing' });
+    this.weather.update(this.state === 'playing' ? dt : 0, { land, underground }, this.engine.camera, this.world.atmosphere, this.music, this.engine.post);
   }
 
   quitToMenu() {
