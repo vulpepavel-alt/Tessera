@@ -93,7 +93,7 @@ export class PlayerMotor {
       v.x = p.roll.dir.x * PLAYER.rollSpeed;
       v.z = p.roll.dir.z * PLAYER.rollSpeed;
     } else {
-      let speed = (p.walking ? PLAYER.walkSpeed : PLAYER.runSpeed) * p.speedBonus * (p.attackMove ?? 1) * (p.mount ? PLAYER.mountSpeed : 1);
+      let speed = (p.walking ? PLAYER.walkSpeed : PLAYER.runSpeed) * p.speedBonus * (p.attackMove ?? 1) * (p.mount ? PLAYER.mountSpeed * p.bonus.ride : 1);
       if (p.inWater) speed *= PLAYER.waterSpeedFactor;
       accelerate(v, wish, speed, (p.grounded ? PLAYER.groundAcceleration : PLAYER.airAcceleration) * dt);
     }

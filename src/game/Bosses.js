@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { Enemy } from '../entities/Enemy.js';
 import { ENEMIES, BOSS_FOR_BIOME } from '../data/enemies.js';
 import { pickItem } from './Loot.js';
+import { giveArtifact } from '../data/artifacts.js';
 import { WORLD } from '../data/world.js';
 
 export const LAIR = {
@@ -116,5 +117,6 @@ export class Bosses {
     const id = pickItem(this.player.classId, enemy.level + LAIR.itemBonusLevels);
     if (id) this.loot.add({ kind: 'item', id }, enemy.position.clone().add(new THREE.Vector3(-0.6, 0, 0.4)));
     this.onMessage(`You defeated the ${enemy.type.name}!`);
+    giveArtifact(this.player, this.onMessage);
   }
 }

@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { Enemy } from '../entities/Enemy.js';
 import { pickItem } from './Loot.js';
+import { giveArtifact } from '../data/artifacts.js';
 
 export const CRYPT = {
   guardsPerRoom: 3,
@@ -98,5 +99,6 @@ export class DungeonLife {
     const id = pickItem(this.player.classId, enemy.level + CRYPT.itemBonusLevels);
     if (id) this.loot.add({ kind: 'item', id }, enemy.position.clone().add(new THREE.Vector3(-0.6, 0, 0.4)));
     this.onMessage('The Crypt Warden falls. The crypt grows quiet.');
+    giveArtifact(this.player, this.onMessage);
   }
 }

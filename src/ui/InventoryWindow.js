@@ -16,6 +16,9 @@ import { BAG_SIZE } from '../game/Inventory.js';
 import { ITEMS, RARITY, SLOT_NAMES, canUse } from '../data/items.js';
 import { CLASSES } from '../data/classes.js';
 import { RARITY_STARS } from '../data/progression.js';
+import { ARTIFACTS, ARTIFACT_BONUS } from '../data/artifacts.js';
+import { POTION } from '../data/shop.js';
+import { iconCanvas } from './icons.js';
 
 const LEFT_SLOTS = ['mainHand', 'head', 'chest', 'legs', 'feet', 'face', 'ring1'];
 const RIGHT_SLOTS = ['offHand', 'shoulders', 'hands', 'waist', 'back', 'neck', 'ring2'];
@@ -96,13 +99,29 @@ export class InventoryWindow {
       }
       body = el('div', { class: 'inv-grid' }, squares);
     } else {
-      body = el('div', { class: 'inv-empty' }, ptext('NOTHING HERE YET', { scale: 1.5, color: '#b8c0d0' }),
-        pparagraph('Potions, ingredients and treasures you collect will appear here.', { chars: 34, scale: 1.5, color: '#b8c0d0' }));
+      body = this.itemsList();
     }
     replaceChildren(this.bag, tabs, ptext(this.tab, { scale: 1.5, color: '#ffe27a' }), body,
       el('div', { class: 'inv-gold' }, el('span', { class: 'coin' }),
         ptext(`${this.inventory.player.gold ?? 0} GOLD`, { scale: 1.5, color: '#ffe27a' }),
         ptext(`${this.inventory.freeSquares()} FREE`, { scale: 1.5, color: '#b8c0d0' })));
+  }
+
+  // ITEMS tab: what you carry besides gear - potions, treats, artifacts.
+  itemsList() {
+    const p = this.inventory.player;
+    const row = (icon, name, detail, count, color = '#ffffff') => el('div', { class: 'inv-itemrow' },
+      iconCanvas(icon, 4), el('div', { class: 'inv-itemtext' },
+        ptext(name, { scale: 1.5, color }), ptext(detail, { scale: 1, color: '#b8c0d0' })),
+      ptext(`X${count}`, { scale: 2, color: count ? '#ffe27a' : '#6a7080' }));
+    return el('div', { class: 'inv-items' },
+      row('potion', 'HEALTH POTION', `Q: HEALS ${Math.round(POTION.heal * 100)}% OF YOUR HEALTH`, p.potions, '#ff8a9a'),
+      row('treat', 'PET TREAT', 'T NEXT TO AN ANIMAL: TAME IT', p.treats),
+      ptext('ARTIFACTS - FROM BOSSES AND CRYPT WARDENS', { scale: 1, color: '#7fe8f0' }),
+      ...Object.entries(ARTIFACTS).map(([kind, a]) => {
+        const n = p.artifacts[kind] ?? 0;
+        return row(a.icon, a.name.toUpperCase(), `+${Math.round(n * ARTIFACT_BONUS * 100)}% ${a.what.toUpperCase()}`, n, n ? '#ffd27a' : '#8a90a0');
+      }));
   }
 
   renderWorn() {

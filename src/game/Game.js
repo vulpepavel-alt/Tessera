@@ -379,6 +379,7 @@ export class Game {
     this.pause.hide();
     this.inventoryWindow.show();
     this.hud.root.classList.add('inv-open'); // the hotbar makes room for the equipment
+    document.body.classList.add('inv-open');
     this.input.unlock();
     this.state = 'paused';
   }
@@ -386,6 +387,7 @@ export class Game {
   closeInventory() {
     this.inventoryWindow.hide();
     this.hud.root.classList.remove('inv-open');
+    document.body.classList.remove('inv-open');
     this.saveNow();
     this.input.lock(); // back to the game (this key press / click counts as the needed user action)
   }
@@ -612,6 +614,7 @@ export class Game {
       xp: this.player.xp,
       gold: this.player.gold,
       potions: this.player.potions,
+      artifacts: this.player.artifacts,
       treats: this.player.treats,
       bossesDefeated: this.bosses.defeated,
       cryptsCleared: this.dungeonLife.cleared,

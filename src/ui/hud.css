@@ -489,3 +489,9 @@
   background: linear-gradient(#ff6a4a, #c82a1a);
   transform-origin: left;
 }
+
+/* While the inventory is open, messages and floating numbers don't show through it. */
+.hud.inv-open .hud-toasts,
+body.inv-open .world-labels {
+  display: none;
+}

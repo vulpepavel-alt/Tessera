@@ -7,6 +7,7 @@ import { PLAYER } from '../data/player.js';
 import { CLASSES, STARTER_KIT, STARTER_BAG } from '../data/classes.js';
 import { LEVEL, xpToNext } from '../data/progression.js';
 import { POTION } from '../data/shop.js';
+import { artifactBonus } from '../data/artifacts.js';
 import { ITEMS } from '../data/items.js';
 import { buildCharacter } from '../models/characterModel.js';
 import { placeHeld } from '../models/equipment/weapons.js';
@@ -55,8 +56,9 @@ export class Player {
     this.resource = save.player?.resource ?? (this.classInfo.resource.startsFull ? this.resourceMax : 0);
     this.stamina = PLAYER.staminaMax;
     this.staminaDelay = 0;
-    // Travel speed multipliers. Artifacts will raise these later.
-    this.bonus = { glide: 1, boat: 1, climb: 1, swim: 1 };
+    // Travel speed multipliers, raised by artifacts (data/artifacts.js).
+    this.artifacts = { ...(save.artifacts ?? {}) };
+    this.bonus = artifactBonus(this.artifacts);
 
     this.walking = false; // holding Shift: slow walk
     this.roll = { time: -1, cooldown: 0, dir: new THREE.Vector3() };
@@ -153,6 +155,12 @@ export class Player {
       this.emit('levelup', this.level);
     }
     if (this.level >= LEVEL.maxLevel) this.xp = 0;
+  }
+
+  // A new artifact: one more of that kind, travel gets a little faster.
+  addArtifact(kind) {
+    this.artifacts[kind] = (this.artifacts[kind] ?? 0) + 1;
+    this.bonus = artifactBonus(this.artifacts);
   }
 
   // Key 3: drink a health potion. Returns a message when you can't.
