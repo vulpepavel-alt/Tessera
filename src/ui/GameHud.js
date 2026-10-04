@@ -1,10 +1,12 @@
-// The in-game HUD, kept small and clean like a classic voxel adventure:
-//   top-left     portrait, name, level, small HP and XP bars
-//   top-right    time and temperature, region and place names, minimap
-//                (gold is shown in the inventory, key I)
-//   bottom       HP and resource bars side by side, the hotbar, the "E" prompt
-//   bottom-left  message log (ChatLog.js)
-// All labels use the pixel font from pixelFont.js.
+// The in-game HUD, laid out and coloured like the classic alpha:
+//   top-left      big "LVL n", a lavender XP bar, a red HP bar (white frames)
+//   top-right     "TIME / TEMP / HUM", the place name, the minimap
+//   bottom        stamina (tan) and MP (teal) bars without numbers, and the
+//                 skill slots: bright colour squares with black icons
+//   bottom-right  what you are looking at (a monster's level and health, or
+//                 the gear at your feet)
+//   bottom-left   message log (ChatLog.js)
+// All labels use the pixel font from pixelFont.js (white with a dark outline).
 
 import { POTION } from '../data/shop.js';
 import './hud.css';
@@ -29,39 +31,33 @@ export class GameHud {
     this.player = player;
     const info = player.classInfo;
 
-    // Top-left
-    this.portrait = el('img', { class: 'hud-portrait', src: portraitUrl, alt: '' });
-    this.miniHealth = smallBar('#e84a3a', 'HP');
-    this.xp = smallBar('#8a5cff', 'XP');
+    // Top-left: level, XP, HP.
+    this.xp = bar('cw-xp', 'XP');
+    this.miniHealth = bar('cw-hp', 'HP');
     this.topLeft = el('div', { class: 'hud-topleft' },
-      this.portrait,
-      el('div', { class: 'hud-who' },
-        pixelLabel(player.name, { scale: 1.5 }),
-        this.levelLabel = pixelLabel(`LVL ${player.level ?? 1} ${info.name}`, { scale: 1, color: '#7fe8f0' }),
-        this.miniHealth.root, this.xp.root,
-        this.petLabel = pixelLabel('', { scale: 1, color: '#ffd27a' })));
+      this.levelLabel = pixelLabel(`LVL ${player.level ?? 1}`, { scale: 3, color: '#d9ccff' }),
+      this.xp.root, this.miniHealth.root,
+      this.petLabel = pixelLabel('', { scale: 1, color: '#ffd27a' }));
 
-    // Top-right
-    this.info = pixelLabel('', { scale: 1, color: '#ffffff' });
-    this.regionLabel = pixelLabel('', { scale: 1.5 });
-    this.placeLabel = pixelLabel('', { scale: 1, color: '#ffe27a' });
+    // Top-right: the time line, the place you are in, the minimap.
+    this.info = pixelLabel('', { scale: 1.5, color: '#ffffff' });
+    this.placeLabel = pixelLabel('', { scale: 2.5, color: '#ffffff' });
     const topRight = el('div', { class: 'hud-topright' },
       el('div', { class: 'hud-inforow' }, this.info),
-      el('div', { class: 'hud-names' }, this.regionLabel, this.placeLabel),
+      el('div', { class: 'hud-names' }, this.placeLabel),
       minimap.root);
 
-    // Bottom: bars, hotbar, prompt
-    this.health = bar('#e84a3a', 'HP');
-    this.resource = bar(info.resource.color, 'MP');
-    this.stamina = el('div', { class: 'hud-stamina' }, el('div'));
+    // Bottom: stamina and MP bars, then the skill slots.
+    this.staminaBar = bar('cw-stamina', null);
+    this.resource = bar('cw-mp', null);
     this.slots = {
-      m1: slot('M1', 'fist'),
-      m2: slot('M2', 'slam'),
-      s1: slot('1', 'locked'),
-      s2: slot('2', 'locked'),
-      r: slot('R', 'locked'),
-      q: slot('F', 'roll'),
-      potion: slot('Q', 'potion'),
+      m1: slot('M1', 'fist', 'orange'),
+      m2: slot('M2', 'slam', 'red'),
+      s1: slot('1', 'locked', 'pink'),
+      s2: slot('2', 'locked', 'purple'),
+      r: slot('R', 'locked', 'blue'),
+      q: slot('F', 'roll', 'teal'),
+      potion: slot('Q', 'potion', 'grey', true),
     };
     this.comboLabel = pixelLabel('', { scale: 2, color: '#ffe27a' });
     this.combo = el('div', { class: 'hud-combo' }, this.comboLabel);
@@ -70,8 +66,7 @@ export class GameHud {
     const bottom = el('div', { class: 'hud-bottom' },
       this.combo,
       this.prompt,
-      this.stamina,
-      el('div', { class: 'hud-barrow' }, this.health.root, this.resource.root),
+      el('div', { class: 'hud-barrow' }, this.staminaBar.root, this.resource.root),
       el('div', { class: 'hud-hotbar' }, ...Object.values(this.slots).map((s) => s.root)));
 
     this.toasts = el('div', { class: 'hud-toasts' });
@@ -85,7 +80,12 @@ export class GameHud {
     this.bossName = pixelLabel('', { scale: 2, color: '#ff8a7a' });
     this.bossFill = el('div', { class: 'boss-fill' });
     this.bossBar = el('div', { class: 'hud-boss hidden' }, this.bossName, el('div', { class: 'boss-track' }, this.bossFill));
-    this.root = el('div', { class: 'hud' }, this.vignette, this.death, this.topLeft, topRight, this.bossBar, this.toasts, this.levelBanner, bottom);
+    // Bottom-right: what you are looking at.
+    this.targetTitle = pixelLabel('', { scale: 1.5, color: '#ffffff' });
+    this.targetLine = pixelLabel('', { scale: 1.5, color: '#7ce05a' });
+    this.targetIcon = el('img', { class: 'cw-target-icon', alt: '' });
+    this.target = el('div', { class: 'cw-target hidden' }, el('div', { class: 'cw-target-text' }, this.targetTitle, this.targetLine), this.targetIcon);
+    this.root = el('div', { class: 'hud' }, this.vignette, this.death, this.topLeft, topRight, this.bossBar, this.toasts, this.levelBanner, bottom, this.target);
     document.body.appendChild(this.root);
     this.last = {};
   }
@@ -98,22 +98,48 @@ export class GameHud {
     if (this.last.region === biome.name) return;
     if (this.last.region) this.toast(`Entering ${biome.name} (Lv ${biome.levels[0]}-${biome.levels[1]})`);
     this.last.region = biome.name;
-    this.regionLabel.setText(biome.name);
+    this.showPlace();
   }
 
+  // The village you are in (or null): shown instead of the land's name.
   setPlace(name) {
-    this.placeLabel.setText(name ?? '');
-    this.placeLabel.style.display = name ? '' : 'none';
+    this.last.place = name ?? null;
+    this.showPlace();
   }
 
-  // "TIME 10:05  TEMP 18°C"
-  setInfo({ clock, temperature, weather }) {
-    this.info.setText(`${clock}   TEMP ${temperature}°C${weather ? `   ${weather}` : ''}`);
+  showPlace() {
+    const text = (this.last.place ?? this.last.region ?? '').toUpperCase();
+    if (this.last.placeText !== text) {
+      this.last.placeText = text;
+      this.placeLabel.setText(text);
+    }
+  }
+
+  // "TIME 10:05   TEMP 18 °C   HUM 50%   RAIN"
+  setInfo({ clock, temperature, humidity, weather }) {
+    const text = `${clock}   TEMP ${temperature} °C   HUM ${humidity ?? 50}%${weather ? `   ${weather}` : ''}`;
+    if (this.last.info !== text) {
+      this.last.info = text;
+      this.info.setText(text);
+    }
+  }
+
+  // Bottom-right panel: { title, line, lineColor, icon } or null.
+  setTarget(t) {
+    const key = t ? `${t.title}|${t.line}|${t.icon ?? ''}` : '';
+    if (key === this.last.target) return;
+    this.last.target = key;
+    this.target.classList.toggle('hidden', !t);
+    if (!t) return;
+    this.targetTitle.setText(t.title);
+    this.targetLine.setText(t.line, { scale: 1.5, color: t.lineColor ?? '#7ce05a' });
+    this.targetIcon.style.display = t.icon ? '' : 'none';
+    if (t.icon) this.targetIcon.src = t.icon;
   }
 
   // LEVEL UP: the level label changes and big pixel text shows for a moment.
   levelUp(level) {
-    this.levelLabel.setText(`LVL ${level} ${this.player.classInfo.name}`);
+    this.levelLabel.setText(`LVL ${level}`);
     this.levelBanner.classList.remove('show');
     void this.levelBanner.offsetWidth; // restart the animation
     this.levelBanner.classList.add('show');
@@ -144,19 +170,13 @@ export class GameHud {
   update(cooldowns = {}) {
     const p = this.player;
     const hp = `${Math.ceil(p.health)}/${p.maxHealth}`;
-    this.health.set(p.health / p.maxHealth, hp);
     this.miniHealth.set(p.health / p.maxHealth, hp);
-    this.resource.set(p.resource / p.resourceMax, `${Math.floor(p.resource)}/${p.resourceMax}`);
+    this.resource.set(p.resource / p.resourceMax, '');
     this.resource.setCharge(p.resource / p.resourceMax, (cooldowns.chargedMp ?? 0) / p.resourceMax);
     const need = xpToNext(p.level);
     if (p.level >= LEVEL.maxLevel) this.xp.set(1, 'MAX');
     else this.xp.set(p.xp / need, `${Math.floor(p.xp)}/${need}`);
-    const st = Math.round((p.stamina / PLAYER.staminaMax) * 100);
-    if (this.last.stamina !== st) {
-      this.last.stamina = st;
-      this.stamina.firstChild.style.transform = `scaleX(${st / 100})`;
-      this.stamina.classList.toggle('full', st >= 100); // hidden while full, like the classic HUD
-    }
+    this.staminaBar.set(p.stamina / PLAYER.staminaMax, '');
     this.slots.m2.cooldown(0, cooldowns.specialReady !== false);
     this.slots.q.cooldown(cooldowns.roll ?? 0, p.stamina >= PLAYER.rollCost);
     this.slots.potion.cooldown(p.potionCooldown / POTION.cooldown, p.potions > 0);
@@ -216,14 +236,14 @@ export class GameHud {
   }
 }
 
-// A main bar: a small label above, the value written inside.
-function bar(color, name) {
-  const fill = el('div', { class: 'bar-fill', style: { background: color } });
+// A bar in the classic style: a tiny name above (optional), a framed bar,
+// the value written inside (optional). `kind` picks the colours (hud.css).
+function bar(kind, name) {
+  const fill = el('div', { class: 'bar-fill' });
   const charge = el('div', { class: 'bar-charge' }); // MP committed to a special attack (pink)
   const text = pixelLabel('', { scale: 1 });
-  // Like the classic HUD: a tiny name above the bar, the numbers inside it.
-  const root = el('div', { class: 'hud-bar' },
-    pixelLabel(name, { scale: 1, color: '#ffffff' }),
+  const root = el('div', { class: `hud-bar ${kind}` },
+    name ? pixelLabel(name, { scale: 1, color: '#ffffff' }) : null,
     el('div', { class: 'bar' }, fill, charge, el('div', { class: 'bar-label' }, text)));
   let last = '';
   return {
@@ -246,20 +266,15 @@ function bar(color, name) {
   };
 }
 
-// The little bars under the portrait.
-function smallBar(color, name) {
-  const b = bar(color, name);
-  b.root.classList.add('small');
-  return b;
-}
-
 // One hotbar slot: key label, icon, and a dark cover that shrinks during cooldowns.
-function slot(key, icon) {
+function slot(key, icon, colour, keepColours = false) {
   const cover = el('div', { class: 'slot-cover' });
   let picture = iconCanvas(icon, 2.5);
   const count = pixelLabel('', { scale: 1 });
   const countBox = el('span', { class: 'slot-count hidden' }, count);
-  const root = el('div', { class: `hud-slot${icon === 'locked' ? ' locked' : ''}` },
+  // Bright colour squares with black icons, like the classic hotbar (the
+  // potion keeps its colours).
+  const root = el('div', { class: `hud-slot c-${colour}${keepColours ? ' keep' : ''}${icon === 'locked' ? ' locked' : ''}` },
     picture, cover, el('span', { class: 'slot-key' }, pixelLabel(key, { scale: 1 })), countBox);
   let last = '';
   let lastCount = null;

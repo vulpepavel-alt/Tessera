@@ -16,6 +16,8 @@ import { Battle } from './Battle.js';
 import { GuildPanel } from '../ui/GuildPanel.js';
 import { InventoryWindow } from '../ui/InventoryWindow.js';
 import { ShopWindow } from '../ui/ShopWindow.js';
+import { itemIcon } from '../ui/itemIcons.js';
+import { RARITY, SLOT_NAMES } from '../data/items.js';
 import { Pet } from '../entities/Pet.js';
 import { Bosses } from './Bosses.js';
 import { DungeonLife } from './DungeonLife.js';
@@ -50,6 +52,9 @@ import { settings } from '../save/Settings.js';
 
 const AUTOSAVE_SECONDS = 60;
 const SPAWN_AREA = 2; // chunks around the start that must be ready before playing
+
+// How damp the air is in each land (%), for the HUD (rain adds more).
+const HUMIDITY = { amberMeadows: 50, crystalfrostForest: 62, copperDunes: 14, lanternMarsh: 86, stormspirePeaks: 40 };
 
 export class Game {
   // options.benchmark: the fixed visual benchmark scene (data/benchmark.js).
@@ -350,6 +355,7 @@ export class Game {
     const focus = this.flying ? this.engine.camera.position : this.player.position;
     this.world.update(playing ? dt : 0, elapsed, focus);
     this.hud.update(this.cooldowns());
+    this.hud.setTarget(this.targetInfo());
     this.hud.setRegion(this.world.regionAt(focus.x, focus.z));
     this.updateClock(focus);
     this.particles.update(playing ? gameDt : 0);
@@ -567,7 +573,8 @@ export class Game {
     // Colder at night and high up.
     const temperature = Math.round(biome.temperature - (time.isNight ? 7 : 0) - Math.max(0, focus.y - 32) * 0.3);
     const wet = this.weather.amount > 0.3 ? (this.weather.current === 'snow' ? -4 : -2) : 0; // rain and snow cool the air
-    this.hud.setInfo({ clock: time.clockText, temperature: temperature + wet, weather: this.weather.label, cameraYaw: this.cameraRig.yaw });
+    const humidity = Math.min(98, Math.round((HUMIDITY[this.world.generator.regions.sample(focus.x, focus.z).site.biomeId] ?? 50) + this.weather.amount * 35 + (time.isNight ? 8 : 0)));
+    this.hud.setInfo({ clock: time.clockText, temperature: temperature + wet, humidity, weather: this.weather.label, cameraYaw: this.cameraRig.yaw });
     if (time.isNight !== this.wasNight) {
       this.wasNight = time.isNight;
       this.hud.toast(time.isNight ? 'Night falls. Monsters grow bolder…' : 'A new day dawns.');
@@ -626,6 +633,22 @@ export class Game {
       bag: this.player.bag,
       explored: [...this.minimap.explored],
     });
+  }
+
+  // The bottom-right panel: the monster you aim at, else the gear at your
+  // feet, else the villager you face.
+  targetInfo() {
+    const e = this.battle.labels.focus;
+    if (e?.alive) return { title: `LVL ${e.level} ${e.name}`.toUpperCase(), line: `HP ${Math.ceil(e.health)}/${e.maxHealth}`, lineColor: '#7ce05a' };
+    const d = this.loot.nearest;
+    if (d) {
+      const item = ITEMS[d.id];
+      const rarity = RARITY[item.rarity];
+      return { title: item.name.toUpperCase(), line: `${rarity.name} ${SLOT_NAMES[item.slot]}`.toUpperCase(), lineColor: rarity.color, icon: itemIcon(d.id) };
+    }
+    const v = this.villageLife.talkTarget;
+    if (v) return { title: v.name.toUpperCase(), line: (v.title ?? 'Villager').toUpperCase(), lineColor: '#ffd27a' };
+    return null;
   }
 
   // The music and nature sounds follow the time of day, the land, and

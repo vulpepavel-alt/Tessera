@@ -16,34 +16,15 @@
   display: block;
 }
 
-/* Top-left: portrait, name, small bars, gold */
+/* Top-left: LVL, XP bar, HP bar (the classic alpha layout) */
 .hud-topleft {
   position: absolute;
-  top: 12px;
-  left: 14px;
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.hud-portrait {
-  width: 52px;
-  height: 52px;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
-}
-
-.hud-who {
+  top: 10px;
+  left: 12px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 3px;
-}
-
-.hud-gold {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
 }
 
 .coin {
@@ -93,10 +74,7 @@
 
 .hud-names {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  width: 210px;
+  justify-content: flex-end;
 }
 
 .minimap {
@@ -142,58 +120,27 @@
   font: 800 12px/1 ui-monospace, Menlo, monospace;
 }
 
-.hud-stamina {
-  width: 272px;
-  max-width: calc(100vw - 32px);
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(0, 0, 0, 0.4);
-  overflow: hidden;
-}
-
-.hud-stamina {
-  transition: opacity 0.4s;
-}
-
-.hud-stamina.full {
-  opacity: 0;
-}
-
-.hud-stamina > div {
-  height: 100%;
-  background: #8fe36a;
-  transform-origin: left;
-}
-
 .hud-barrow {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .hud-bar {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  width: 130px;
 }
 
-.hud-bar.small {
-  width: 104px;
-}
-
-/* Thin light frames, slightly rounded, over a dark see-through inside */
+/* The classic frame: a white pixel border with a dark outline inside and
+   out, small stepped corners, a dark track behind the fill. */
 .bar {
   position: relative;
-  height: 13px;
-  border: 2px solid #e4e8f0;
-  border-radius: 4px;
-  background: rgba(10, 12, 18, 0.55);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  height: 12px;
+  border: 2px solid #ffffff;
+  border-radius: 3px;
+  background: #2b2f42;
+  box-shadow: 0 0 0 2px #19152a, inset 0 0 0 1px #19152a;
   overflow: hidden;
-}
-
-.hud-bar.small .bar {
-  height: 11px;
 }
 
 .bar-fill {
@@ -201,8 +148,18 @@
   width: 100%;
   transform-origin: left;
   transition: transform 0.12s linear;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.22);
 }
+
+/* Colours per bar */
+.cw-hp .bar { width: 156px; height: 16px; }
+.cw-hp .bar-fill { background: linear-gradient(#ff8270 0 28%, #e83a2c 28% 75%, #b82418 75%); }
+.cw-xp .bar { width: 156px; height: 11px; border-color: #d4c6ff; background: #8b9bb8; }
+.cw-xp .bar-fill { background: linear-gradient(#f4efff 0 35%, #dcd0ff 35%); }
+.cw-xp .bar-label canvas { filter: invert(1) brightness(0.25); } /* dark numbers on the pale bar */
+.cw-stamina .bar { width: 168px; }
+.cw-stamina .bar-fill { background: linear-gradient(#e8c48e 0 30%, #c49458 30% 75%, #9a6c38 75%); }
+.cw-mp .bar { width: 168px; }
+.cw-mp .bar-fill { background: linear-gradient(#a8fff2 0 30%, #4cd6c8 30% 75%, #2aa89c 75%); }
 
 .bar-charge {
   position: absolute;
@@ -223,34 +180,54 @@
 
 .hud-hotbar {
   display: flex;
-  gap: 3px;
+  gap: 4px;
 }
 
+/* Skill slots: bright gradient squares, white pixel frame, black icons. */
 .hud-slot {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #e4e8f0;
+  border: 2px solid #ffffff;
   border-radius: 4px;
-  background: rgba(10, 12, 18, 0.55);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 2px #19152a, inset 0 0 0 1px rgba(25, 21, 42, 0.6);
   overflow: hidden;
 }
 
-.hud-slot.locked canvas {
+.hud-slot canvas:first-child {
+  filter: brightness(0) drop-shadow(0 0 1px rgba(255, 255, 255, 0.35)); /* black silhouette */
+}
+
+.hud-slot.keep canvas:first-child {
+  filter: none;
+}
+
+.hud-slot.c-orange { background: radial-gradient(circle at 35% 30%, #ffc070, #ff8a2a 55%, #d8561a); }
+.hud-slot.c-red { background: radial-gradient(circle at 35% 30%, #ff9a7a, #f0502e 55%, #c42a1e); }
+.hud-slot.c-pink { background: radial-gradient(circle at 35% 30%, #ff9ac4, #e04a8a 55%, #a82a62); }
+.hud-slot.c-purple { background: radial-gradient(circle at 35% 30%, #b49aff, #7a4ae8 55%, #4a2ab0); }
+.hud-slot.c-blue { background: radial-gradient(circle at 35% 30%, #a0e4ff, #3aa8f0 55%, #1e6ac8); }
+.hud-slot.c-teal { background: radial-gradient(circle at 35% 30%, #a8ffd8, #3ad0a0 55%, #1e9070); }
+.hud-slot.c-grey { background: radial-gradient(circle at 35% 30%, #d8d8de, #a8a8b0 55%, #74747e); }
+
+.hud-slot.locked {
+  background: radial-gradient(circle at 35% 30%, #c8c8ce, #96969e 55%, #66666e);
+}
+
+.hud-slot.locked canvas:first-child {
   opacity: 0.35;
 }
 
-.hud-slot.unusable canvas {
-  filter: grayscale(1) brightness(0.6);
+.hud-slot.unusable {
+  filter: saturate(0.25) brightness(0.75);
 }
 
 .hud-slot.ready {
   border-color: #ffe27a;
-  box-shadow: 0 0 10px 2px rgba(255, 226, 122, 0.8);
+  box-shadow: 0 0 0 2px #19152a, 0 0 10px 2px rgba(255, 226, 122, 0.8);
 }
 
 .hud-combo {
@@ -274,14 +251,14 @@
 
 .slot-key {
   position: absolute;
-  left: 2px;
-  top: 1px;
+  left: 1px;
+  bottom: 0;
 }
 
 .slot-count {
   position: absolute;
-  right: 2px;
-  bottom: 1px;
+  right: 1px;
+  top: 0;
 }
 
 .slot-count.hidden {
@@ -301,13 +278,15 @@
 }
 
 .toast {
-  padding: 6px 12px;
-  border: 2px solid #e4e8f0;
-  border-radius: 6px;
-  background: rgba(10, 12, 18, 0.6);
-  font: 700 13px/1.3 ui-monospace, Menlo, monospace;
+  padding: 2px 8px;
+  font: 800 15px/1.3 ui-monospace, Menlo, monospace;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  text-shadow: 0 1px 0 #000;
+  text-align: center;
+  color: #ffffff;
+  /* White letters with a dark pixel outline, no box (the classic look). */
+  text-shadow: 2px 0 0 #19152a, -2px 0 0 #19152a, 0 2px 0 #19152a, 0 -2px 0 #19152a,
+    2px 2px 0 #19152a, -2px -2px 0 #19152a, 2px -2px 0 #19152a, -2px 2px 0 #19152a;
   animation: toast-in 0.25s ease-out;
 }
 
@@ -494,4 +473,45 @@
 .hud.inv-open .hud-toasts,
 body.inv-open .world-labels {
   display: none;
+}
+
+/* Bottom-right: what you are looking at (classic info panel). */
+.cw-target {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 200px;
+  padding: 8px 10px;
+  border: 2px solid #e4ddff;
+  border-radius: 4px;
+  background: rgba(20, 16, 34, 0.45);
+  box-shadow: 0 0 0 2px #19152a, inset 0 0 0 2px #8a78c8;
+  zoom: var(--hud-scale, 1.3);
+}
+
+.cw-target.hidden {
+  display: none;
+}
+
+.cw-target-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.cw-target-icon {
+  width: 52px;
+  height: 52px;
+  image-rendering: pixelated;
+}
+
+/* Narrow windows: the panel sits above the hotbar instead of beside it. */
+@media (max-width: 1100px) {
+  .cw-target {
+    bottom: 120px;
+  }
 }
