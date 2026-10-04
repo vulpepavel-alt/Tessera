@@ -225,7 +225,7 @@ export class Player {
     return input.isDown('ShiftLeft') || input.isDown('ShiftRight');
   }
 
-  // Dodge roll: middle mouse button, or Q (handy on a trackpad). Called by the motor.
+  // Dodge roll: middle mouse button, or F (handy on a trackpad). Called by the motor.
   updateRoll(dt, input, wish) {
     const roll = this.roll;
     roll.cooldown = Math.max(0, roll.cooldown - dt);
@@ -238,7 +238,7 @@ export class Player {
       return;
     }
     const canRoll = this.grounded && roll.cooldown === 0 && this.stamina >= PLAYER.rollCost;
-    if ((input.wasPressed('Mouse1') || input.wasPressed('KeyQ')) && canRoll) {
+    if ((input.wasPressed('Mouse1') || input.wasPressed('KeyF')) && canRoll) {
       roll.time = 0;
       // Roll where you're moving, or straight ahead if standing still.
       if (wish.lengthSq() > 0) roll.dir.copy(wish);

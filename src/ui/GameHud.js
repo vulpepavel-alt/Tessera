@@ -58,8 +58,8 @@ export class GameHud {
       s1: slot('1', 'locked'),
       s2: slot('2', 'locked'),
       r: slot('R', 'locked'),
-      q: slot('Q', 'roll'),
-      potion: slot('3', 'potion'),
+      q: slot('F', 'roll'),
+      potion: slot('Q', 'potion'),
     };
     this.comboLabel = pixelLabel('', { scale: 2, color: '#ffe27a' });
     this.combo = el('div', { class: 'hud-combo' }, this.comboLabel);

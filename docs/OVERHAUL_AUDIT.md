@@ -46,7 +46,7 @@ Combat / Classes), alpha gameplay screenshots and video thumbnails.
 | Appearance data | data/appearance.js | MODIFY | Creator shows only classic options; extras stay under "more" |
 | Character creator | ui/CharacterCreator.js | MODIFY | Main panel = RACE, GENDER, CLASS, FACE, HAIRCUT, HAIR COLOR |
 | Classes | data/classes.js | MODIFY | Unified MP resource |
-| Movement | entities/Player.js, PlayerMotor.js, data/player.js | MODIFY | No sprint (Shift walks), hold Ctrl to climb, G glider/boat, free swimming, MMB/Q dodge |
+| Movement | entities/Player.js, PlayerMotor.js, data/player.js | MODIFY | No sprint (Shift walks), hold Ctrl to climb, G glider/boat, free swimming, MMB/F dodge (Q = quick item: potion) |
 | Camera | core/ThirdPersonCamera.js | MODIFY | Remove lock-on swing; tune framing |
 | Lock-on | combat/TargetLock.js | REMOVE | The classic game has no target lock |
 | Player attacks | combat/PlayerCombat.js, data/combat.js | REWRITE | 2-hit / 3-hit combos, MP gain on hit, held RMB charge special |
@@ -73,7 +73,7 @@ Combat / Classes), alpha gameplay screenshots and video thumbnails.
 | Phase | Result |
 |---|---|
 | 2 Proportions | Big head, short body, floating hands and feet; 6 faces, hair and colour picker |
-| 3 Camera / movement | Always run (Shift walks), MMB/Q dodge, hold Ctrl to climb, G glider/boat |
+| 3 Camera / movement | Always run (Shift walks), MMB/F dodge (Q = quick item: potion), hold Ctrl to climb, G glider/boat |
 | 4 Combat | No target lock; MP for every class, hold right click to charge the special, 2/3-hit combos |
 | 5 HUD | Pixel damage numbers, health bars only when it matters (V shows all) |
 | 6 Messages | Kills, XP, loot and saves go to the message log; pixel defeat screen |

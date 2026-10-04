@@ -13,6 +13,8 @@ import { moveBody } from './physics.js';
 const GRAVITY = 30;
 const ATTEND_DISTANCE = 3.2; // stop and face you within this distance
 
+const WELL_CLEARANCE = 2.4; // villagers keep this far from the middle of the well
+
 export class Villager {
   constructor(scene, world, resident, village) {
     this.scene = scene;
@@ -53,7 +55,12 @@ export class Villager {
     const r = rand();
     if (r < 0.55) {
       const p = v.plaza;
-      return { x: p.x0 + 1 + rand() * (p.x1 - p.x0 - 2), z: p.z0 + 4 + rand() * (p.z1 - p.z0 - 5) };
+      // Anywhere on the square except right by the well.
+      for (let tries = 0; tries < 8; tries++) {
+        const spot = { x: p.x0 + 1 + rand() * (p.x1 - p.x0 - 2), z: p.z0 + 4 + rand() * (p.z1 - p.z0 - 5) };
+        if (this.wellDistance(spot) > WELL_CLEARANCE + 0.5) return spot;
+      }
+      return { x: this.home.x, z: this.home.z };
     }
     if (r < 0.8 || v.fields.length === 0) return { x: this.home.x + (rand() - 0.5) * 3, z: this.home.z + (rand() - 0.5) * 3 };
     const f = v.fields[Math.floor(rand() * v.fields.length)];
@@ -103,7 +110,27 @@ export class Villager {
     return d.length() < reach ? null : d.normalize();
   }
 
+  // Horizontal distance from a point to the middle of the well (the village centre).
+  wellDistance(p) {
+    const c = this.village.center;
+    return Math.hypot(p.x - (c.x + 0.5), p.z - (c.z + 0.5));
+  }
+
   move(dt, wish) {
+    const c = this.village.center;
+    const toWell = { x: this.position.x - (c.x + 0.5), z: this.position.z - (c.z + 0.5) };
+    const near = Math.hypot(toWell.x, toWell.z);
+    // Walk around the well instead of hopping over its rim into the water.
+    if (wish && near < WELL_CLEARANCE) {
+      const push = (WELL_CLEARANCE - near) / WELL_CLEARANCE;
+      wish = new THREE.Vector3(wish.x + (toWell.x / near) * push * 2, 0, wish.z + (toWell.z / near) * push * 2).normalize();
+    }
+    // Somehow fell in anyway? Climb back out onto the square.
+    if (near < 1.2 && this.position.y < this.village.baseY + 1.5) {
+      const out = near > 0.01 ? { x: toWell.x / near, z: toWell.z / near } : { x: 0, z: 1 };
+      this.position.set(c.x + 0.5 + out.x * WELL_CLEARANCE, this.village.baseY + 1.05, c.z + 0.5 + out.z * WELL_CLEARANCE);
+      this.velocity.set(0, 0, 0);
+    }
     const v = this.velocity;
     const speed = this.role === 'guard' ? 2.6 : 2.2;
     const k = Math.min(dt * 8, 1);

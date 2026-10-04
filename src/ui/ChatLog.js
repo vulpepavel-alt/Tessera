@@ -4,7 +4,7 @@
 
 import { el } from './dom.js';
 
-const MAX_LINES = 7;
+const MAX_LINES = 9; // like the classic message area
 const FADE_AFTER = 20; // seconds
 
 const NAME_COLORS = ['#7fe8f0', '#ffd27a', '#b48cff', '#8fe38f', '#ff9a8a', '#9fc3ff'];

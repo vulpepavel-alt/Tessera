@@ -103,7 +103,7 @@ export class ShopWindow {
     if (h.potion) {
       replaceChildren(this.tip,
         pparagraph(`${h.potion} X ${POTION.name.toUpperCase()}`, { chars: 18, scale: 2, color: '#ff8a9a' }),
-        pparagraph(`Press 3 to drink one: heals ${Math.round(POTION.heal * 100)}% of your health.`, { chars: 26, scale: 1.5, color: '#d8dde8' }),
+        pparagraph(`Press Q to drink one: heals ${Math.round(POTION.heal * 100)}% of your health.`, { chars: 26, scale: 1.5, color: '#d8dde8' }),
         ptext(action, { scale: 1.5, color: '#7fe8f0' }));
       return;
     }

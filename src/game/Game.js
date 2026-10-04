@@ -153,12 +153,14 @@ export class Game {
       this.battle.labels.showAll = !this.battle.labels.showAll;
       this.hud.toast(`All health bars ${this.battle.labels.showAll ? 'on' : 'off'}`);
     });
-    // 3: drink a health potion.
-    this.input.onPress('Digit3', () => {
-      if (this.state !== 'playing') return;
-      const problem = this.player.drinkPotion();
-      if (problem) this.hud.toast(problem);
-    });
+    // Q (the quick item, like the classic game) or 3: drink a health potion.
+    for (const key of ['KeyQ', 'Digit3']) {
+      this.input.onPress(key, () => {
+        if (this.state !== 'playing') return;
+        const problem = this.player.drinkPotion();
+        if (problem) this.hud.toast(problem);
+      });
+    }
     this.player.on('potion', () => {
       Sfx.drink();
       this.particles.burst('heal', this.player.position.clone().setY(this.player.position.y + 1));
