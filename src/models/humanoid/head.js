@@ -61,13 +61,13 @@ export function headGrid(r) {
 
   // ---- Brows (hair colour, or their own colour) ----
   const brow = r.browColor;
-  if (feat.heavyBrow) for (let x = 1; x <= 10; x++) face(x, 8, skin.shadow, 1);
+  if (feat.heavyBrow) for (let x = 1; x <= 10; x++) face(x, 9, skin.shadow, 1);
   else if (f.brow !== 'none' && !feat.frogEyes) {
     const gap = { close: 2, standard: 4, wide: 6 }[f.eyeSpacing] ?? 4;
     const li = 5 - gap / 2;
     const cols = (inner, step) => (f.brow === 'flat' ? [inner, inner - step, inner - 2 * step] : [inner, inner - step]);
     for (const [inner, step] of [[li, 1], [11 - li, -1]]) {
-      cols(inner, step).forEach((x, i) => face(x, f.brow === 'angled' ? 8 + (i > 0 ? 1 : 0) : 8, brow));
+      cols(inner, step).forEach((x, i) => face(x, f.brow === 'angled' ? 9 + (i > 0 ? 1 : 0) : 9, brow));
     }
   }
 
@@ -99,6 +99,11 @@ export function headGrid(r) {
   }
   if (feat.tusks) for (const x of [4, 7]) face(x, 2, 0xf4ecd6, 1).set(fgx(x), fgy(3), ZF + 1, 0xf4ecd6);
 
+  // ---- Soft pink cheeks under the eyes (the classic friendly face) ----
+  if (!feat.muzzle && !feat.snout && !feat.wideMouth) {
+    for (const x of [0, 1, 10, 11]) face(x, 2, mix(skin.base, PINK, 0.3));
+  }
+
   // ---- Overlays (stackable marks on the skin) ----
   for (const o of r.overlays) drawOverlay(face, o, skin);
 
@@ -122,7 +127,7 @@ export function headGrid(r) {
   return g;
 }
 
-// The classic voxel-hero eye: three cubes wide and four tall, its bottom a
+// The classic voxel-hero eye: three cubes wide and five tall, its bottom a
 // third of the way up the head - a dark lash row on top, a bright iris with a
 // darker pupil on the inner side, and a lighter bottom row. "sleepy" eyes have
 // a half-closed lid instead of the top iris row.
@@ -130,15 +135,19 @@ function drawEye(face, f, inner, outer, r, side) {
   const iris = r.eyeColor;
   const pupil = r.features.glowEyes ? lighter(iris, 0.6) : darker(iris, 0.7);
   const sleepy = f.eyeShape === 'sleepy';
+  // Big, tall eyes (the classic look): a dark lash line on top, the iris
+  // darker above and brighter below, a pupil on the inner side and a glint.
   for (const x of [inner, outer, outer + side]) {
-    face(x, 6, DARK);
-    face(x, 5, sleepy ? r.skin.shadow : iris);
+    face(x, 7, DARK);
+    face(x, 6, sleepy ? r.skin.shadow : darker(iris, 0.25));
+    face(x, 5, iris);
     face(x, 4, iris);
     face(x, 3, lighter(iris, 0.35));
   }
-  if (!sleepy) face(inner, 5, pupil);
-  face(inner, 4, pupil);
-  if (r.gender === 'female') face(outer + side * 2, 7, DARK).set(fgx(outer + side), fgy(7), ZF, DARK); // longer lashes, flicked out
+  if (!sleepy) face(inner, 6, pupil);
+  face(inner, 5, pupil);
+  if (!sleepy) face(outer, 6, 0xffffff); // glint
+  if (r.gender === 'female') face(outer + side * 2, 8, DARK).set(fgx(outer + side), fgy(8), ZF, DARK); // longer lashes, flicked out
   if (r.features.glowEyes) face(outer, 4, lighter(iris, 0.8));
 }
 
@@ -154,7 +163,7 @@ function drawOverlay(face, o, skin) {
     case 'scar_nose': for (let x = 3; x <= 8; x++) face(x, 4, lighter(skin.shadow, 0.35)); break;
     case 'paint_stripes': for (const y of [3, 4]) for (const x of [0, 1, 10, 11]) face(x, y, PAINT[y - 3]); break;
     case 'paint_dots': for (const [x, y] of [[1, 3], [10, 3], [0, 5], [11, 5]]) face(x, y, PAINT[0]); break;
-    case 'paint_band': for (let x = 0; x <= 11; x++) face(x, 8, PAINT[0]); break;
+    case 'paint_band': for (let x = 0; x <= 11; x++) face(x, 9, PAINT[0]); break;
     case 'stitches': for (let y = 1; y <= 7; y++) face(10, y, skin.deepShadow); for (const y of [2, 4, 6]) { face(9, y, skin.deepShadow); face(11, y, skin.deepShadow); } break;
     case 'tear_marks': for (const x of [3, 8]) { face(x, 4, 0x3a5ad0); face(x, 3, 0x3a5ad0); } break;
     default: break;
@@ -166,19 +175,19 @@ function drawEars(g, kind, skin, r) {
   const inner = mix(skin.base, PINK, 0.35);
   for (const [x, out] of [[X0 - 1, -1], [X1 + 1, 1]]) {
     switch (kind) {
-      case 'small': g.box(x, Y0 + 6, zc, 1, 2, 2, skin.base); break;
+      case 'small': g.box(x, Y0 + 7, zc, 1, 2, 2, skin.base); break;
       case 'standard':
-      case 'round': g.box(x, Y0 + 6, zc, 1, 3, 2, skin.base).set(x, Y0 + 7, zc + 1, inner); break;
+      case 'round': g.box(x, Y0 + 7, zc, 1, 3, 2, skin.base).set(x, Y0 + 8, zc + 1, inner); break;
       case 'pointed': // orc: short and pointed backwards
-        g.box(x, Y0 + 6, zc, 1, 3, 2, skin.base).set(x, Y0 + 9, zc - 1, skin.base).set(x, Y0 + 7, zc + 1, inner);
+        g.box(x, Y0 + 7, zc, 1, 3, 2, skin.base).set(x, Y0 + 10, zc - 1, skin.base).set(x, Y0 + 8, zc + 1, inner);
         break;
       case 'elf': // long and pointed, sweeping up and back
-        g.box(x, Y0 + 6, zc, 1, 3, 2, skin.base).set(x, Y0 + 7, zc + 1, inner);
+        g.box(x, Y0 + 7, zc, 1, 3, 2, skin.base).set(x, Y0 + 8, zc + 1, inner);
         for (let k = 1; k <= 4; k++) g.set(x + (k > 2 ? out : 0), Y0 + 8 + k, zc - Math.floor(k / 2), skin.base);
         break;
       case 'goblin': // big droopy ears sticking out sideways
-        g.box(Math.min(x, x + out * 3), Y0 + 6, zc - 1, 3, 3, 3, skin.base).box(Math.min(x, x + out * 3), Y0 + 7, zc, 3, 1, 1, inner);
-        g.box(x + out * 3, Y0 + 5, zc - 1, 1, 2, 2, skin.base);
+        g.box(Math.min(x, x + out * 3), Y0 + 7, zc - 1, 3, 3, 3, skin.base).box(Math.min(x, x + out * 3), Y0 + 8, zc, 3, 1, 1, inner);
+        g.box(x + out * 3, Y0 + 6, zc - 1, 1, 2, 2, skin.base);
         break;
       default: break; // none, or ears on top of the head (fox)
     }

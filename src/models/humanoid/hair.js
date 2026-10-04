@@ -20,7 +20,7 @@ const XM = X0 + HW / 2; // the column just right of the head's middle
 // (0 = jaw, 12 = top of head) and thickness, plus extras.
 const STYLES = {
   // The classic hero mop: tall chunky spikes, a heavy jagged fringe down to the eyes, sides to the cheeks.
-  big_spikes: { cap: 2, fringe: [3, 4, 5, 4, 3, 5, 4, 5, 4, 3, 5, 4, 3, 2], side: [4, 1], back: [3, 2], top: 'bigSpikes' },
+  big_spikes: { cap: 2, fringe: [4, 5, 6, 5, 4, 6, 5, 6, 5, 4, 6, 5, 4, 3], side: [2, 2], back: [2, 3], top: 'bigSpikes', jagged: true },
   cropped_block: { cap: 1, fringe: even(1), side: [10, 1], back: [7, 1] },
   side_sweep: { cap: 2, fringe: [5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1], side: [9, 1], back: [6, 2] },
   center_fringe: { cap: 1, fringe: [1, 1, 2, 2, 3, 3, 4, 4, 3, 3, 2, 2, 1, 1], side: [9, 1], back: [6, 2] },
@@ -71,6 +71,8 @@ export function drawHair(g, r) {
       const free = (px, py, pz) => g.get(px, py, pz) === null;
       for (let y = Y0 + bottom; y <= Y1; y++) {
         for (let z = Z0; z <= ZF - 2; z++) {
+          // Jagged styles end in uneven locks instead of a straight line.
+          if (style.jagged && y < Y0 + bottom + 2 && hash(x, y, z * 3) < (y === Y0 + bottom ? 0.55 : 0.25)) continue;
           if (free(x, y, z)) set(x, y, z, y === Y0 + bottom ? lo : shade(x, y, z));
           const outer = style.layered ? y >= Y0 + bottom + 3 : true;
           if (thick > 1 && outer && z <= ZF - 4 && free(x + out, y, z)) set(x + out, y, z, shade(x + out, y, z));
@@ -97,6 +99,9 @@ export function drawHair(g, r) {
       const x = X0 + i;
       set(x, Y1 + 1, ZF + 1, c);
       for (let k = 0; k < len; k++) set(x, Y1 - k, ZF + 1, k === len - 1 ? lo : k === 0 && i % 3 === 0 ? hi : c);
+      // Volume: long fringes get a second layer in front at the top, so the
+      // hair stands out from the forehead instead of being painted on.
+      if (len >= 4) for (let k = -1; k < 2; k++) set(x, Y1 - k, ZF + 2, k === -1 ? hi : c);
     }
   }
   // top

@@ -141,11 +141,14 @@ export function handGrid(r) {
     for (const x of [0, HAW >> 1, HAW - 1]) g.box(x, 0, HAD, 1, 2, 1, r.skin.highlight);
     return g;
   }
-  const g = new VoxelGrid(HAW, HAH, HAD).box(0, 0, 0, HAW, HAH, HAD, c);
+  // A chunky mitten: the fist, plus a thumb resting on top at the front
+  // (the classic hand silhouette). The grid is one cube taller for the thumb.
+  const g = new VoxelGrid(HAW, HAH + 1, HAD).box(0, 0, 0, HAW, HAH, HAD, c);
   g.box(0, 0, 0, HAW, 1, HAD, r.hands ? darker(c, 0.15) : r.skin.shadow); // shade underneath
   // Round off the four vertical edges so the fist isn't a perfect crate.
   for (const [x, z] of [[0, 0], [HAW - 1, 0], [0, HAD - 1], [HAW - 1, HAD - 1]]) g.box(x, 0, z, 1, HAH, 1, null);
   if (r.hands) g.box(0, HAH - 1, 0, HAW, 1, HAD, r.hands.trim); // glove cuff
+  g.box((HAW >> 1) - 1, HAH, HAD - 3, 2, 1, 2, r.hands ? c : r.skin.highlight ?? c); // thumb
   return g;
 }
 
