@@ -21,9 +21,9 @@ const ROCKY = [BLOCK.STONE, BLOCK.DARK_ROCK, BLOCK.SANDSTONE, BLOCK.COBBLE];
 // dense grass grows, another where flowers bloom; in between the ground is
 // mostly bare (visual rhythm: patch, open ground, flowers, open ground...).
 // Chances per column inside each kind of patch (they add up from the top).
-const GRASS_PATCH = [['clover', 0.05], ['tuft', 0.42]];
+const GRASS_PATCH = [['clover', 0.04], ['tuft', 0.26]];
 const FLOWER_PATCH = [['flower', 0.12], ['cluster', 0.16], ['tuft', 0.12]];
-const OPEN_GROUND = [['pebbles', 0.008], ['tuft', 0.025], ['flower', 0.004]];
+const OPEN_GROUND = [['pebbles', 0.006], ['tuft', 0.015], ['flower', 0.005]];
 
 export function groundDetails(volume, salt) {
   const out = [];

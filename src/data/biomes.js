@@ -34,9 +34,9 @@ export const BIOMES = {
       { type: 'prop', prop: 'log', chance: 0.0007, on: [BLOCK.GRASS, BLOCK.GOLDEN_GRASS] },
       { type: 'oakTree', chance: 0.008, on: [BLOCK.GOLDEN_GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.AMBER_LEAVES, leavesDark: BLOCK.AMBER_LEAVES_DARK, leavesLight: BLOCK.AMBER_LEAVES_LIGHT },
       // Groves of leafy trees and layered pines around open meadows.
-      { type: 'oakTree', chance: 0.012, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
-      { type: 'pineTree', chance: 0.007, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
-      { type: 'tallTree', chance: 0.006, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
+      { type: 'oakTree', chance: 0.008, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
+      { type: 'pineTree', chance: 0.004, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
+      { type: 'tallTree', chance: 0.003, on: [BLOCK.GRASS], trunk: BLOCK.WOOD, leaves: BLOCK.LEAVES, leavesDark: BLOCK.LEAVES_DARK, leavesLight: BLOCK.LEAVES_LIGHT },
       { type: 'blossomTree', chance: 0.0025, on: [BLOCK.GRASS], trunk: BLOCK.DARK_PLANKS, leaves: BLOCK.BLOSSOM, leavesDark: BLOCK.BLOSSOM_DARK, leavesLight: BLOCK.BLOSSOM_LIGHT, petals: BLOCK.FLOWER_PINK },
       { type: 'bush', chance: 0.008, on: [BLOCK.GRASS, BLOCK.GOLDEN_GRASS], leaves: BLOCK.LEAVES },
     ],
@@ -97,7 +97,7 @@ export const BIOMES = {
     beach: BLOCK.MUD,
     peak: BLOCK.MARSH_GRASS,
     water: BLOCK.MARSH_WATER,
-    baseOffset: -4, hillHeight: 5, mountainHeight: 4, duneHeight: 0, snowLine: 999,
+    baseOffset: -1, hillHeight: 5, mountainHeight: 4, duneHeight: 0, snowLine: 999,
     flora: [
       { type: 'prop', prop: 'mushroom', chance: 0.004, on: [BLOCK.MARSH_GRASS, BLOCK.MUD] },
       { type: 'prop', prop: 'log', chance: 0.002, on: [BLOCK.MARSH_GRASS, BLOCK.MUD] },

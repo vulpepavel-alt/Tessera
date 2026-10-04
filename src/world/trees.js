@@ -89,7 +89,7 @@ function branch(volume, x, y, z, angle, length, rise, wood) {
 export const TREE_BUILDERS = {
   // Round leafy tree in three sizes; the big ones branch into side crowns.
   oakTree(volume, x, y, z, f, rng) {
-    const size = rng() < 0.35 ? 2 : rng() < 0.6 ? 1 : 0; // 0 small, 1 medium, 2 giant
+    const size = rng() < 0.15 ? 2 : rng() < 0.55 ? 1 : 0; // 0 small, 1 medium, 2 giant (rare)
     const height = [between(rng, 5, 7), between(rng, 8, 11), between(rng, 12, 16)][size] + (f.tall ? 2 : 0);
     const thick = [1, 2, 3][size];
     trunk(volume, x, y, z, height + 1, thick, f.trunk, rng);

@@ -63,19 +63,18 @@ export class WorldGenerator {
     const hills = fbm2(n.hills, x, z, 3, 0.016) * terrain.hillHeight * 0.7;
     let raw = WORLD.baseHeight + terrain.baseOffset + continent + valley + rolling + mountain + hills + dune;
 
-    // MESO: terraces. Heights snap to steps with flat treads and short steep
-    // risers; the steps' outlines wander (noise), so edges are irregular.
-    // Mountains get taller steps, which turn into cliff bands.
-    const step = mountain > 6 ? 4 : 2;
+    // MESO: terraces. Like the classic land, gentle ground climbs one cube at a
+    // time (smooth contours, long flat stretches); mountains get taller steps,
+    // which turn into cliff bands. The steps' outlines wander a little.
+    const step = mountain > 6 ? 4 : 1;
     const phase = fbm2(n.terrace, x, z, 2, 0.04) * 0.8;
     const t = raw / step + phase;
     const tread = Math.floor(t);
     raw = (tread + smoothstep(0.4, 0.6, t - tread)) * step; // flat treads, steep risers
 
-    // MICRO: one-cube bumps and dips, so there are no huge flat platforms.
+    // MICRO: an occasional one-cube bump, so wide plains are not perfectly flat.
     const micro = fbm2(n.micro, x, z, 2, 0.13);
-    if (micro > 0.42) raw += 1;
-    else if (micro < -0.5) raw -= 1;
+    if (micro > 0.62) raw += 1;
 
     // Rivers: near the river line the ground is pulled down below the water.
     const riverLine = Math.abs(n.river(x * WORLD.riverFrequency, z * WORLD.riverFrequency)
