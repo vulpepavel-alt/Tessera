@@ -35,6 +35,8 @@ export const PLAYER = {
   swimSpeed: 4.5,
   swimUpSpeed: 4,
 
+  mountSpeed: 1.6,     // riding your pet (key X) is this much faster than running
+
   // Climbing (walk into a wall; it starts on its own)
   climbSpeed: 3.2,
   climbCost: 12,        // stamina per second

@@ -10,6 +10,11 @@ import * as THREE from 'three';
 import { buildCreature } from '../models/creatureModels.js';
 import { moveBody } from './physics.js';
 import { ENEMIES } from '../data/enemies.js';
+import { CREATURES } from '../models/creatureModels.js';
+
+// Animals big and sturdy enough to carry you (key X).
+const RIDEABLE = new Set(['boar', 'wolf', 'horned', 'lizard', 'toad']);
+const RIDE_SCALE = 1.35; // a ridden pet stands a bit taller, so you fit on it
 
 const GRAVITY = 30;
 export const PET = {
@@ -46,6 +51,22 @@ export class Pet {
     scene.add(this.model.root);
   }
 
+  get rideable() {
+    return RIDEABLE.has(CREATURES[ENEMIES[this.typeId].model]?.shape);
+  }
+
+  // How high you sit on its back.
+  get saddleHeight() {
+    return this.height * RIDE_SCALE * 0.62;
+  }
+
+  // Start / stop carrying the player.
+  setRiding(on) {
+    this.riding = on;
+    this.model.root.scale.setScalar(on ? RIDE_SCALE : 1);
+    if (!on) this.comeBack();
+  }
+
   get level() {
     return this.player.level;
   }
@@ -53,6 +74,15 @@ export class Pet {
   update(dt) {
     if (dt <= 0) return;
     this.time += dt;
+    if (this.riding) {
+      // Carrying you: it goes wherever you go.
+      const p = this.player;
+      this.position.copy(p.position);
+      this.velocity.copy(p.velocity);
+      this.facing = p.facing;
+      this.syncModel(dt);
+      return;
+    }
     this.biteTimer = Math.max(0, this.biteTimer - dt);
     const p = this.player;
     const toPlayer = new THREE.Vector3(p.position.x - this.position.x, 0, p.position.z - this.position.z);

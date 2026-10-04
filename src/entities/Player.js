@@ -34,6 +34,7 @@ export class Player {
     // Chosen specialization (switched at the Guild Hall); the first one by default.
     this.spec = save.spec ?? this.classInfo.specs[0].id;
     this.speedBonus = 1;
+    this.mount = null; // the pet you are riding (key X), or null
     this.stealthed = false;
     this.skillInvulnerable = false;
     this.submerged = false;
@@ -301,7 +302,7 @@ export class Player {
     const easing = this.stepped || (this.grounded && gap > 0 && gap <= PLAYER.stepHeight + 0.1);
     if (easing) this.visualY += gap * Math.min(dt * 15, 1);
     else this.visualY = this.position.y;
-    root.position.set(this.position.x, this.visualY, this.position.z);
+    root.position.set(this.position.x, this.visualY + (this.mount?.saddleHeight ?? 0), this.position.z);
 
     // Which way to face: the attack, the wall, the flight, or the walk direction.
     let dir = wish;
@@ -319,7 +320,7 @@ export class Player {
     this.glider.visible = mode === 'glide';
 
     this.animator.update(dt, {
-      mode,
+      mode: this.mount && mode === 'walk' ? 'ride' : mode,
       speed: Math.hypot(this.velocity.x, this.velocity.z),
       verticalSpeed: this.velocity.y,
       walking: this.walking,

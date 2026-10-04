@@ -50,6 +50,7 @@ export class CharacterAnimator {
     if (mode === 'climb') Object.assign(pose, this.climbPose(state));
     if (mode === 'glide') Object.assign(pose, { legL: 0.35, legR: 0.25, armL: -2.9, armR: -2.9, lean: 0.45, bob: 0 });
     if (mode === 'boat') Object.assign(pose, this.boatPose(state));
+    if (mode === 'ride') Object.assign(pose, ridePose(this.time, state.speed));
     if (state.attack) Object.assign(pose, attackPose(state.attack));
 
     const k = Math.min(dt * 18, 1); // smoothing, so poses blend instead of snapping
@@ -148,4 +149,12 @@ function attackPose({ kind, t, index = 0, strikeAt = 0.45, finisher = false }) {
     out[k] = v;
   }
   return out;
+}
+
+// Riding a pet: legs astride, hands forward holding on, a little bounce in
+// time with the gallop.
+function ridePose(time, speed) {
+  const gallop = speed > 0.5 ? Math.sin(time * 14) : 0;
+  return { legL: -0.9, legR: -0.9, armL: -0.9 + gallop * 0.12, armR: -0.9 - gallop * 0.12, armLz: 0.15, armRz: -0.15,
+    lean: speed > 4 ? 0.22 : 0.05, twist: 0, bob: Math.abs(gallop) * 0.05 };
 }

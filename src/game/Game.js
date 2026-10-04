@@ -174,6 +174,10 @@ export class Game {
     this.input.onPress('KeyT', () => {
       if (this.state === 'playing') this.tryTame();
     });
+    // X: ride your pet (or get off).
+    this.input.onPress('KeyX', () => {
+      if (this.state === 'playing') this.toggleRide();
+    });
     // M: the world map.
     this.input.onPress('KeyM', () => {
       if (this.worldMap.visible) this.closeWorldMap();
@@ -322,6 +326,7 @@ export class Game {
       else if (!this.battle.dead) this.player.update(gameDt, this.input, this.cameraRig.yaw);
       this.villageLife.update(gameDt, this.player, this.world.dayNight.isNight);
       this.loot.update(gameDt);
+      this.checkRiding();
       this.pet?.update(gameDt);
       this.bosses.update(gameDt);
       this.dungeonLife.update(gameDt);
@@ -423,8 +428,39 @@ export class Game {
     };
   }
 
+  // X next to your pet: climb on (or off). Only bigger animals carry you.
+  toggleRide() {
+    const p = this.player;
+    if (p.mount) return this.dismount();
+    if (!this.pet) return this.hud.toast('You have no pet to ride (tame one with T)');
+    if (!this.pet.rideable) return this.hud.toast(`Your ${this.pet.name} is too small to ride`);
+    if (this.pet.position.distanceTo(p.position) > 5) return this.hud.toast(`Your ${this.pet.name} is too far away`);
+    if (p.mode !== 'walk' || p.inWater) return this.hud.toast('You can only climb on from solid ground');
+    p.mount = this.pet;
+    this.pet.setRiding(true);
+    this.lastRideHealth = p.health;
+    this.hud.toast(`Riding your ${this.pet.name} - X to get off`);
+  }
+
+  dismount() {
+    const p = this.player;
+    if (!p.mount) return;
+    p.mount.setRiding(false);
+    p.mount = null;
+  }
+
+  // You get off when you attack, get hurt, swim, climb or glide.
+  checkRiding() {
+    const p = this.player;
+    if (!p.mount) return;
+    const hurt = p.health < (this.lastRideHealth ?? p.health);
+    this.lastRideHealth = p.health;
+    if (hurt || p.mode !== 'walk' || p.inWater || this.battle.playerCombat.current || this.battle.dead || !this.pet) this.dismount();
+  }
+
   // A tamed animal (or none). Replacing a pet sends the old one home.
   setPet(typeId, name) {
+    this.dismount();
     this.pet?.remove();
     this.pet = typeId ? new Pet({
       scene: this.engine.scene, world: this.world.collision, combat: this.battle.combat, player: this.player, typeId, name,

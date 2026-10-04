@@ -24,6 +24,7 @@ export const CONTROLS = [
   ['Tab', 'Lock on to an enemy (again to switch / release)'],
   ['Q', 'Quick item: drink a health potion'],
   ['T', 'Tame the animal next to you (needs a Pet Treat)'],
+  ['X', 'Ride your pet (wolves, boars, horned beasts, lizards, toads)'],
   ['M', 'World map'],
   ['E at a shopkeeper', 'Buy and sell (Weaponsmith, Armorer, Merchant)'],
   ['V', 'Show all health bars'],
