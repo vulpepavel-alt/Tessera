@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import { buildCharacter } from '../models/characterModel.js';
 import { buildVillager } from '../models/villagerModel.js';
 import { buildCreature } from '../models/creatureModels.js';
+import { buildFoe } from '../models/foeModels.js';
 import { CLASSES } from '../data/classes.js';
 import { RACES, RACE_ORDER } from '../data/races.js';
 import { DEFAULT_APPEARANCE, FACE_PRESETS } from '../data/appearance.js';
@@ -230,7 +231,13 @@ export class LineupScene {
         this.place(buildCreature(id).root, 2 + i * 2, r, Math.PI / 2, 'SIDE');
       });
     });
-    this.rows = 5;
+    // Humanoid foes: three goblin raiders and three bandits (gear varies).
+    this.heading('GOBLINS AND BANDITS', 5);
+    this.place(buildCharacter('bulwark', LOOK).root, 0, 5, 0.5, 'PERSON');
+    ['goblinRaider', 'goblinRaider', 'goblinRaider', 'banditThug', 'banditThug', 'banditThug'].forEach((id, i) => {
+      this.place(buildFoe(id).root, 1 + i, 5, 0.5, id === 'goblinRaider' ? 'GOBLIN' : 'BANDIT');
+    });
+    this.rows = 6;
     this.cols = 7;
     this.finishSetup();
   }

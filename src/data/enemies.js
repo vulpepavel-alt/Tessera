@@ -107,6 +107,24 @@ Object.assign(ENEMIES, {
   rockling: creature('Rockling', 'stormspirePeaks', 'rockling', { halfWidth: 0.6, height: 1.1, health: 44, damage: 10, walk: 1.5, run: 3.8, attack: HOP, retreatAt: 0, xp: 16 }),
 });
 
+// Humanoid foes: armed people built like the hero (models/foeModels.js).
+// They step in and swing their weapon, a short slash rather than a charge.
+const SLASH = { kind: 'slash', range: 2.6, windup: 0.5, duration: 0.3, speed: 8, cooldown: 1.4, knockback: 7, recover: 0.55 };
+
+function foe(name, biomes, foeId, { health, damage, xp }) {
+  return {
+    name, biomes, foe: foeId, halfWidth: 0.4, height: 2.0,
+    health, healthPerLevel: Math.round(health * 0.25), damage, damagePerLevel: damage * 0.2,
+    walkSpeed: 2.6, runSpeed: 7, aggroRange: 16, leashRange: 40, retreatAt: 0.2, retreatTime: 2,
+    attack: SLASH, xp,
+  };
+}
+
+Object.assign(ENEMIES, {
+  goblinRaider: foe('Goblin Raider', ['amberMeadows', 'lanternMarsh'], 'goblinRaider', { health: 30, damage: 8, xp: 16 }),
+  banditThug: foe('Bandit', ['copperDunes', 'crystalfrostForest', 'stormspirePeaks'], 'banditThug', { health: 38, damage: 9, xp: 20 }),
+});
+
 export const SPAWNING = {
   maxDay: 6,          // enemies alive around you by day
   maxNight: 10,       // ... and at night

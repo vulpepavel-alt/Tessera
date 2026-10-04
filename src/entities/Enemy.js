@@ -15,6 +15,7 @@ import * as THREE from 'three';
 import { COMBAT } from '../data/combat.js';
 import { ENEMIES } from '../data/enemies.js';
 import { buildCreature } from '../models/creatureModels.js';
+import { buildFoe } from '../models/foeModels.js';
 import { moveBody, isLiquidBlock } from './physics.js';
 
 const GRAVITY = 30;
@@ -63,7 +64,7 @@ export class Enemy {
     this.status = { stun: 0, root: 0, slow: 0, slowFactor: 1, poison: 0, poisonDps: 0, poisonTick: 0, taunt: 0 };
     this.stars = null;
 
-    this.model = buildCreature(type.model);
+    this.model = type.foe ? buildFoe(type.foe) : buildCreature(type.model);
     scene.add(this.model.root);
     this.syncModel(0);
   }
