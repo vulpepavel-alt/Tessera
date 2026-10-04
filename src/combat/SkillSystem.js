@@ -8,6 +8,7 @@ import { SPEC_SKILLS, COMBO } from '../data/skills.js';
 import { CLASS_COMBAT } from '../data/combat.js';
 import { EFFECTS } from './skillEffects.js';
 import { isSolidBlock } from '../entities/physics.js';
+import { armorFactor } from '../data/progression.js';
 
 export class SkillSystem {
   constructor({ player, combat, playerCombat, particles, labels, camera, cameraRig, world }) {
@@ -35,7 +36,7 @@ export class SkillSystem {
   installModifiers() {
     const m = this.combat.modifiers;
     m.outgoing = (attacker) => (attacker === this.player ? this.damageMultiplier() : 1);
-    m.incoming = (target) => (target === this.player ? this.buffValue('damageTaken', 1, 'min') : 1);
+    m.incoming = (target) => (target === this.player ? this.buffValue('damageTaken', 1, 'min') * armorFactor(this.player.armor) : 1);
     m.critBonus = (attacker) => {
       if (attacker !== this.player || !this.hasBuff('critNext')) return 0;
       this.removeBuff('critNext'); // used up by this hit

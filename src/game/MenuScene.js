@@ -207,12 +207,13 @@ export class MenuScene {
 }
 
 // The highest ground under the pedestal, or null when the ground there is
-// too bumpy (more than one block of difference).
+// too bumpy (more than one block of difference). The check reaches out to
+// where the camera stands, so no hill blocks the view of the hero.
 function flatTop(gen, x, z) {
   let min = Infinity;
   let max = -Infinity;
-  for (let dz = -2; dz <= 2; dz++) {
-    for (let dx = -2; dx <= 2; dx++) {
+  for (let dz = -6; dz <= 6; dz++) {
+    for (let dx = -6; dx <= 6; dx++) {
       const top = gen.column(x + dx, z + dz).top;
       min = Math.min(min, top);
       max = Math.max(max, top);

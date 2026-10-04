@@ -67,3 +67,20 @@ Combat / Classes), alpha gameplay screenshots and video thumbnails.
 | Minimap, chat log, particles, sounds | ui/Minimap.js, ui/ChatLog.js, effects/*, audio/Sfx.js | KEEP | |
 | Saves, settings | save/* | KEEP | Old saves keep loading |
 | Dev pages (?lineup, ?benchmark) | game/LineupScene.js, world/BenchmarkGenerator.js | KEEP | Comparison tools |
+
+## Outcome (phases 2-10)
+
+| Phase | Result |
+|---|---|
+| 2 Proportions | Big head, short body, floating hands and feet; 6 faces, hair and colour picker |
+| 3 Camera / movement | Always run (Shift walks), MMB/Q dodge, hold Ctrl to climb, G glider/boat |
+| 4 Combat | No target lock; MP for every class, hold right click to charge the special, 2/3-hit combos |
+| 5 HUD | Pixel damage numbers, health bars only when it matters (V shows all) |
+| 6 Messages | Kills, XP, loot and saves go to the message log; pixel defeat screen |
+| 7 Enemies | 15 rebuilt creatures, 3+ per biome with charge/lunge/hop attacks |
+| 8 World scale | Lower terraces, sparser forests, giant oaks |
+| 9 Progression | XP and levels (+12% health, +9% damage per level), gold, gear drops by area level with rarity rolls |
+| 10 Balance | Armour now softens hits (100 / (100 + 2.5 x armour)); about 10-25 kills per level; NaN-proof camera and player rescue; creator pedestal needs flat ground out to the camera |
+
+Balance check (same-level player and monsters, area-tier gear): 2-5 hits to
+kill a monster, 7-15 hits for monsters to kill you (12-19 with armour).

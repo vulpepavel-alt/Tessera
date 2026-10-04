@@ -44,7 +44,9 @@ export class ThirdPersonCamera {
     // Follow the player smoothly (a little damping, never far behind).
     this.goal ??= new THREE.Vector3().copy(playerPosition);
     this.goal.set(playerPosition.x, playerPosition.y + CAMERA.height, playerPosition.z);
-    if (this.target.lengthSq() === 0 || this.target.distanceTo(this.goal) > 6) this.target.copy(this.goal);
+    // (Snap when far away, or if the target ever went bad, so the camera always recovers.)
+    const far = !(this.target.distanceTo(this.goal) <= 6);
+    if (this.target.lengthSq() === 0 || far) this.target.copy(this.goal);
     else this.target.lerp(this.goal, Math.min(1, dt * CAMERA.follow));
     const cosP = Math.cos(this.pitch);
     this.offset.set(Math.sin(this.yaw) * cosP, Math.sin(this.pitch), Math.cos(this.yaw) * cosP);

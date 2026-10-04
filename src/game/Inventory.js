@@ -75,11 +75,10 @@ export class Inventory {
   // The numbers shown in the stats panel.
   stats() {
     const p = this.player;
-    const worn = Object.values(p.equipment).map((id) => ITEMS[id]).filter(Boolean);
     const weapon = ITEMS[p.equipment.mainHand];
     return {
       health: p.maxHealth,
-      armor: worn.reduce((sum, item) => sum + (item.armor ?? 0), 0),
+      armor: p.armor,
       power: Math.round((weapon?.power ?? 1) * 10),
       crit: Math.round((CLASS_COMBAT[p.classId]?.critChance ?? 0) * 100),
       resource: `${p.classInfo.resource.name} ${p.resourceMax}`,

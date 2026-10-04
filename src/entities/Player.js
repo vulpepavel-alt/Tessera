@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { PLAYER } from '../data/player.js';
 import { CLASSES, STARTER_KIT, STARTER_BAG } from '../data/classes.js';
 import { LEVEL, xpToNext } from '../data/progression.js';
+import { ITEMS } from '../data/items.js';
 import { buildCharacter } from '../models/characterModel.js';
 import { placeHeld } from '../models/equipment/weapons.js';
 import { buildGlider } from '../models/travelModels.js';
@@ -111,6 +112,11 @@ export class Player {
   }
 
   // Health and damage for the current level.
+  // Total armour of everything worn (softens hits, see data/progression.js).
+  get armor() {
+    return Object.values(this.equipment ?? {}).reduce((sum, id) => sum + (ITEMS[id]?.armor ?? 0), 0);
+  }
+
   applyLevel() {
     this.maxHealth = Math.round(this.classInfo.health * (1 + LEVEL.healthPerLevel * (this.level - 1)));
     this.levelPower = 1 + LEVEL.damagePerLevel * (this.level - 1);
@@ -241,18 +247,20 @@ export class Player {
 
   // Remember safe ground regularly; if we ever fall out of the world, go back there.
   updateSafety(dt) {
-    if (!this.safePoint || this.safePoint.y < 1) this.safePoint = this.world.spawnPoint?.() ?? this.position.clone();
+    if (!(this.safePoint?.y >= 1) || !Number.isFinite(this.safePoint.x + this.safePoint.z)) this.safePoint = this.world.spawnPoint?.() ?? this.position.clone();
     this.safeTimer += dt;
     if (this.grounded && this.mode === 'walk' && !this.inWater && this.safeTimer >= PLAYER.safePointInterval) {
       this.safeTimer = 0;
       this.safePoint = this.position.clone();
     }
-    if (this.position.y < PLAYER.fallLimitY) {
-      const lost = Math.min(this.health - 1, Math.round(this.maxHealth * PLAYER.fallPenalty));
-      this.health -= lost;
+    const lost = !Number.isFinite(this.position.x + this.position.y + this.position.z);
+    if (lost) this.velocity.set(0, 0, 0);
+    if (lost || this.position.y < PLAYER.fallLimitY) {
+      const penalty = Math.min(this.health - 1, Math.round(this.maxHealth * PLAYER.fallPenalty));
+      this.health -= penalty;
       this.motor.mode = 'walk';
       this.placeAt(this.safePoint.x, this.safePoint.y + 0.5, this.safePoint.z);
-      this.emit('fell', { lost });
+      this.emit('fell', { lost: penalty });
     }
   }
 

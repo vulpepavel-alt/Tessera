@@ -3,8 +3,14 @@
 // gear for your class. Better areas (higher monster levels) drop better gear.
 
 // XP needed to go from `level` to the next one.
+// About 10 kills per level at the start, 15-25 deeper in the world.
 export function xpToNext(level) {
-  return Math.round(40 * level ** 1.45);
+  return Math.round(30 * level ** 1.1);
+}
+
+// Armour softens every hit you take: 20 armour = 2/3 damage, 60 = less than half.
+export function armorFactor(armor) {
+  return 100 / (100 + armor * 2.5);
 }
 
 export const LEVEL = {
