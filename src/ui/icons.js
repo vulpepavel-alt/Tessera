@@ -128,6 +128,7 @@ export const ICONS = {
   fireball: ['...OO...', '..ORRO..', '.ORYYRO.', 'ORYWWYRO', 'ORYWWYRO', '.ORYYRO.', '..ORRO..', '...OO...'],
   ring: ['.OO..OO.', 'O..RR..O', 'O.R..R.O', '.R....R.', '.R....R.', 'O.R..R.O', 'O..RR..O', '.OO..OO.'],
   meteor: ['O.......', '.O......', '..OR....', '...RRO..', '...ORYR.', '....RYYR', '.....RYR', '......RR'],
+  potion: ['...BB...', '...WW...', '..W..W..', '.WRRRRW.', 'WRRYRRRW', 'WRRRRRRW', '.WRRRRW.', '..WWWW..'],
   heal: ['...VV...', '...VV...', '.VVLLVV.', 'VVLLLLVV', 'VVLLLLVV', '.VVLLVV.', '...VV...', '...VV...'],
   frost: ['M..M..M.', '.M.M.M..', '..MMM...', 'MMMWMMM.', '..MMM...', '.M.M.M..', 'M..M..M.', '........'],
   wave: ['........', '..MMM...', '.M...M..', 'M.....MM', '.......M', '.MMM....', 'M...MMMM', 'MMMMMMMM'],

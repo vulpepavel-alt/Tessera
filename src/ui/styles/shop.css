@@ -1,0 +1,60 @@
+/* The shop window (ui/ShopWindow.js). Uses the inventory's boxes and squares. */
+
+.shop-box {
+  position: absolute;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 420px;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 50px);
+  gap: 6px 6px;
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.shop-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.shop-cell .inv-sq {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.shop-cell .inv-sq.too-dear img,
+.shop-cell .inv-sq.too-dear canvas {
+  opacity: 0.45;
+}
+
+.shop-count {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+}
+
+.shop-tip {
+  position: absolute;
+  top: 12vh;
+  left: calc(50% + 226px);
+  width: 280px;
+}
+
+/* While shopping, the minimap and floating name tags step out of the way. */
+body.shop-open .hud-topright,
+body.shop-open .world-labels {
+  display: none;
+}

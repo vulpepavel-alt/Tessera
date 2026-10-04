@@ -278,6 +278,16 @@
   top: 1px;
 }
 
+.slot-count {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+}
+
+.slot-count.hidden {
+  display: none;
+}
+
 /* Messages */
 .hud-toasts {
   position: absolute;

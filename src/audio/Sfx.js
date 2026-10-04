@@ -88,6 +88,15 @@ export const Sfx = {
     tone(0.12, { wave: 'triangle', from: 520, to: 160, gain: 0.18 });
     noise(0.12, { from: 3000, to: 1200, gain: 0.08 });
   },
+  // Coins changing hands (buying, selling).
+  coin() {
+    tone(0.08, { wave: 'square', from: 1500, to: 1500, gain: 0.07 });
+    tone(0.14, { wave: 'square', from: 2000, to: 2000, gain: 0.07, delay: 0.07 });
+  },
+  // Gulping a potion.
+  drink() {
+    for (let k = 0; k < 3; k++) tone(0.07, { wave: 'sine', from: 300, to: 520, gain: 0.14, delay: k * 0.09 });
+  },
   cast() {
     tone(0.25, { wave: 'sine', from: 600, to: 1200, gain: 0.12 });
     tone(0.25, { wave: 'sine', from: 900, to: 1800, gain: 0.06, delay: 0.04 });

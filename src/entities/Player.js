@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { PLAYER } from '../data/player.js';
 import { CLASSES, STARTER_KIT, STARTER_BAG } from '../data/classes.js';
 import { LEVEL, xpToNext } from '../data/progression.js';
+import { POTION } from '../data/shop.js';
 import { ITEMS } from '../data/items.js';
 import { buildCharacter } from '../models/characterModel.js';
 import { placeHeld } from '../models/equipment/weapons.js';
@@ -42,6 +43,8 @@ export class Player {
     this.level = save.level ?? 1;
     this.xp = save.xp ?? 0;
     this.gold = save.gold ?? 0;
+    this.potions = save.potions ?? 3; // health potions (key 3), a few to start with
+    this.potionCooldown = 0;
     this.applyLevel();
 
     // Stats.
@@ -132,6 +135,19 @@ export class Player {
       this.health = this.maxHealth;
       this.emit('levelup', this.level);
     }
+  }
+
+  // Key 3: drink a health potion. Returns a message when you can't.
+  drinkPotion() {
+    if (!this.alive) return null;
+    if (this.potions <= 0) return 'You have no potions';
+    if (this.potionCooldown > 0) return 'Wait a moment before the next potion';
+    if (this.health >= this.maxHealth) return 'You are already at full health';
+    this.potions--;
+    this.potionCooldown = POTION.cooldown;
+    this.health = Math.min(this.maxHealth, this.health + this.maxHealth * POTION.heal);
+    this.emit('potion');
+    return null;
   }
 
   // Simple event system: on('fell', fn) is told when something happens.

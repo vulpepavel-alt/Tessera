@@ -15,6 +15,8 @@ import { Player } from '../entities/Player.js';
 import { Battle } from './Battle.js';
 import { GuildPanel } from '../ui/GuildPanel.js';
 import { InventoryWindow } from '../ui/InventoryWindow.js';
+import { ShopWindow } from '../ui/ShopWindow.js';
+import { stockFor, POTION } from '../data/shop.js';
 import { Inventory } from './Inventory.js';
 import { LootSystem } from './Loot.js';
 import { ITEMS } from '../data/items.js';
@@ -86,6 +88,7 @@ export class Game {
       scene: engine.scene, worldView: this.world, labels: this.battle.labels, chat: this.chat, hud: this.hud,
       particles: this.particles,
       onGuild: (guildmaster) => this.openGuild(guildmaster),
+      onShop: (keeper) => this.openShop(keeper),
     });
     this.guild = new GuildPanel({
       onChoose: (specId) => this.chooseSpec(specId),
@@ -99,6 +102,13 @@ export class Game {
       onClose: () => this.closeInventory(),
       onMessage: (text) => this.hud.toast(text),
     });
+    this.shop = new ShopWindow({
+      inventory: this.inventory,
+      onClose: () => this.closeShop(),
+      onMessage: (text) => this.chat.add(null, text),
+      onSound: () => Sfx.coin(),
+    });
+    this.shopStock = new Map(); // "village|role|day" -> what is left in that shop today
     this.loot = new LootSystem({
       scene: engine.scene, player: this.player, inventory: this.inventory,
       onMessage: (text) => this.chat.add(null, text),
@@ -120,6 +130,10 @@ export class Game {
     this.input.onPress('F4', () => this.toggleFlying());
     // E: pick up the gear next to you, or talk to the villager in front of you.
     this.input.onPress('KeyE', () => {
+      if (this.shop.visible) {
+        this.closeShop();
+        return;
+      }
       if (this.state !== 'playing') return;
       if (!this.loot.pickUp()) this.villageLife.interact(this.world.dayNight.isNight);
     });
@@ -139,7 +153,18 @@ export class Game {
       this.battle.labels.showAll = !this.battle.labels.showAll;
       this.hud.toast(`All health bars ${this.battle.labels.showAll ? 'on' : 'off'}`);
     });
+    // 3: drink a health potion.
+    this.input.onPress('Digit3', () => {
+      if (this.state !== 'playing') return;
+      const problem = this.player.drinkPotion();
+      if (problem) this.hud.toast(problem);
+    });
+    this.player.on('potion', () => {
+      Sfx.drink();
+      this.particles.burst('heal', this.player.position.clone().setY(this.player.position.y + 1));
+    });
     this.input.onPress('Escape', () => {
+      if (this.shop.visible) this.closeShop();
       if (this.inventoryWindow.visible) this.closeInventory();
     });
     // Debug: "]" jumps one hour ahead (handy for testing day and night).
@@ -148,7 +173,7 @@ export class Game {
     });
     this.input.onLockChange((locked) => {
       if (this.state === 'loading') return;
-      if (this.guild.visible || this.inventoryWindow.visible) {
+      if (this.guild.visible || this.inventoryWindow.visible || this.shop.visible) {
         // The Guild window is open: no pause menu; the game waits.
         this.state = locked ? 'playing' : 'paused';
         return;
@@ -196,6 +221,11 @@ export class Game {
       this.chat.add(null, `${target.name} defeated. You gain ${xp} XP.`);
       this.player.gainXp(xp);
       this.loot.dropFor(target);
+      // Now and then a health potion (straight into your pouch).
+      if (Math.random() < POTION.dropChance && this.player.potions < POTION.max) {
+        this.player.potions++;
+        this.chat.add(null, `You receive 1 x ${POTION.name}.`);
+      }
     });
     this.player.on('fell', ({ lost }) => {
       this.chat.add(null, `You were brought back to safe ground (-${lost} health).`);
@@ -256,6 +286,7 @@ export class Game {
       else if (!this.battle.dead) this.player.update(gameDt, this.input, this.cameraRig.yaw);
       this.villageLife.update(gameDt, this.player, this.world.dayNight.isNight);
       this.loot.update(gameDt);
+      this.player.potionCooldown = Math.max(0, this.player.potionCooldown - gameDt);
       if (this.loot.nearest) this.hud.setPrompt(`Pick up ${ITEMS[this.loot.nearest.id].name}`);
     }
     if (!this.flying) this.cameraRig.update(dt, this.player.model.root.position);
@@ -300,6 +331,27 @@ export class Game {
     this.hud.root.classList.remove('inv-open');
     this.saveNow();
     this.input.lock(); // back to the game (this key press / click counts as the needed user action)
+  }
+
+  // Talking to a Weaponsmith, Armorer or Merchant opens their shop. Each
+  // shop's stock is the same all day (what you buy is gone until tomorrow).
+  openShop(keeper) {
+    const day = this.world.dayNight.day;
+    const key = `${keeper.village?.center?.x},${keeper.village?.center?.z}|${keeper.role}|${day}`;
+    if (!this.shopStock.has(key)) {
+      this.shopStock.set(key, stockFor(keeper.role, this.player.classId, this.player.level, `${this.world.seed}|${key}`));
+    }
+    this.shopKey = key;
+    this.shop.show(keeper, this.shopStock.get(key));
+    this.input.unlock();
+    this.state = 'paused';
+  }
+
+  closeShop() {
+    this.shopStock.set(this.shopKey, this.shop.stock);
+    this.shop.hide();
+    this.saveNow();
+    this.input.lock();
   }
 
   openGuild(guildmaster) {
@@ -391,6 +443,7 @@ export class Game {
       level: this.player.level,
       xp: this.player.xp,
       gold: this.player.gold,
+      potions: this.player.potions,
       equipment: this.player.equipment,
       bag: this.player.bag,
       explored: [...this.minimap.explored],

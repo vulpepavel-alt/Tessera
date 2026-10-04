@@ -2,6 +2,7 @@
 // near, lets you talk to them (E), makes them chat on their own, and tells
 // the HUD which village you are in.
 
+import { SHOPKEEPERS } from '../data/shop.js';
 import { pushApart } from '../entities/physics.js';
 import * as THREE from 'three';
 import { Villager } from '../entities/Villager.js';
@@ -12,8 +13,9 @@ const TALK_DISTANCE = 3.2;
 const CHATTER_EVERY = [6, 14]; // seconds between random remarks
 
 export class VillageLife {
-  constructor({ scene, worldView, labels, chat, hud, particles, onGuild }) {
+  constructor({ scene, worldView, labels, chat, hud, particles, onGuild, onShop }) {
     this.onGuild = onGuild;
+    this.onShop = onShop; // Weaponsmith, Armorer, Merchant: open their shop
     this.particles = particles;
     this.smokeTimer = 0;
     this.scene = scene;
@@ -134,6 +136,7 @@ export class VillageLife {
     v.lineIndex++;
     this.labels.say(v, text, 5);
     this.chat.add(v.name, text);
+    if (SHOPKEEPERS.includes(v.role)) this.onShop?.(v);
     return true;
   }
 

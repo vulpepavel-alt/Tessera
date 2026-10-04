@@ -22,6 +22,8 @@ export const CONTROLS = [
   ['G', 'Glider (in the air) / boat (at the water)'],
   ['B / I', 'Inventory'],
   ['Tab', 'Lock on to an enemy (again to switch / release)'],
+  ['3', 'Drink a health potion'],
+  ['E at a shopkeeper', 'Buy and sell (Weaponsmith, Armorer, Merchant)'],
   ['V', 'Show all health bars'],
   ['E', 'Talk to villagers'],
   ['C', 'Dive (while swimming)'],

@@ -6,6 +6,7 @@
 //   bottom-left  message log (ChatLog.js)
 // All labels use the pixel font from pixelFont.js.
 
+import { POTION } from '../data/shop.js';
 import './hud.css';
 import { ITEMS } from '../data/items.js';
 import { el } from './dom.js';
@@ -58,6 +59,7 @@ export class GameHud {
       s2: slot('2', 'locked'),
       r: slot('R', 'locked'),
       q: slot('Q', 'roll'),
+      potion: slot('3', 'potion'),
     };
     this.comboLabel = pixelLabel('', { scale: 2, color: '#ffe27a' });
     this.combo = el('div', { class: 'hud-combo' }, this.comboLabel);
@@ -150,6 +152,8 @@ export class GameHud {
     }
     this.slots.m2.cooldown(0, cooldowns.specialReady !== false);
     this.slots.q.cooldown(cooldowns.roll ?? 0, p.stamina >= PLAYER.rollCost);
+    this.slots.potion.cooldown(p.potionCooldown / POTION.cooldown, p.potions > 0);
+    this.slots.potion.setCount(p.potions);
     const sk = cooldowns.skills;
     if (sk) {
       this.slots.s1.cooldown(sk.s1.cooldown, sk.s1.usable);
@@ -226,9 +230,12 @@ function smallBar(color, name) {
 function slot(key, icon) {
   const cover = el('div', { class: 'slot-cover' });
   let picture = iconCanvas(icon, 2.5);
+  const count = pixelLabel('', { scale: 1 });
+  const countBox = el('span', { class: 'slot-count hidden' }, count);
   const root = el('div', { class: `hud-slot${icon === 'locked' ? ' locked' : ''}` },
-    picture, cover, el('span', { class: 'slot-key' }, pixelLabel(key, { scale: 1 })));
+    picture, cover, el('span', { class: 'slot-key' }, pixelLabel(key, { scale: 1 })), countBox);
   let last = '';
+  let lastCount = null;
   return {
     root,
     setIcon(name) {
@@ -236,6 +243,13 @@ function slot(key, icon) {
       picture.replaceWith(next);
       picture = next;
       root.classList.toggle('locked', name === 'locked');
+    },
+    // A number in the corner (how many potions are left).
+    setCount(n) {
+      if (n === lastCount) return;
+      lastCount = n;
+      count.setText(String(n));
+      countBox.classList.remove('hidden');
     },
     cooldown(fraction, usable) {
       const key2 = `${fraction.toFixed(2)}|${usable}`;
